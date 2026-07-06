@@ -14,6 +14,9 @@ export const env = {
   nodeEnv: process.env.NODE_ENV || 'development',
   port: Number(process.env.PORT || 8790),
   host: process.env.HOST || '0.0.0.0',
+  appAuthEnabled: parseBoolean(process.env.APP_AUTH_ENABLED || 'false'),
+  appAuthUser: process.env.APP_AUTH_USER || 'admin',
+  appAuthPassword: process.env.APP_AUTH_PASSWORD || '',
   openaiBaseUrl: (process.env.OPENAI_BASE_URL || '').replace(/\/$/, ''),
   openaiApiKey: process.env.OPENAI_API_KEY || '',
   openaiModel: process.env.OPENAI_MODEL || '',
@@ -126,6 +129,10 @@ function parseModelList(value) {
     .split(',')
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+function parseBoolean(value) {
+  return ['1', 'true', 'yes', 'y', 'on'].includes(String(value || '').trim().toLowerCase());
 }
 
 async function fetchWithTimeout(url, options = {}) {

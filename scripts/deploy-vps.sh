@@ -22,6 +22,9 @@ DEFAULT_KNOWLEDGE_BUDGET_CHARS="${KNOWLEDGE_BUDGET_CHARS:-1200}"
 DEFAULT_ENABLE_NGINX_BASIC_AUTH="${ENABLE_NGINX_BASIC_AUTH:-no}"
 DEFAULT_BASIC_AUTH_USER="${BASIC_AUTH_USER:-admin}"
 GENERATED_BASIC_AUTH_PASSWORD="${GENERATED_BASIC_AUTH_PASSWORD:-no}"
+DEFAULT_APP_AUTH_ENABLED="${APP_AUTH_ENABLED:-true}"
+DEFAULT_APP_AUTH_USER="${APP_AUTH_USER:-admin}"
+GENERATED_APP_AUTH_PASSWORD="${GENERATED_APP_AUTH_PASSWORD:-no}"
 
 log() {
   printf '\n[%s] %s\n' "$APP_NAME" "$*"
@@ -151,6 +154,9 @@ prepare_app_dir() {
 }
 
 collect_env_settings() {
+  APP_AUTH_ENABLED_WAS_SET="${APP_AUTH_ENABLED+x}"
+  APP_AUTH_USER_WAS_SET="${APP_AUTH_USER+x}"
+  APP_AUTH_PASSWORD_WAS_SET="${APP_AUTH_PASSWORD+x}"
   OPENAI_BASE_URL="${OPENAI_BASE_URL:-}"
   OPENAI_API_KEY="${OPENAI_API_KEY:-}"
   OPENAI_MODEL="${OPENAI_MODEL:-}"
@@ -160,8 +166,17 @@ collect_env_settings() {
   OPENAI_TEMPERATURE="${OPENAI_TEMPERATURE:-$DEFAULT_TEMPERATURE}"
   OPENAI_REASONING_EFFORT="${OPENAI_REASONING_EFFORT:-$DEFAULT_REASONING_EFFORT}"
   KNOWLEDGE_BUDGET_CHARS="${KNOWLEDGE_BUDGET_CHARS:-$DEFAULT_KNOWLEDGE_BUDGET_CHARS}"
+  APP_AUTH_ENABLED="${APP_AUTH_ENABLED:-$DEFAULT_APP_AUTH_ENABLED}"
+  APP_AUTH_USER="${APP_AUTH_USER:-$DEFAULT_APP_AUTH_USER}"
+  APP_AUTH_PASSWORD="${APP_AUTH_PASSWORD:-}"
   PORT="${PORT:-8790}"
   ENABLE_NGINX_BASIC_AUTH="${ENABLE_NGINX_BASIC_AUTH:-$DEFAULT_ENABLE_NGINX_BASIC_AUTH}"
+
+  case "${APP_AUTH_ENABLED,,}" in
+    y|yes|true|1|on) APP_AUTH_ENABLED="true" ;;
+    n|no|false|0|off) APP_AUTH_ENABLED="false" ;;
+    *) die "APP_AUTH_ENABLED must be true or false." ;;
+  esac
 
   case "${ENABLE_NGINX_BASIC_AUTH,,}" in
     y|yes|true|1) ENABLE_NGINX_BASIC_AUTH="yes" ;;
@@ -176,11 +191,15 @@ collect_env_settings() {
   fi
 
   if [[ "$ENABLE_NGINX_BASIC_AUTH" == "yes" ]]; then
-    BASIC_AUTH_USER="${BASIC_AUTH_USER:-$DEFAULT_BASIC_AUTH_USER}"
+    BASIC_AUTH_USER="${BASIC_AUTH_USER:-${APP_AUTH_USER:-$DEFAULT_BASIC_AUTH_USER}}"
     SERVER_NAME="${SERVER_NAME:-_}"
     if [[ -z "${BASIC_AUTH_PASSWORD:-}" ]]; then
-      BASIC_AUTH_PASSWORD="$(openssl rand -base64 18)"
-      GENERATED_BASIC_AUTH_PASSWORD="yes"
+      if [[ "$APP_AUTH_ENABLED" == "true" && -n "${APP_AUTH_PASSWORD:-}" ]]; then
+        BASIC_AUTH_PASSWORD="$APP_AUTH_PASSWORD"
+      else
+        BASIC_AUTH_PASSWORD="$(openssl rand -base64 18)"
+        GENERATED_BASIC_AUTH_PASSWORD="yes"
+      fi
     fi
     HOST="127.0.0.1"
   else
@@ -196,6 +215,36 @@ write_env_file() {
     [[ -n "$OPENAI_BASE_URL" ]] || OPENAI_BASE_URL="$(read_env_value OPENAI_BASE_URL)"
     [[ -n "$OPENAI_API_KEY" ]] || OPENAI_API_KEY="$(read_env_value OPENAI_API_KEY)"
     [[ -n "$OPENAI_MODEL" ]] || OPENAI_MODEL="$(read_env_value OPENAI_MODEL)"
+    if [[ -z "$APP_AUTH_USER_WAS_SET" ]]; then
+      APP_AUTH_USER="$(read_env_value APP_AUTH_USER)"
+    fi
+    if [[ -z "$APP_AUTH_PASSWORD_WAS_SET" ]]; then
+      APP_AUTH_PASSWORD="$(read_env_value APP_AUTH_PASSWORD)"
+    fi
+    if [[ -z "$APP_AUTH_ENABLED_WAS_SET" ]]; then
+      local existing_app_auth_enabled
+      existing_app_auth_enabled="$(read_env_value APP_AUTH_ENABLED)"
+      [[ -z "$existing_app_auth_enabled" ]] || APP_AUTH_ENABLED="$existing_app_auth_enabled"
+    fi
+  fi
+
+  APP_AUTH_ENABLED="${APP_AUTH_ENABLED:-$DEFAULT_APP_AUTH_ENABLED}"
+  APP_AUTH_USER="${APP_AUTH_USER:-$DEFAULT_APP_AUTH_USER}"
+  case "${APP_AUTH_ENABLED,,}" in
+    y|yes|true|1|on) APP_AUTH_ENABLED="true" ;;
+    n|no|false|0|off) APP_AUTH_ENABLED="false" ;;
+    *) die "APP_AUTH_ENABLED must be true or false." ;;
+  esac
+
+  if [[ "$APP_AUTH_ENABLED" == "true" && -z "$APP_AUTH_PASSWORD" ]]; then
+    APP_AUTH_PASSWORD="$(openssl rand -base64 18)"
+    GENERATED_APP_AUTH_PASSWORD="yes"
+  fi
+
+  if [[ "$ENABLE_NGINX_BASIC_AUTH" == "yes" && "$APP_AUTH_ENABLED" == "true" ]]; then
+    BASIC_AUTH_USER="$APP_AUTH_USER"
+    BASIC_AUTH_PASSWORD="$APP_AUTH_PASSWORD"
+    GENERATED_BASIC_AUTH_PASSWORD="no"
   fi
 
   log "Writing production .env..."
@@ -204,6 +253,9 @@ write_env_file() {
     printf 'OPENAI_API_KEY=%s\n' "$(quote_env_value "$OPENAI_API_KEY")"
     printf 'OPENAI_MODEL=%s\n' "$(quote_env_value "$OPENAI_MODEL")"
     printf 'OPENAI_FALLBACK_MODELS=%s\n' "$(quote_env_value "$OPENAI_FALLBACK_MODELS")"
+    printf 'APP_AUTH_ENABLED=%s\n' "$(quote_env_value "$APP_AUTH_ENABLED")"
+    printf 'APP_AUTH_USER=%s\n' "$(quote_env_value "$APP_AUTH_USER")"
+    printf 'APP_AUTH_PASSWORD=%s\n' "$(quote_env_value "$APP_AUTH_PASSWORD")"
     printf 'PORT=%s\n' "$(quote_env_value "$PORT")"
     printf 'HOST=%s\n' "$(quote_env_value "$HOST")"
     printf 'OPENAI_TIMEOUT_MS=%s\n' "$(quote_env_value "$OPENAI_TIMEOUT_MS")"
@@ -334,9 +386,17 @@ run_health_checks() {
   log "Running local health checks..."
   if [[ "${ENABLE_NGINX_BASIC_AUTH}" == "yes" ]]; then
     curl -fsSI "http://127.0.0.1/" >/dev/null
-    curl -fsS -u "${BASIC_AUTH_USER}:${BASIC_AUTH_PASSWORD}" "http://127.0.0.1/api/health" >/dev/null
+    if [[ "${APP_AUTH_ENABLED}" == "true" ]]; then
+      curl -fsS -u "${APP_AUTH_USER}:${APP_AUTH_PASSWORD}" "http://127.0.0.1/api/health" >/dev/null
+    else
+      curl -fsS -u "${BASIC_AUTH_USER}:${BASIC_AUTH_PASSWORD}" "http://127.0.0.1/api/health" >/dev/null
+    fi
   else
-    curl -fsS "http://127.0.0.1:${PORT}/api/health" >/dev/null
+    if [[ "${APP_AUTH_ENABLED}" == "true" ]]; then
+      curl -fsS -u "${APP_AUTH_USER}:${APP_AUTH_PASSWORD}" "http://127.0.0.1:${PORT}/api/health" >/dev/null
+    else
+      curl -fsS "http://127.0.0.1:${PORT}/api/health" >/dev/null
+    fi
   fi
   log "Local health checks passed."
 }
@@ -363,6 +423,16 @@ print_result() {
 
   log "Deployment complete."
   log "Open ${public_url}"
+  if [[ "${APP_AUTH_ENABLED}" == "true" ]]; then
+    log "Web password username: ${APP_AUTH_USER}"
+    if [[ "${GENERATED_APP_AUTH_PASSWORD}" == "yes" ]]; then
+      log "Generated web password: ${APP_AUTH_PASSWORD}"
+    else
+      log "Web password: the value saved in ${APP_DIR}/.env"
+    fi
+  else
+    log "Web password is disabled. Set APP_AUTH_ENABLED=true to require a password."
+  fi
   if [[ "${ENABLE_NGINX_BASIC_AUTH}" == "yes" ]]; then
     log "If the page does not open, check your cloud security group/firewall and allow inbound TCP 80."
   else
@@ -376,7 +446,11 @@ print_result() {
       log "Basic Auth password: the value you provided in BASIC_AUTH_PASSWORD"
     fi
   fi
-  log "Health check: curl ${public_url%/}/api/health"
+  if [[ "${APP_AUTH_ENABLED}" == "true" ]]; then
+    log "Health check: curl -u '${APP_AUTH_USER}:YOUR_PASSWORD' ${public_url%/}/api/health"
+  else
+    log "Health check: curl ${public_url%/}/api/health"
+  fi
   log "Configure the model API from the web page after login."
 }
 

@@ -37,13 +37,19 @@ fi
 
 section "App .env without secrets"
 if [[ -f "${APP_DIR}/.env" ]]; then
-  sed -E 's/^(OPENAI_API_KEY=).*/\1***redacted***/' "${APP_DIR}/.env" || true
+  sed -E 's/^(OPENAI_API_KEY=).*/\1***redacted***/; s/^(APP_AUTH_PASSWORD=).*/\1***redacted***/' "${APP_DIR}/.env" || true
 else
   echo "${APP_DIR}/.env not found"
 fi
 
 section "Local app health"
-run curl -i "http://127.0.0.1:${PORT}/api/health"
+if [[ -f "${APP_DIR}/.env" ]] && grep -Eq '^APP_AUTH_ENABLED="?true"?' "${APP_DIR}/.env"; then
+  APP_AUTH_USER="$(grep -E '^APP_AUTH_USER=' "${APP_DIR}/.env" | tail -n 1 | cut -d= -f2- | sed 's/^"//; s/"$//')"
+  APP_AUTH_PASSWORD="$(grep -E '^APP_AUTH_PASSWORD=' "${APP_DIR}/.env" | tail -n 1 | cut -d= -f2- | sed 's/^"//; s/"$//')"
+  run curl -i -u "${APP_AUTH_USER}:${APP_AUTH_PASSWORD}" "http://127.0.0.1:${PORT}/api/health"
+else
+  run curl -i "http://127.0.0.1:${PORT}/api/health"
+fi
 
 section "Local Nginx health"
 if command -v nginx >/dev/null 2>&1; then

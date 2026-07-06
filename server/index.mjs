@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import crypto from 'node:crypto';
 import path from 'node:path';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -14,7 +15,61 @@ const __dirname = path.dirname(__filename);
 const app = express();
 
 app.use(cors());
+app.use(requireBasicAuth);
 app.use(express.json({ limit: '2mb' }));
+
+function requireBasicAuth(req, res, next) {
+  if (!env.appAuthEnabled || req.method === 'OPTIONS') {
+    next();
+    return;
+  }
+
+  if (!env.appAuthPassword) {
+    res.status(503).json({
+      ok: false,
+      code: 'APP_AUTH_NOT_CONFIGURED',
+      message: '网页访问密码未配置，请在服务端 .env 中设置 APP_AUTH_PASSWORD。',
+    });
+    return;
+  }
+
+  const credentials = parseBasicCredentials(req.headers.authorization);
+  if (
+    credentials &&
+    safeEqual(credentials.username, env.appAuthUser) &&
+    safeEqual(credentials.password, env.appAuthPassword)
+  ) {
+    next();
+    return;
+  }
+
+  res.set('WWW-Authenticate', 'Basic realm="IP Commerce Generator", charset="UTF-8"');
+  res.status(401).send('Authentication required');
+}
+
+function parseBasicCredentials(header) {
+  const match = /^Basic\s+(.+)$/i.exec(String(header || ''));
+  if (!match) return null;
+
+  try {
+    const decoded = Buffer.from(match[1], 'base64').toString('utf8');
+    const separatorIndex = decoded.indexOf(':');
+    if (separatorIndex < 0) return null;
+    return {
+      username: decoded.slice(0, separatorIndex),
+      password: decoded.slice(separatorIndex + 1),
+    };
+  } catch {
+    return null;
+  }
+}
+
+function safeEqual(actual, expected) {
+  const actualBuffer = Buffer.from(String(actual || ''));
+  const expectedBuffer = Buffer.from(String(expected || ''));
+  if (actualBuffer.length !== expectedBuffer.length) return false;
+  return crypto.timingSafeEqual(actualBuffer, expectedBuffer);
+}
 
 app.get('/api/health', async (_req, res) => {
   const manifest = await loadManifest();
