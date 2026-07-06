@@ -211,8 +211,9 @@ export async function verifyKnowledgeFiles() {
   for (const item of manifest.files) {
     const filePath = path.join(knowledgeDir, item.path);
     try {
-      const buffer = await fs.readFile(filePath);
-      const sha256 = crypto.createHash('sha256').update(buffer).digest('hex');
+      const content = await fs.readFile(filePath, 'utf8');
+      const normalizedContent = content.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n');
+      const sha256 = crypto.createHash('sha256').update(normalizedContent, 'utf8').digest('hex');
       checks.push({
         path: item.path,
         ok: sha256 === item.sha256,

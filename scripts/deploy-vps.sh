@@ -231,7 +231,10 @@ install_and_build() {
 verify_knowledge() {
   cd "${APP_DIR}"
   log "Verifying knowledge files..."
-  npm run verify:knowledge >/tmp/${APP_NAME}-knowledge-verify.log
+  if ! npm run verify:knowledge >/tmp/${APP_NAME}-knowledge-verify.log 2>&1; then
+    cat /tmp/${APP_NAME}-knowledge-verify.log
+    die "Knowledge verification failed."
+  fi
   tail -n 20 /tmp/${APP_NAME}-knowledge-verify.log
 }
 

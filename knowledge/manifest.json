@@ -1,4 +1,4 @@
-﻿{
+{
     "version":  "2026-07-06-initial",
     "generatedAt":  "2026-07-06T13:28:27.9047485Z",
     "description":  "Versioned file knowledge base for IP commerce generator",
@@ -9,11 +9,11 @@
                   },
                   {
                       "path":  "handbooks/commerce-video.md",
-                      "sha256":  "52a0ebf70c7af6dd2f4c6a8d04e3554baa6961f7c1081448a2a5978f75905018"
+                      "sha256":  "4c0ebf5c87b13da332283bc014507da5b9834d2dd34ce423b98d61b8b58142db"
                   },
                   {
                       "path":  "handbooks/personal-ip.md",
-                      "sha256":  "b184875e445fc8d1021deac2552fecb533027be92d7bc1bd24f02a6559ad1798"
+                      "sha256":  "4a919985170b2eee8a0741e735e284f751d4c76389ccebf935fca576c2e8d485"
                   },
                   {
                       "path":  "templates/commerce-plan.schema.json",
