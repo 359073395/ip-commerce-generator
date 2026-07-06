@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
+export DEBIAN_FRONTEND="${DEBIAN_FRONTEND:-noninteractive}"
+export NEEDRESTART_MODE="${NEEDRESTART_MODE:-a}"
+export APT_LISTCHANGES_FRONTEND="${APT_LISTCHANGES_FRONTEND:-none}"
+
 DEFAULT_GITHUB_REPO="359073395/ip-commerce-generator"
 GITHUB_REPO="${GITHUB_REPO:-$DEFAULT_GITHUB_REPO}"
 GITHUB_REF="${GITHUB_REF:-main}"
