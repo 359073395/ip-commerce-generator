@@ -1,0 +1,4 @@
+interface:
+  display_name: "IP带货知识库"
+  short_description: "调用、应用并持续学习个人IP与带货视频知识库和脚本流程。"
+  default_prompt: "Use $ip-commerce-knowledge-base to generate a concrete personal-IP or commerce-video plan from my industry, product, account, or new learning materials."

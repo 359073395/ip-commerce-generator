@@ -1,0 +1,333 @@
+{
+  "summary": {
+    "generatedAt": "2026-07-06T18:30:49.331Z",
+    "api": {
+      "baseUrl": "https://api.hyjiexi.eu.org/v1",
+      "model": "gpt-5.5",
+      "key": "redacted"
+    },
+    "total": 9,
+    "passed": 0,
+    "failed": 9,
+    "modules": [
+      {
+        "id": "ip-positioning",
+        "name": "IP定位",
+        "ok": false,
+        "passed": false,
+        "elapsedMs": 30010,
+        "failedChecks": [
+          "generationError"
+        ],
+        "error": "Timeout after 30000ms"
+      },
+      {
+        "id": "viral-topics",
+        "name": "爆款选题",
+        "ok": false,
+        "passed": false,
+        "elapsedMs": 30010,
+        "failedChecks": [
+          "generationError"
+        ],
+        "error": "Timeout after 30000ms"
+      },
+      {
+        "id": "conversion-topics",
+        "name": "成交选题",
+        "ok": false,
+        "passed": false,
+        "elapsedMs": 30009,
+        "failedChecks": [
+          "generationError"
+        ],
+        "error": "Timeout after 30000ms"
+      },
+      {
+        "id": "pain-topics",
+        "name": "痛点选题",
+        "ok": false,
+        "passed": false,
+        "elapsedMs": 30005,
+        "failedChecks": [
+          "generationError"
+        ],
+        "error": "Timeout after 30000ms"
+      },
+      {
+        "id": "script",
+        "name": "脚本创作",
+        "ok": false,
+        "passed": false,
+        "elapsedMs": 30010,
+        "failedChecks": [
+          "generationError"
+        ],
+        "error": "Timeout after 30000ms"
+      },
+      {
+        "id": "rewrite",
+        "name": "文案二创",
+        "ok": false,
+        "passed": false,
+        "elapsedMs": 30008,
+        "failedChecks": [
+          "generationError"
+        ],
+        "error": "Timeout after 30000ms"
+      },
+      {
+        "id": "viral-analysis",
+        "name": "爆款拆解",
+        "ok": false,
+        "passed": false,
+        "elapsedMs": 30001,
+        "failedChecks": [
+          "generationError"
+        ],
+        "error": "Timeout after 30000ms"
+      },
+      {
+        "id": "polish",
+        "name": "文案洗稿",
+        "ok": false,
+        "passed": false,
+        "elapsedMs": 30002,
+        "failedChecks": [
+          "generationError"
+        ],
+        "error": "Timeout after 30000ms"
+      },
+      {
+        "id": "commerce",
+        "name": "带货",
+        "ok": false,
+        "passed": false,
+        "elapsedMs": 30015,
+        "failedChecks": [
+          "generationError"
+        ],
+        "error": "Timeout after 30000ms"
+      }
+    ]
+  },
+  "results": [
+    {
+      "id": "ip-positioning",
+      "name": "IP定位",
+      "ok": false,
+      "elapsedMs": 30010,
+      "error": "Timeout after 30000ms",
+      "request": {
+        "moduleId": "ip-positioning",
+        "formData": {
+          "industry": "家居装修",
+          "role": "专家/顾问",
+          "offer": "咨询服务",
+          "buyer": "职场人群",
+          "proof": "前后对比",
+          "contentCondition": "真人口播",
+          "conversion": "线上课程",
+          "details": "杭州高端收纳整理师个人IP，服务新中产家庭和忙碌职场女性，主打全屋收纳规划、衣橱整理、搬家前整理，客单价2980-12800元，有真实前后对比案例、客户好评和8年从业经验，主要通过私信、表单、线上课程和预约咨询成交。"
+        },
+        "selections": [],
+        "context": {}
+      }
+    },
+    {
+      "id": "viral-topics",
+      "name": "爆款选题",
+      "ok": false,
+      "elapsedMs": 30010,
+      "error": "Timeout after 30000ms",
+      "request": {
+        "moduleId": "viral-topics",
+        "formData": {
+          "prompt": "杭州高端收纳整理师个人IP，服务新中产家庭和忙碌职场女性，主打全屋收纳规划、衣橱整理、搬家前整理，客单价2980-12800元，有真实前后对比案例、客户好评和8年从业经验，主要通过私信、表单、线上课程和预约咨询成交。 需要生成适合短视频起号的爆款选题。"
+        },
+        "selections": [
+          {
+            "step": "第二步：主脚本选择",
+            "choice": "教知识",
+            "subChoice": "案例型"
+          }
+        ],
+        "context": {
+          "ipPositioning": null
+        }
+      }
+    },
+    {
+      "id": "conversion-topics",
+      "name": "成交选题",
+      "ok": false,
+      "elapsedMs": 30009,
+      "error": "Timeout after 30000ms",
+      "request": {
+        "moduleId": "conversion-topics",
+        "formData": {
+          "prompt": "杭州高端收纳整理师个人IP，服务新中产家庭和忙碌职场女性，主打全屋收纳规划、衣橱整理、搬家前整理，客单价2980-12800元，有真实前后对比案例、客户好评和8年从业经验，主要通过私信、表单、线上课程和预约咨询成交。 目标是让用户愿意私信咨询和购买线上收纳课程。"
+        },
+        "selections": [
+          {
+            "step": "第二步：主脚本选择",
+            "choice": "晒过程",
+            "subChoice": "过程展示"
+          },
+          {
+            "step": "第三步：进店/成交理由选择",
+            "choices": [
+              "效果好",
+              "案例多",
+              "服务好"
+            ]
+          }
+        ],
+        "context": {
+          "ipPositioning": null
+        }
+      }
+    },
+    {
+      "id": "pain-topics",
+      "name": "痛点选题",
+      "ok": false,
+      "elapsedMs": 30005,
+      "error": "Timeout after 30000ms",
+      "request": {
+        "moduleId": "pain-topics",
+        "formData": {
+          "industryBackground": "我是做了8年的杭州高端收纳整理师，服务过200多个家庭，主打全屋收纳规划、衣橱整理和搬家前整理。",
+          "targetCustomer": "新中产家庭、忙碌职场女性、家里很乱但不知道怎么开始整理的人，以及想提升居住品质的人。"
+        },
+        "selections": [],
+        "context": {
+          "ipPositioning": null
+        }
+      }
+    },
+    {
+      "id": "script",
+      "name": "脚本创作",
+      "ok": false,
+      "elapsedMs": 30010,
+      "error": "Timeout after 30000ms",
+      "request": {
+        "moduleId": "script",
+        "formData": {
+          "prompt": "杭州高端收纳整理师个人IP，服务新中产家庭和忙碌职场女性，主打全屋收纳规划、衣橱整理、搬家前整理，客单价2980-12800元，有真实前后对比案例、客户好评和8年从业经验，主要通过私信、表单、线上课程和预约咨询成交。 请生成一条60秒口播脚本，目标是让用户私信领取收纳清单，并预约咨询。"
+        },
+        "selections": [
+          {
+            "step": "第一步：主脚本选择",
+            "choice": "个人IP脚本"
+          },
+          {
+            "step": "第二步：继续选择",
+            "choice": "讲故事",
+            "subChoice": "客户案例"
+          }
+        ],
+        "context": {
+          "ipPositioning": null
+        }
+      }
+    },
+    {
+      "id": "rewrite",
+      "name": "文案二创",
+      "ok": false,
+      "elapsedMs": 30008,
+      "error": "Timeout after 30000ms",
+      "request": {
+        "moduleId": "rewrite",
+        "formData": {
+          "prompt": "原文案：你家不是东西太多，而是每个东西都没有固定位置。一个家真正变清爽，不是靠扔东西，而是靠动线和收纳系统。请改成更适合杭州高端收纳整理师个人IP，服务新中产家庭和忙碌职场女性，主打全屋收纳规划、衣橱整理、搬家前整理，客单价2980-12800元，有真实前后对比案例、客户好评和8年从业经验，主要通过私信、表单、线上课程和预约咨询成交。的口播文案。"
+        },
+        "selections": [
+          {
+            "step": "第一步：二创方向",
+            "choice": "换人群"
+          }
+        ],
+        "context": {
+          "ipPositioning": null
+        }
+      }
+    },
+    {
+      "id": "viral-analysis",
+      "name": "爆款拆解",
+      "ok": false,
+      "elapsedMs": 30001,
+      "error": "Timeout after 30000ms",
+      "request": {
+        "moduleId": "viral-analysis",
+        "formData": {
+          "prompt": "参考视频内容：一个收纳师展示客户家从凌乱到整洁的前后对比，开头说“你以为家乱是因为懒，其实是因为动线错了”。请拆解并迁移到杭州高端收纳整理师个人IP，服务新中产家庭和忙碌职场女性，主打全屋收纳规划、衣橱整理、搬家前整理，客单价2980-12800元，有真实前后对比案例、客户好评和8年从业经验，主要通过私信、表单、线上课程和预约咨询成交。。"
+        },
+        "selections": [
+          {
+            "step": "第一步：拆解维度",
+            "choice": "成交链路拆解"
+          }
+        ],
+        "context": {
+          "ipPositioning": null
+        }
+      }
+    },
+    {
+      "id": "polish",
+      "name": "文案洗稿",
+      "ok": false,
+      "elapsedMs": 30002,
+      "error": "Timeout after 30000ms",
+      "request": {
+        "moduleId": "polish",
+        "formData": {
+          "prompt": "原文案：很多人以为收纳就是买盒子，其实越买越乱。真正有效的收纳，是先判断生活动线，再给每个物品安排位置。请按杭州高端收纳整理师个人IP，服务新中产家庭和忙碌职场女性，主打全屋收纳规划、衣橱整理、搬家前整理，客单价2980-12800元，有真实前后对比案例、客户好评和8年从业经验，主要通过私信、表单、线上课程和预约咨询成交。重写。"
+        },
+        "selections": [
+          {
+            "step": "第一步：洗稿方向",
+            "choice": "痛点重写"
+          }
+        ],
+        "context": {
+          "ipPositioning": null
+        }
+      }
+    },
+    {
+      "id": "commerce",
+      "name": "带货",
+      "ok": false,
+      "elapsedMs": 30015,
+      "error": "Timeout after 30000ms",
+      "request": {
+        "moduleId": "commerce",
+        "formData": {
+          "product": "线上收纳系统课，售价399元，包含衣橱整理、厨房整理、搬家整理和收纳工具清单",
+          "audience": "品质需求人群",
+          "scene": "解决痛点",
+          "sellingPoint": "效果",
+          "proof": "200个家庭整理案例、前后对比图、学员整理反馈、8年从业经验"
+        },
+        "selections": [
+          {
+            "step": "带货链路",
+            "choice": "产品需求"
+          },
+          {
+            "step": "成交入口",
+            "choice": "商品卡"
+          }
+        ],
+        "context": {
+          "ipPositioning": null
+        }
+      }
+    }
+  ]
+}

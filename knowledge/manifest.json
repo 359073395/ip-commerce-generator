@@ -1,0 +1,35 @@
+﻿{
+    "version":  "2026-07-06-initial",
+    "generatedAt":  "2026-07-06T13:28:27.9047485Z",
+    "description":  "Versioned file knowledge base for IP commerce generator",
+    "files":  [
+                  {
+                      "path":  "handbooks/combined.md",
+                      "sha256":  "e1b815c3d6bbcdbf570baefe80c08faa83e07e334e802a9a01d462356e8a785b"
+                  },
+                  {
+                      "path":  "handbooks/commerce-video.md",
+                      "sha256":  "52a0ebf70c7af6dd2f4c6a8d04e3554baa6961f7c1081448a2a5978f75905018"
+                  },
+                  {
+                      "path":  "handbooks/personal-ip.md",
+                      "sha256":  "b184875e445fc8d1021deac2552fecb533027be92d7bc1bd24f02a6559ad1798"
+                  },
+                  {
+                      "path":  "templates/commerce-plan.schema.json",
+                      "sha256":  "7141a731ea885c0a9107dc48b6f891a2f9102c87722e13261eb872e0bd75451e"
+                  },
+                  {
+                      "path":  "templates/ip-plan.schema.json",
+                      "sha256":  "439f66e39e48b7b581a95a786458d316e490b391d7c261960b4957e91a814c3e"
+                  },
+                  {
+                      "path":  "templates/review.schema.json",
+                      "sha256":  "c9b9d884dad1625fecb4acad470ead797d47ccc72384b67b1d37dfba8714b5b5"
+                  },
+                  {
+                      "path":  "templates/script.schema.json",
+                      "sha256":  "80a31df62d2327602f35cd3e66c57890c6e0f5dd83c1bb4a488c63b35f7a6d4c"
+                  }
+              ]
+}

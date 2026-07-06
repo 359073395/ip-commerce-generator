@@ -1,0 +1,84 @@
+{
+  "summary": {
+    "generatedAt": "2026-07-06T18:23:11.157Z",
+    "api": {
+      "baseUrl": "https://api.hyjiexi.eu.org/v1",
+      "model": "gpt-5.5",
+      "key": "redacted"
+    },
+    "total": 2,
+    "passed": 0,
+    "failed": 2,
+    "modules": [
+      {
+        "id": "ip-positioning",
+        "name": "IP定位",
+        "ok": false,
+        "passed": false,
+        "elapsedMs": 90017,
+        "failedChecks": [
+          "generationError"
+        ],
+        "error": "Timeout after 90000ms"
+      },
+      {
+        "id": "viral-topics",
+        "name": "爆款选题",
+        "ok": false,
+        "passed": false,
+        "elapsedMs": 90001,
+        "failedChecks": [
+          "generationError"
+        ],
+        "error": "Timeout after 90000ms"
+      }
+    ]
+  },
+  "results": [
+    {
+      "id": "ip-positioning",
+      "name": "IP定位",
+      "ok": false,
+      "elapsedMs": 90017,
+      "error": "Timeout after 90000ms",
+      "request": {
+        "moduleId": "ip-positioning",
+        "formData": {
+          "industry": "家居装修",
+          "role": "专家/顾问",
+          "offer": "咨询服务",
+          "buyer": "职场人群",
+          "proof": "前后对比",
+          "contentCondition": "真人口播",
+          "conversion": "线上课程",
+          "details": "杭州高端收纳整理师个人IP，服务新中产家庭和忙碌职场女性，主打全屋收纳规划、衣橱整理、搬家前整理，客单价2980-12800元，有真实前后对比案例、客户好评和8年从业经验，主要通过私信、表单、线上课程和预约咨询成交。"
+        },
+        "selections": [],
+        "context": {}
+      }
+    },
+    {
+      "id": "viral-topics",
+      "name": "爆款选题",
+      "ok": false,
+      "elapsedMs": 90001,
+      "error": "Timeout after 90000ms",
+      "request": {
+        "moduleId": "viral-topics",
+        "formData": {
+          "prompt": "杭州高端收纳整理师个人IP，服务新中产家庭和忙碌职场女性，主打全屋收纳规划、衣橱整理、搬家前整理，客单价2980-12800元，有真实前后对比案例、客户好评和8年从业经验，主要通过私信、表单、线上课程和预约咨询成交。 需要生成适合短视频起号的爆款选题。"
+        },
+        "selections": [
+          {
+            "step": "第二步：主脚本选择",
+            "choice": "教知识",
+            "subChoice": "案例型"
+          }
+        ],
+        "context": {
+          "ipPositioning": null
+        }
+      }
+    }
+  ]
+}
