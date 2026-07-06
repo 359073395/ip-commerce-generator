@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
+export DEBIAN_FRONTEND="${DEBIAN_FRONTEND:-noninteractive}"
+export NEEDRESTART_MODE="${NEEDRESTART_MODE:-a}"
+export APT_LISTCHANGES_FRONTEND="${APT_LISTCHANGES_FRONTEND:-none}"
+
 APP_NAME="${APP_NAME:-ip-commerce-generator}"
 SERVICE_NAME="${SERVICE_NAME:-ip-commerce-generator}"
 APP_DIR="${APP_DIR:-$(pwd)}"
