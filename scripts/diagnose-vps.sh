@@ -21,8 +21,12 @@ section "Recent app logs"
 run journalctl -u "$SERVICE_NAME" -n 80 --no-pager
 
 section "Nginx"
-run nginx -t
-run systemctl --no-pager --full status nginx
+if command -v nginx >/dev/null 2>&1; then
+  run nginx -t
+  run systemctl --no-pager --full status nginx
+else
+  echo "nginx not installed. This is normal when using direct port mode."
+fi
 
 section "Listening ports"
 if command -v ss >/dev/null 2>&1; then
@@ -42,7 +46,11 @@ section "Local app health"
 run curl -i "http://127.0.0.1:${PORT}/api/health"
 
 section "Local Nginx health"
-run curl -I "http://127.0.0.1/"
+if command -v nginx >/dev/null 2>&1; then
+  run curl -I "http://127.0.0.1/"
+else
+  echo "skipped because nginx is not installed"
+fi
 
 section "Firewall"
 if command -v ufw >/dev/null 2>&1; then

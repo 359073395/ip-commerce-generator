@@ -19,7 +19,7 @@ DEFAULT_MAX_TOKENS="${OPENAI_MAX_TOKENS:-1200}"
 DEFAULT_TEMPERATURE="${OPENAI_TEMPERATURE:-0.4}"
 DEFAULT_REASONING_EFFORT="${OPENAI_REASONING_EFFORT:-low}"
 DEFAULT_KNOWLEDGE_BUDGET_CHARS="${KNOWLEDGE_BUDGET_CHARS:-1200}"
-DEFAULT_ENABLE_NGINX_BASIC_AUTH="${ENABLE_NGINX_BASIC_AUTH:-yes}"
+DEFAULT_ENABLE_NGINX_BASIC_AUTH="${ENABLE_NGINX_BASIC_AUTH:-no}"
 DEFAULT_BASIC_AUTH_USER="${BASIC_AUTH_USER:-admin}"
 GENERATED_BASIC_AUTH_PASSWORD="${GENERATED_BASIC_AUTH_PASSWORD:-no}"
 
@@ -90,6 +90,18 @@ quote_env_value() {
   value="${value//\\/\\\\}"
   value="${value//\"/\\\"}"
   printf '"%s"' "$value"
+}
+
+read_env_value() {
+  local key="$1"
+  local value
+  if [[ ! -f ".env" ]]; then
+    return
+  fi
+  value="$(grep -E "^${key}=" .env 2>/dev/null | tail -n 1 | cut -d= -f2- || true)"
+  value="${value%\"}"
+  value="${value#\"}"
+  printf '%s' "$value"
 }
 
 install_system_packages() {
@@ -180,8 +192,10 @@ write_env_file() {
   cd "${APP_DIR}"
 
   if [[ -f ".env" && "${FORCE_ENV:-0}" != "1" ]]; then
-    log ".env already exists; keeping it. Set FORCE_ENV=1 to rewrite."
-    return
+    log ".env already exists; preserving API values and updating deployment defaults."
+    [[ -n "$OPENAI_BASE_URL" ]] || OPENAI_BASE_URL="$(read_env_value OPENAI_BASE_URL)"
+    [[ -n "$OPENAI_API_KEY" ]] || OPENAI_API_KEY="$(read_env_value OPENAI_API_KEY)"
+    [[ -n "$OPENAI_MODEL" ]] || OPENAI_MODEL="$(read_env_value OPENAI_MODEL)"
   fi
 
   log "Writing production .env..."
@@ -346,7 +360,11 @@ print_result() {
 
   log "Deployment complete."
   log "Open ${public_url}"
-  log "If the page does not open, check your cloud security group/firewall and allow inbound TCP 80."
+  if [[ "${ENABLE_NGINX_BASIC_AUTH}" == "yes" ]]; then
+    log "If the page does not open, check your cloud security group/firewall and allow inbound TCP 80."
+  else
+    log "If the page does not open, check your cloud security group/firewall and allow inbound TCP ${PORT}."
+  fi
   if [[ "${ENABLE_NGINX_BASIC_AUTH}" == "yes" ]]; then
     log "Basic Auth username: ${BASIC_AUTH_USER}"
     if [[ "${GENERATED_BASIC_AUTH_PASSWORD}" == "yes" ]]; then
