@@ -250,6 +250,22 @@ EOF
   systemctl --no-pager --full status "${SERVICE_NAME}" || true
 }
 
+open_firewall_ports() {
+  if ! command -v ufw >/dev/null 2>&1; then
+    return
+  fi
+
+  local ufw_status
+  ufw_status="$(ufw status | head -n 1 || true)"
+  if [[ "$ufw_status" == *active* ]]; then
+    if [[ "${ENABLE_NGINX_BASIC_AUTH}" == "yes" ]]; then
+      ufw allow 80/tcp || true
+    else
+      ufw allow "${PORT}/tcp" || true
+    fi
+  fi
+}
+
 install_nginx_basic_auth() {
   [[ "${ENABLE_NGINX_BASIC_AUTH}" == "yes" ]] || return
   need_root_for_system
@@ -290,19 +306,43 @@ EOF
   rm -f /etc/nginx/sites-enabled/default
   nginx -t
   systemctl enable nginx
-  systemctl reload nginx
+  systemctl restart nginx
+}
+
+run_health_checks() {
+  log "Running local health checks..."
+  if [[ "${ENABLE_NGINX_BASIC_AUTH}" == "yes" ]]; then
+    curl -fsSI "http://127.0.0.1/" >/dev/null
+    curl -fsS -u "${BASIC_AUTH_USER}:${BASIC_AUTH_PASSWORD}" "http://127.0.0.1/api/health" >/dev/null
+  else
+    curl -fsS "http://127.0.0.1:${PORT}/api/health" >/dev/null
+  fi
+  log "Local health checks passed."
+}
+
+detect_server_ip() {
+  local ip
+  ip="$(curl -fsS --max-time 4 https://api.ipify.org 2>/dev/null || true)"
+  if [[ -n "$ip" ]]; then
+    printf '%s' "$ip"
+    return
+  fi
+  hostname -I 2>/dev/null | awk '{print $1}'
 }
 
 print_result() {
   local public_url
+  local detected_ip
+  detected_ip="$(detect_server_ip)"
   if [[ "${ENABLE_NGINX_BASIC_AUTH}" == "yes" ]]; then
-    public_url="http://YOUR_SERVER_IP/"
+    public_url="http://${detected_ip:-YOUR_SERVER_IP}/"
   else
-    public_url="http://YOUR_SERVER_IP:${PORT}/"
+    public_url="http://${detected_ip:-YOUR_SERVER_IP}:${PORT}/"
   fi
 
   log "Deployment complete."
   log "Open ${public_url}"
+  log "If the page does not open, check your cloud security group/firewall and allow inbound TCP 80."
   if [[ "${ENABLE_NGINX_BASIC_AUTH}" == "yes" ]]; then
     log "Basic Auth username: ${BASIC_AUTH_USER}"
     if [[ "${GENERATED_BASIC_AUTH_PASSWORD}" == "yes" ]]; then
@@ -326,6 +366,8 @@ main() {
   verify_knowledge
   install_systemd_service
   install_nginx_basic_auth
+  open_firewall_ports
+  run_health_checks
   print_result
 }
 

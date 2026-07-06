@@ -134,6 +134,26 @@ curl -fsSL https://raw.githubusercontent.com/359073395/ip-commerce-generator/mai
 
 默认安装完成后会输出 Nginx Basic Auth 的账号和自动生成的密码。登录网站后，在右上角“配置API”里填写兼容 OpenAI API 的 Base URL、API Key，并选择模型。
 
+如果安装后网页打不开，先确认访问的是：
+
+```text
+http://服务器IP/
+```
+
+默认开启 Basic Auth 时不是访问 `:8790`。如果仍然打不开，通常是云服务器安全组或防火墙没有放行 TCP 80。可以在 VPS 上运行诊断：
+
+```bash
+sudo bash /opt/ip-commerce-generator/scripts/diagnose-vps.sh
+```
+
+常见修复：
+
+```bash
+sudo ufw allow 80/tcp
+sudo systemctl restart ip-commerce-generator
+sudo systemctl restart nginx
+```
+
 ## 知识库稳定性
 
 服务端只读取项目内 `knowledge/`，不会依赖 Windows 本地路径。部署时要确保这些文件一起上传：
