@@ -372,7 +372,7 @@ function TopBar({ module, health, onSettings, originalMode = false }) {
     return (
       <header className="topbar original-topbar">
         <div className="original-topbar-title">
-          <h1>短视频文案创作</h1>
+          <h1>流量IP核爆引擎</h1>
         </div>
         <button className="original-share-button" type="button" onClick={onSettings}>
           <Settings size={18} />
@@ -387,7 +387,7 @@ function TopBar({ module, health, onSettings, originalMode = false }) {
       <div className="title-stack">
         <div className="crumb">
           <PanelLeft size={20} />
-          <span>短视频文案创作</span>
+          <span>流量IP核爆引擎</span>
         </div>
         <h1>{module.name}</h1>
       </div>
