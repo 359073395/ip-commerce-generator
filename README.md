@@ -119,19 +119,13 @@ curl http://127.0.0.1:8790/api/health
 项目推送到 GitHub 私有仓库后，可以在任意 Ubuntu/Debian VPS 上用一条命令安装。私有仓库需要准备一个有仓库读取权限的 GitHub Token：
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/359073395/ip-commerce-generator/main/scripts/install-from-github.sh -o install.sh
-sudo GITHUB_TOKEN=YOUR_GITHUB_TOKEN bash install.sh
+GITHUB_TOKEN=YOUR_GITHUB_TOKEN bash -c 'curl -fsSL -H "Authorization: Bearer ${GITHUB_TOKEN}" https://raw.githubusercontent.com/359073395/ip-commerce-generator/main/scripts/install-from-github.sh | sudo GITHUB_TOKEN="${GITHUB_TOKEN}" bash'
 ```
 
 也可以指定仓库、分支和安装目录：
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/359073395/ip-commerce-generator/main/scripts/install-from-github.sh -o install.sh
-sudo GITHUB_TOKEN=YOUR_GITHUB_TOKEN \
-  GITHUB_REPO=359073395/ip-commerce-generator \
-  GITHUB_REF=main \
-  APP_DIR=/opt/ip-commerce-generator \
-  bash install.sh
+GITHUB_TOKEN=YOUR_GITHUB_TOKEN bash -c 'curl -fsSL -H "Authorization: Bearer ${GITHUB_TOKEN}" https://raw.githubusercontent.com/359073395/ip-commerce-generator/main/scripts/install-from-github.sh | sudo GITHUB_TOKEN="${GITHUB_TOKEN}" GITHUB_REPO=359073395/ip-commerce-generator GITHUB_REF=main APP_DIR=/opt/ip-commerce-generator bash'
 ```
 
 这个脚本会从 GitHub 下载私有仓库 tarball，不会把 GitHub Token 写入 git remote；如果 VPS 上已有 `.env`，会自动保留原 API 配置。
