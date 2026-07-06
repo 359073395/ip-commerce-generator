@@ -9,8 +9,6 @@ APP_GIT_REF="${APP_GIT_REF:-}"
 PORT="${PORT:-8790}"
 NODE_MAJOR="${NODE_MAJOR:-20}"
 
-DEFAULT_BASE_URL="${OPENAI_BASE_URL:-https://api.example.com/v1}"
-DEFAULT_MODEL="${OPENAI_MODEL:-gpt-5.5}"
 DEFAULT_FALLBACK_MODELS="${OPENAI_FALLBACK_MODELS:-gpt-5.4,gemini-3-flash,gpt-5.4-mini}"
 DEFAULT_TIMEOUT_MS="${OPENAI_TIMEOUT_MS:-45000}"
 DEFAULT_MAX_TOKENS="${OPENAI_MAX_TOKENS:-1200}"
@@ -19,6 +17,7 @@ DEFAULT_REASONING_EFFORT="${OPENAI_REASONING_EFFORT:-low}"
 DEFAULT_KNOWLEDGE_BUDGET_CHARS="${KNOWLEDGE_BUDGET_CHARS:-1200}"
 DEFAULT_ENABLE_NGINX_BASIC_AUTH="${ENABLE_NGINX_BASIC_AUTH:-yes}"
 DEFAULT_BASIC_AUTH_USER="${BASIC_AUTH_USER:-admin}"
+GENERATED_BASIC_AUTH_PASSWORD="${GENERATED_BASIC_AUTH_PASSWORD:-no}"
 
 log() {
   printf '\n[%s] %s\n' "$APP_NAME" "$*"
@@ -136,22 +135,37 @@ prepare_app_dir() {
 }
 
 collect_env_settings() {
-  prompt_value OPENAI_BASE_URL "OpenAI-compatible Base URL" "$DEFAULT_BASE_URL"
-  prompt_secret OPENAI_API_KEY "OpenAI-compatible API Key"
-  prompt_value OPENAI_MODEL "Primary model" "$DEFAULT_MODEL"
-  prompt_value OPENAI_FALLBACK_MODELS "Fallback models, comma separated" "$DEFAULT_FALLBACK_MODELS"
-  prompt_value OPENAI_TIMEOUT_MS "Primary model timeout ms" "$DEFAULT_TIMEOUT_MS"
-  prompt_value OPENAI_MAX_TOKENS "Max output tokens" "$DEFAULT_MAX_TOKENS"
-  prompt_value OPENAI_TEMPERATURE "Temperature" "$DEFAULT_TEMPERATURE"
-  prompt_value OPENAI_REASONING_EFFORT "Reasoning effort" "$DEFAULT_REASONING_EFFORT"
-  prompt_value KNOWLEDGE_BUDGET_CHARS "Knowledge budget chars" "$DEFAULT_KNOWLEDGE_BUDGET_CHARS"
-  prompt_value PORT "App port" "$PORT"
-  prompt_yes_no ENABLE_NGINX_BASIC_AUTH "Enable Nginx Basic Auth for no-login first version?" "$DEFAULT_ENABLE_NGINX_BASIC_AUTH"
+  OPENAI_BASE_URL="${OPENAI_BASE_URL:-}"
+  OPENAI_API_KEY="${OPENAI_API_KEY:-}"
+  OPENAI_MODEL="${OPENAI_MODEL:-}"
+  OPENAI_FALLBACK_MODELS="${OPENAI_FALLBACK_MODELS:-$DEFAULT_FALLBACK_MODELS}"
+  OPENAI_TIMEOUT_MS="${OPENAI_TIMEOUT_MS:-$DEFAULT_TIMEOUT_MS}"
+  OPENAI_MAX_TOKENS="${OPENAI_MAX_TOKENS:-$DEFAULT_MAX_TOKENS}"
+  OPENAI_TEMPERATURE="${OPENAI_TEMPERATURE:-$DEFAULT_TEMPERATURE}"
+  OPENAI_REASONING_EFFORT="${OPENAI_REASONING_EFFORT:-$DEFAULT_REASONING_EFFORT}"
+  KNOWLEDGE_BUDGET_CHARS="${KNOWLEDGE_BUDGET_CHARS:-$DEFAULT_KNOWLEDGE_BUDGET_CHARS}"
+  PORT="${PORT:-8790}"
+  ENABLE_NGINX_BASIC_AUTH="${ENABLE_NGINX_BASIC_AUTH:-$DEFAULT_ENABLE_NGINX_BASIC_AUTH}"
+
+  case "${ENABLE_NGINX_BASIC_AUTH,,}" in
+    y|yes|true|1) ENABLE_NGINX_BASIC_AUTH="yes" ;;
+    n|no|false|0) ENABLE_NGINX_BASIC_AUTH="no" ;;
+    *) die "ENABLE_NGINX_BASIC_AUTH must be yes or no." ;;
+  esac
+
+  if [[ -z "$OPENAI_BASE_URL" || -z "$OPENAI_API_KEY" || -z "$OPENAI_MODEL" ]]; then
+    log "API settings are empty. Configure Base URL, API Key, and model in the web UI after deployment."
+  else
+    log "Using API settings from environment variables."
+  fi
 
   if [[ "$ENABLE_NGINX_BASIC_AUTH" == "yes" ]]; then
-    prompt_value BASIC_AUTH_USER "Basic Auth username" "$DEFAULT_BASIC_AUTH_USER"
-    prompt_secret BASIC_AUTH_PASSWORD "Basic Auth password"
-    prompt_value SERVER_NAME "Nginx server_name, use _ for IP access" "${SERVER_NAME:-_}"
+    BASIC_AUTH_USER="${BASIC_AUTH_USER:-$DEFAULT_BASIC_AUTH_USER}"
+    SERVER_NAME="${SERVER_NAME:-_}"
+    if [[ -z "${BASIC_AUTH_PASSWORD:-}" ]]; then
+      BASIC_AUTH_PASSWORD="$(openssl rand -base64 18)"
+      GENERATED_BASIC_AUTH_PASSWORD="yes"
+    fi
     HOST="127.0.0.1"
   else
     HOST="${HOST:-0.0.0.0}"
@@ -289,8 +303,16 @@ print_result() {
 
   log "Deployment complete."
   log "Open ${public_url}"
+  if [[ "${ENABLE_NGINX_BASIC_AUTH}" == "yes" ]]; then
+    log "Basic Auth username: ${BASIC_AUTH_USER}"
+    if [[ "${GENERATED_BASIC_AUTH_PASSWORD}" == "yes" ]]; then
+      log "Generated Basic Auth password: ${BASIC_AUTH_PASSWORD}"
+    else
+      log "Basic Auth password: the value you provided in BASIC_AUTH_PASSWORD"
+    fi
+  fi
   log "Health check: curl ${public_url%/}/api/health"
-  log "API key was written to ${APP_DIR}/.env and is not printed here."
+  log "Configure the model API from the web page after login."
 }
 
 main() {

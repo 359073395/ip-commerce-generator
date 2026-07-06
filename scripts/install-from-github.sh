@@ -23,15 +23,6 @@ need_root() {
   fi
 }
 
-prompt_secret_if_missing() {
-  if [[ -n "${GITHUB_TOKEN:-}" ]]; then
-    return
-  fi
-
-  read -r -s -p "GitHub token for private repo ${GITHUB_REPO} (leave empty only if repo is public): " GITHUB_TOKEN
-  printf '\n'
-}
-
 install_base_packages() {
   if ! command -v apt-get >/dev/null 2>&1; then
     die "Only Debian/Ubuntu apt-get servers are supported by this installer."
@@ -101,7 +92,6 @@ run_deploy() {
 
 main() {
   need_root
-  prompt_secret_if_missing
   install_base_packages
   download_repo
   install_app_files
