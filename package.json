@@ -14,6 +14,7 @@
     "test:agent-planner-dirty": "node tools/run-agent-planner-dirty-test.mjs",
     "test:project-profile": "node tools/run-project-profile-test.mjs",
     "test:auth-projects": "node tools/run-auth-project-test.mjs",
+    "test:admin-overview": "node tools/run-admin-overview-test.mjs",
     "check": "npm run build"
   },
   "dependencies": {

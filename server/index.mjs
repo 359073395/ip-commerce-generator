@@ -19,6 +19,7 @@ import {
   createUser,
   deleteProjectForUser,
   getProjectForUser,
+  getAdminOverview,
   getSessionCookie,
   getSessionUser,
   initializeDatabase,
@@ -182,6 +183,10 @@ app.post('/api/config', requireAdmin, async (req, res) => {
 
 app.get('/api/admin/users', requireAdmin, async (_req, res) => {
   res.json({ ok: true, users: await listUsers() });
+});
+
+app.get('/api/admin/overview', requireAdmin, async (_req, res) => {
+  res.json({ ok: true, overview: await getAdminOverview() });
 });
 
 app.post('/api/admin/users', requireAdmin, async (req, res) => {

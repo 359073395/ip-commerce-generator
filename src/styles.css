@@ -1361,6 +1361,44 @@ th {
   width: min(920px, 100%);
 }
 
+.admin-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 14px 0 16px;
+}
+
+.admin-metric {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid #25344a;
+  border-radius: 8px;
+  background: #071426;
+}
+
+.admin-metric span,
+.admin-metric small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.admin-metric strong {
+  display: block;
+  margin: 4px 0;
+  color: #d7fff1;
+  font-size: 26px;
+  line-height: 1;
+}
+
+.admin-section-title {
+  margin-top: 16px;
+  color: #eef3ff;
+  font-size: 14px;
+  font-weight: 900;
+}
+
 .user-create-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
@@ -1369,9 +1407,18 @@ th {
   margin: 16px 0;
 }
 
+.admin-modal .user-create-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .user-create-button {
   min-height: 44px;
   white-space: nowrap;
+}
+
+.admin-modal .user-create-button {
+  grid-column: 1 / -1;
+  justify-self: start;
 }
 
 .user-list {
@@ -1396,15 +1443,92 @@ th {
   display: block;
 }
 
+.user-main {
+  min-width: 0;
+}
+
 .user-row span {
   margin-top: 4px;
   color: var(--muted);
   font-size: 13px;
 }
 
+.user-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(74px, 1fr));
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.user-meta-grid small {
+  min-height: 26px;
+  padding: 5px 7px;
+  border: 1px solid rgba(64, 81, 106, 0.72);
+  border-radius: 8px;
+  color: #d8e2f1;
+  background: rgba(27, 42, 61, 0.72);
+  font-size: 12px;
+  line-height: 1.2;
+}
+
 .user-actions {
   display: flex;
   gap: 8px;
+}
+
+.activity-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.activity-row {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid #25344a;
+  border-radius: 8px;
+  background: #071426;
+}
+
+.activity-type {
+  display: inline-flex;
+  justify-content: center;
+  min-width: 0;
+  padding: 5px 8px;
+  border-radius: 8px;
+  color: #03261a;
+  background: #63e6be;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.activity-row strong,
+.activity-row small {
+  display: block;
+  min-width: 0;
+}
+
+.activity-row strong {
+  overflow: hidden;
+  color: #eef3ff;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.activity-row small,
+.activity-empty {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.activity-empty {
+  padding: 12px;
+  border: 1px dashed #40516a;
+  border-radius: 8px;
 }
 
 .settings-detect {
@@ -1452,6 +1576,11 @@ th {
 
   .user-create-grid {
     grid-template-columns: 1fr;
+  }
+
+  .admin-metrics,
+  .user-meta-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .user-row,

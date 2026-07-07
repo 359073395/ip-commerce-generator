@@ -63,6 +63,163 @@ export async function listUsers() {
   return all(db, 'SELECT id, username, role, status, daily_limit, created_at, updated_at FROM users ORDER BY created_at ASC');
 }
 
+export async function getAdminOverview() {
+  const db = await getDb();
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayIso = today.toISOString();
+
+  const totalsRow = first(db, `
+    SELECT
+      (SELECT COUNT(*) FROM users) AS totalUsers,
+      (SELECT COUNT(*) FROM users WHERE status = 'active') AS activeUsers,
+      (SELECT COUNT(*) FROM users WHERE status = 'disabled') AS disabledUsers,
+      (SELECT COUNT(*) FROM users WHERE role = 'admin') AS adminUsers,
+      (SELECT COUNT(*) FROM projects) AS totalProjects,
+      (SELECT COUNT(*) FROM generation_logs) AS totalGenerations,
+      (SELECT COUNT(*) FROM generation_logs WHERE created_at >= ?) AS todayGenerations,
+      (SELECT COUNT(*) FROM agent_tasks) AS totalAgentTasks,
+      (SELECT COUNT(*) FROM agent_tasks WHERE created_at >= ?) AS todayAgentTasks
+  `, [todayIso, todayIso]) || {};
+
+  const userRows = all(db, `
+    SELECT
+      users.id,
+      users.username,
+      users.role,
+      users.status,
+      users.daily_limit AS dailyLimit,
+      users.created_at AS createdAt,
+      users.updated_at AS updatedAt,
+      COALESCE(project_stats.projectCount, 0) AS projectCount,
+      project_stats.latestProjectAt AS latestProjectAt,
+      COALESCE(generation_stats.generationCount, 0) AS generationCount,
+      COALESCE(generation_stats.todayGenerationCount, 0) AS todayGenerationCount,
+      generation_stats.latestGenerationAt AS latestGenerationAt,
+      COALESCE(agent_stats.agentTaskCount, 0) AS agentTaskCount,
+      COALESCE(agent_stats.todayAgentTaskCount, 0) AS todayAgentTaskCount,
+      agent_stats.latestAgentTaskAt AS latestAgentTaskAt
+    FROM users
+    LEFT JOIN (
+      SELECT user_id, COUNT(*) AS projectCount, MAX(updated_at) AS latestProjectAt
+      FROM projects
+      GROUP BY user_id
+    ) project_stats ON project_stats.user_id = users.id
+    LEFT JOIN (
+      SELECT
+        user_id,
+        COUNT(*) AS generationCount,
+        SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END) AS todayGenerationCount,
+        MAX(created_at) AS latestGenerationAt
+      FROM generation_logs
+      GROUP BY user_id
+    ) generation_stats ON generation_stats.user_id = users.id
+    LEFT JOIN (
+      SELECT
+        user_id,
+        COUNT(*) AS agentTaskCount,
+        SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END) AS todayAgentTaskCount,
+        MAX(updated_at) AS latestAgentTaskAt
+      FROM agent_tasks
+      GROUP BY user_id
+    ) agent_stats ON agent_stats.user_id = users.id
+    ORDER BY users.created_at ASC
+  `, [todayIso, todayIso]);
+
+  const recentTasks = all(db, `
+    SELECT
+      agent_tasks.id,
+      agent_tasks.user_id AS userId,
+      users.username,
+      agent_tasks.project_id AS projectId,
+      projects.name AS projectName,
+      agent_tasks.goal,
+      agent_tasks.status,
+      agent_tasks.created_at AS createdAt,
+      agent_tasks.updated_at AS updatedAt
+    FROM agent_tasks
+    LEFT JOIN users ON users.id = agent_tasks.user_id
+    LEFT JOIN projects ON projects.id = agent_tasks.project_id
+    ORDER BY agent_tasks.created_at DESC
+    LIMIT 10
+  `);
+
+  const recentGenerations = all(db, `
+    SELECT
+      generation_logs.id,
+      generation_logs.user_id AS userId,
+      users.username,
+      generation_logs.project_id AS projectId,
+      projects.name AS projectName,
+      generation_logs.module_id AS moduleId,
+      generation_logs.created_at AS createdAt
+    FROM generation_logs
+    LEFT JOIN users ON users.id = generation_logs.user_id
+    LEFT JOIN projects ON projects.id = generation_logs.project_id
+    ORDER BY generation_logs.created_at DESC
+    LIMIT 10
+  `);
+
+  return {
+    generatedAt: nowIso(),
+    totals: {
+      totalUsers: toNumber(totalsRow.totalUsers),
+      activeUsers: toNumber(totalsRow.activeUsers),
+      disabledUsers: toNumber(totalsRow.disabledUsers),
+      adminUsers: toNumber(totalsRow.adminUsers),
+      totalProjects: toNumber(totalsRow.totalProjects),
+      totalGenerations: toNumber(totalsRow.totalGenerations),
+      todayGenerations: toNumber(totalsRow.todayGenerations),
+      totalAgentTasks: toNumber(totalsRow.totalAgentTasks),
+      todayAgentTasks: toNumber(totalsRow.todayAgentTasks),
+    },
+    users: userRows.map((row) => {
+      const dailyLimit = toNumber(row.dailyLimit);
+      const todayGenerationCount = toNumber(row.todayGenerationCount);
+      return {
+        id: row.id,
+        username: row.username,
+        role: row.role,
+        status: row.status,
+        dailyLimit,
+        createdAt: row.createdAt,
+        updatedAt: row.updatedAt,
+        projectCount: toNumber(row.projectCount),
+        generationCount: toNumber(row.generationCount),
+        todayGenerationCount,
+        agentTaskCount: toNumber(row.agentTaskCount),
+        todayAgentTaskCount: toNumber(row.todayAgentTaskCount),
+        lastActivityAt: latestIso(row.updatedAt, row.latestProjectAt, row.latestGenerationAt, row.latestAgentTaskAt),
+        quota: {
+          usedToday: todayGenerationCount,
+          dailyLimit,
+          remainingToday: dailyLimit <= 0 ? null : Math.max(dailyLimit - todayGenerationCount, 0),
+        },
+      };
+    }),
+    recentTasks: recentTasks.map((row) => ({
+      id: row.id,
+      userId: row.userId,
+      username: row.username || 'unknown',
+      projectId: row.projectId || '',
+      projectName: row.projectName || '',
+      goal: row.goal || '',
+      status: row.status || '',
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+    })),
+    recentGenerations: recentGenerations.map((row) => ({
+      id: row.id,
+      userId: row.userId,
+      username: row.username || 'unknown',
+      projectId: row.projectId || '',
+      projectName: row.projectName || '',
+      moduleId: row.moduleId || '',
+      createdAt: row.createdAt,
+    })),
+  };
+}
+
 export async function createUser({ username, password, role = 'user', dailyLimit = 50 }) {
   const db = await getDb();
   const normalizedUsername = normalizeUsername(username);
@@ -366,6 +523,15 @@ function all(db, sql, params = []) {
   } finally {
     stmt.free();
   }
+}
+
+function toNumber(value) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : 0;
+}
+
+function latestIso(...values) {
+  return values.filter(Boolean).sort().at(-1) || '';
 }
 
 function getUserByUsername(db, username) {

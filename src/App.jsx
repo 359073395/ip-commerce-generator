@@ -421,7 +421,7 @@ function App() {
             onClose={() => setProfileOpen(false)}
           />
         )}
-        {adminOpen && authUser?.role === 'admin' && <AdminUsersModal onClose={() => setAdminOpen(false)} />}
+        {adminOpen && authUser?.role === 'admin' && <EnhancedAdminUsersModal onClose={() => setAdminOpen(false)} />}
       </div>
     );
   }
@@ -511,7 +511,7 @@ function App() {
           onClose={() => setProfileOpen(false)}
         />
       )}
-      {adminOpen && authUser?.role === 'admin' && <AdminUsersModal onClose={() => setAdminOpen(false)} />}
+      {adminOpen && authUser?.role === 'admin' && <EnhancedAdminUsersModal onClose={() => setAdminOpen(false)} />}
     </div>
   );
 }
@@ -1321,6 +1321,226 @@ function ProjectProfileModal({ profile, project, ipContext, onSaved, onClose }) 
             {saving ? <Loader2 className="spin" size={18} /> : <Save size={18} />}
             {saving ? '保存中' : '保存项目档案'}
           </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function formatAdminDate(value) {
+  if (!value) return '暂无';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '暂无';
+  return date.toLocaleString('zh-CN', {
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+function moduleLabelFor(moduleId) {
+  return moduleMap[moduleId]?.label || moduleId || '未知模块';
+}
+
+function EnhancedAdminUsersModal({ onClose }) {
+  const [overview, setOverview] = useState(null);
+  const [users, setUsers] = useState([]);
+  const [draft, setDraft] = useState({ username: '', password: '', role: 'user', dailyLimit: 50 });
+  const [message, setMessage] = useState('');
+  const [messageType, setMessageType] = useState('info');
+  const [loading, setLoading] = useState(false);
+
+  async function loadUsers() {
+    const response = await fetch('/api/admin/overview');
+    const payload = await response.json();
+    if (!response.ok || !payload.ok) throw new Error(payload.message || '读取管理员统计失败');
+    setOverview(payload.overview || null);
+    setUsers(payload.overview?.users || []);
+  }
+
+  useEffect(() => {
+    loadUsers().catch((error) => {
+      setMessage(error.message);
+      setMessageType('error');
+    });
+  }, []);
+
+  async function createNewUser() {
+    setLoading(true);
+    setMessage('');
+    try {
+      const response = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(draft),
+      });
+      const payload = await response.json();
+      if (!response.ok || !payload.ok) throw new Error(payload.message || '创建失败');
+      setDraft({ username: '', password: '', role: 'user', dailyLimit: 50 });
+      await loadUsers();
+      setMessage('用户已创建。');
+      setMessageType('ready');
+    } catch (error) {
+      setMessage(error.message);
+      setMessageType('error');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function patchUser(userId, updates) {
+    setLoading(true);
+    setMessage('');
+    try {
+      const response = await fetch(`/api/admin/users/${userId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates),
+      });
+      const payload = await response.json();
+      if (!response.ok || !payload.ok) throw new Error(payload.message || '更新失败');
+      await loadUsers();
+      setMessage('用户已更新。');
+      setMessageType('ready');
+    } catch (error) {
+      setMessage(error.message);
+      setMessageType('error');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const totals = overview?.totals || {};
+  const recentActivities = [
+    ...(overview?.recentTasks || []).map((item) => ({
+      id: `task-${item.id}`,
+      type: 'Agent',
+      title: item.goal || '智能任务',
+      detail: `${item.username} / ${item.projectName || '默认项目'} / ${item.status || 'unknown'}`,
+      createdAt: item.createdAt,
+    })),
+    ...(overview?.recentGenerations || []).map((item) => ({
+      id: `generation-${item.id}`,
+      type: '生成',
+      title: moduleLabelFor(item.moduleId),
+      detail: `${item.username} / ${item.projectName || '默认项目'}`,
+      createdAt: item.createdAt,
+    })),
+  ].sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || ''))).slice(0, 8);
+
+  return (
+    <div className="modal-backdrop">
+      <div className="settings-modal admin-modal">
+        <div className="modal-header">
+          <h2>用户与用量管理</h2>
+          <button className="icon-button" onClick={onClose}>x</button>
+        </div>
+        <div className="profile-help">
+          管理员创建账号并分配每日生成额度。普通用户只能访问自己的项目档案、生成记录和智能任务；API 配置仍只允许管理员操作。
+        </div>
+
+        <div className="admin-metrics">
+          <div className="admin-metric">
+            <span>用户</span>
+            <strong>{totals.totalUsers ?? 0}</strong>
+            <small>启用 {totals.activeUsers ?? 0} / 禁用 {totals.disabledUsers ?? 0}</small>
+          </div>
+          <div className="admin-metric">
+            <span>项目档案</span>
+            <strong>{totals.totalProjects ?? 0}</strong>
+            <small>每个用户独立隔离</small>
+          </div>
+          <div className="admin-metric">
+            <span>今日生成</span>
+            <strong>{totals.todayGenerations ?? 0}</strong>
+            <small>累计 {totals.totalGenerations ?? 0}</small>
+          </div>
+          <div className="admin-metric">
+            <span>Agent 任务</span>
+            <strong>{totals.totalAgentTasks ?? 0}</strong>
+            <small>今日 {totals.todayAgentTasks ?? 0}</small>
+          </div>
+        </div>
+
+        <div className="user-create-grid">
+          <label className="settings-field">
+            <span>用户名</span>
+            <input value={draft.username} onChange={(event) => setDraft((prev) => ({ ...prev, username: event.target.value }))} />
+          </label>
+          <label className="settings-field">
+            <span>初始密码</span>
+            <input type="password" value={draft.password} onChange={(event) => setDraft((prev) => ({ ...prev, password: event.target.value }))} />
+          </label>
+          <label className="settings-field">
+            <span>角色</span>
+            <select value={draft.role} onChange={(event) => setDraft((prev) => ({ ...prev, role: event.target.value }))}>
+              <option value="user">普通用户</option>
+              <option value="admin">管理员</option>
+            </select>
+          </label>
+          <label className="settings-field">
+            <span>每日次数</span>
+            <input type="number" min="0" value={draft.dailyLimit} onChange={(event) => setDraft((prev) => ({ ...prev, dailyLimit: event.target.value }))} />
+          </label>
+          <button className="primary-button user-create-button" disabled={loading || !draft.username || !draft.password} onClick={createNewUser}>
+            <UserPlus size={18} />
+            创建用户
+          </button>
+        </div>
+        {message && (
+          <div className={`context-strip ${messageType === 'ready' ? 'ready' : ''} ${messageType === 'error' ? 'error' : ''}`}>
+            <ShieldCheck size={18} />
+            {message}
+          </div>
+        )}
+
+        <div className="admin-section-title">用户明细</div>
+        <div className="user-list">
+          {users.map((user) => (
+            <div className="user-row" key={user.id}>
+              <div className="user-main">
+                <strong>{user.username}</strong>
+                <span>{user.role === 'admin' ? '管理员' : '普通用户'} / {user.status === 'active' ? '启用' : '禁用'} / 最后活跃 {formatAdminDate(user.lastActivityAt)}</span>
+                <div className="user-meta-grid">
+                  <small>项目 {user.projectCount ?? 0}</small>
+                  <small>生成 {user.generationCount ?? 0}</small>
+                  <small>今日 {user.todayGenerationCount ?? 0} / {user.dailyLimit === 0 ? '不限' : user.dailyLimit}</small>
+                  <small>任务 {user.agentTaskCount ?? 0}</small>
+                </div>
+              </div>
+              <div className="user-actions">
+                <button className="soft-button" disabled={loading} onClick={() => patchUser(user.id, { status: user.status === 'active' ? 'disabled' : 'active' })}>
+                  {user.status === 'active' ? '禁用' : '启用'}
+                </button>
+                <button
+                  className="soft-button"
+                  disabled={loading}
+                  onClick={() => {
+                    const password = window.prompt(`给 ${user.username} 设置新密码`);
+                    if (password) patchUser(user.id, { password });
+                  }}
+                >
+                  重置密码
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="admin-section-title">最近活动</div>
+        <div className="activity-list">
+          {recentActivities.length ? recentActivities.map((item) => (
+            <div className="activity-row" key={item.id}>
+              <span className="activity-type">{item.type}</span>
+              <div>
+                <strong>{item.title}</strong>
+                <small>{item.detail} / {formatAdminDate(item.createdAt)}</small>
+              </div>
+            </div>
+          )) : (
+            <div className="activity-empty">暂无生成或 Agent 任务记录。</div>
+          )}
         </div>
       </div>
     </div>
