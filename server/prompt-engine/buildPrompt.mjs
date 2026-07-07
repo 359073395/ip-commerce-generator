@@ -1,6 +1,7 @@
 import { getModuleDefinition } from './modules.mjs';
 import { formatAgentProfile, getAgentProfile, getQualityChecklist } from './agentProfiles.mjs';
 import { loadKnowledgePack } from '../knowledge/loadKnowledge.mjs';
+import { formatProjectProfile } from '../projectProfile.mjs';
 
 function formatObject(input) {
   return JSON.stringify(input || {}, null, 2);
@@ -13,9 +14,13 @@ function formatFacts(input = {}) {
     .join('；') || '用户未填写明确事实';
 }
 
-export async function buildPrompt({ moduleId, formData, selections, context }) {
+export async function buildPrompt({ moduleId, formData, selections, context, projectProfile }) {
   const definition = getModuleDefinition(moduleId);
   const agent = getAgentProfile(definition.id);
+  const memoryContext = {
+    ...(context || {}),
+    projectProfile,
+  };
   const knowledgePack = await loadKnowledgePack({
     taskType: definition.taskType,
     moduleId: definition.id,
@@ -24,7 +29,7 @@ export async function buildPrompt({ moduleId, formData, selections, context }) {
     output: definition.output,
     formData,
     selections,
-    context,
+    context: memoryContext,
   });
 
   const system = [
@@ -44,9 +49,10 @@ ${formatAgentProfile(agent)}
 
 必须覆盖：${definition.output.join('、')}
 用户事实清单（最高优先级，禁止忽略或改写）：${formatFacts(formData)}
+长期项目档案（长期记忆，优先级高于模型自由发挥）：${formatProjectProfile(projectProfile)}
 用户输入：${formatObject(formData)}
 前端选择：${formatObject(selections)}
-继承上下文：${formatObject(context)}
+继承上下文：${formatObject(memoryContext)}
 
 精选知识包：
 ${knowledgePack.pack}
@@ -58,8 +64,9 @@ ${knowledgePack.pack}
 4. 禁止编造用户没有提供的团队人数、行业、城市、价格、案例、资质和结果。
 5. 每个 sections、tables、scripts 都必须围绕用户事实清单里的行业、身份、产品/服务和承接方式。
 6. 必须先按 Agent 配置中的 Role、Goal、Tools、Rules、Output 工作。
-7. 生成前自检这些问题：${getQualityChecklist(agent).join('；')}
-8. 只输出 JSON，不要输出 Markdown。
+7. 如果长期项目档案存在，必须把它作为默认行业、人设、产品/服务、目标用户、承接方式和风格记忆。
+8. 生成前自检这些问题：${getQualityChecklist(agent).join('；')}
+9. 只输出 JSON，不要输出 Markdown。
 
 JSON格式：
 {"module":"${definition.label}","summary":"一句话总结","sections":[{"title":"区块标题","items":["要点1","要点2"]}],"tables":[{"title":"表格标题","columns":["列1","列2","列3"],"rows":[["内容1","内容2","内容3"]]}],"scripts":[{"title":"脚本标题","hook":"黄金3秒","body":["分段口播1","分段口播2"],"shots":["镜头建议"],"cta":"行动指令"}],"nextActions":["下一步动作"],"riskNotes":["核验提醒"]}

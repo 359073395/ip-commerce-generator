@@ -2,6 +2,7 @@
 .env.local
 node_modules/
 dist/
+data/
 .venv/
 .superpowers/
 qa-*.png

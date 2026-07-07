@@ -65,6 +65,7 @@ download_repo() {
 install_app_files() {
   local extract_dir="${TMP_DIR}/extract"
   local env_backup=""
+  local data_backup=""
   local backup_dir=""
 
   [[ -f "${extract_dir}/package.json" ]] || die "Downloaded repository does not look like this app."
@@ -76,6 +77,9 @@ install_app_files() {
     if [[ -f "${backup_dir}/.env" ]]; then
       env_backup="${backup_dir}/.env"
     fi
+    if [[ -d "${backup_dir}/data" ]]; then
+      data_backup="${backup_dir}/data"
+    fi
   fi
 
   mkdir -p "$(dirname "$APP_DIR")"
@@ -85,6 +89,11 @@ install_app_files() {
     log "Restoring existing .env..."
     cp "$env_backup" "${APP_DIR}/.env"
     chmod 600 "${APP_DIR}/.env"
+  fi
+
+  if [[ -n "$data_backup" ]]; then
+    log "Restoring existing data directory..."
+    cp -a "$data_backup" "${APP_DIR}/data"
   fi
 }
 

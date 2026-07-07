@@ -10,6 +10,7 @@ import { buildReviewPrompt } from './prompt-engine/reviewPrompt.mjs';
 import { moduleDefinitions } from './prompt-engine/modules.mjs';
 import { callOpenAICompatible } from './providers/openaiCompatible.mjs';
 import { loadManifest, verifyKnowledgeFiles } from './knowledge/loadKnowledge.mjs';
+import { loadProjectProfile, projectProfileIsEmpty, saveProjectProfile } from './projectProfile.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -74,12 +75,35 @@ function safeEqual(actual, expected) {
 
 app.get('/api/health', async (_req, res) => {
   const manifest = await loadManifest();
+  const projectProfile = await loadProjectProfile();
   res.json({
     ok: true,
     api: getApiStatus(),
     manifest,
     modules: moduleDefinitions.map(({ id, label }) => ({ id, label })),
+    projectProfile: {
+      configured: !projectProfileIsEmpty(projectProfile),
+      updatedAt: projectProfile.updatedAt,
+    },
   });
+});
+
+app.get('/api/project-profile', async (_req, res) => {
+  const profile = await loadProjectProfile();
+  res.json({ ok: true, profile, configured: !projectProfileIsEmpty(profile) });
+});
+
+app.put('/api/project-profile', async (req, res) => {
+  try {
+    const profile = await saveProjectProfile(req.body || {});
+    res.json({ ok: true, profile, configured: !projectProfileIsEmpty(profile) });
+  } catch (error) {
+    res.status(400).json({
+      ok: false,
+      code: 'PROJECT_PROFILE_SAVE_FAILED',
+      message: error.message,
+    });
+  }
 });
 
 app.get('/api/knowledge/verify', async (_req, res) => {
@@ -115,7 +139,12 @@ app.post('/api/config', async (req, res) => {
 app.post('/api/generate', async (req, res) => {
   try {
     const requestBody = req.body || {};
-    const { system, user, definition, agent, knowledge } = await buildPrompt(requestBody);
+    const projectProfile = await loadProjectProfile();
+    const requestWithMemory = {
+      ...requestBody,
+      projectProfile,
+    };
+    const { system, user, definition, agent, knowledge } = await buildPrompt(requestWithMemory);
     const draftResult = await callOpenAICompatible([
       { role: 'system', content: system },
       { role: 'user', content: user },
@@ -124,7 +153,7 @@ app.post('/api/generate', async (req, res) => {
       definition,
       agent,
       knowledge,
-      requestBody,
+      requestBody: requestWithMemory,
       draftResult,
     });
     res.json({ ok: true, module: definition, result });
@@ -149,7 +178,10 @@ async function reviewAndImproveResult({ definition, agent, knowledge, requestBod
       agentProfile: agent,
       formData: requestBody.formData || {},
       selections: requestBody.selections || [],
-      context: requestBody.context || {},
+      context: {
+        ...(requestBody.context || {}),
+        projectProfile: requestBody.projectProfile,
+      },
       knowledge,
       draftResult,
     });

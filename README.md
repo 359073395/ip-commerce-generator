@@ -12,6 +12,7 @@
 - 每个模块默认输出完整骨架，不输出最小版本。
 - 每个模块内置 Agent 配置：角色、目标、工具、规则和输出格式。
 - 默认开启 Agent 自检：先生成初稿，再按知识库规则评审修正一遍。
+- 支持项目档案记忆：保存行业、人设、产品/服务、目标用户、信任证据和承接方式后，所有模块自动继承。
 - 后续模块会继承 `IP定位` 生成结果作为上下文。
 
 ## 本地运行
@@ -167,6 +168,7 @@ curl -fsSL https://raw.githubusercontent.com/359073395/ip-commerce-generator/mai
 ```
 
 这个脚本会从 GitHub 下载项目 tarball；如果 VPS 上已有 `.env`，会自动保留原 API 配置。
+如果 VPS 上已有 `data/project-profile.json`，也会自动保留项目档案。
 
 默认安装完成后会输出访问地址 `http://服务器IP:8790/`。进入网站后，在右上角“配置API”里填写兼容 OpenAI API 的 Base URL、API Key，并选择模型。
 
@@ -202,3 +204,13 @@ sudo systemctl restart ip-commerce-generator
 - `knowledge/manifest.json`
 
 如果更新知识库文件，需要同步更新 `knowledge/manifest.json`，否则 `/api/knowledge/verify` 会提示哈希不一致。
+
+## 项目档案记忆
+
+网页里的“项目档案”会保存到服务端：
+
+```text
+data/project-profile.json
+```
+
+这个文件不会提交到 GitHub，适合保存你自己的行业、人设、产品、目标用户、承接方式和 IP定位结果。后续所有模块生成时，后端会自动读取它作为长期记忆。

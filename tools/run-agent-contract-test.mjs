@@ -23,6 +23,14 @@ for (const definition of moduleDefinitions) {
     formData: sampleFormData,
     selections: [{ step: '主脚本选择', choice: '教知识', subChoice: '误区型' }],
     context: { ipPositioning: { summary: '美业服务型个人IP，主打专业信任和到店转化。' } },
+    projectProfile: {
+      projectName: '本地美业IP项目',
+      industry: '美业',
+      persona: '服务型个人IP',
+      offer: '到店护理和团购券',
+      audience: '本地有变美需求的年轻女性',
+      conversion: '私信和预约到店',
+    },
   });
 
   const combined = `${prompt.system}\n${prompt.user}`;
@@ -34,6 +42,8 @@ for (const definition of moduleDefinitions) {
   assert.ok(combined.includes('Rules'), `${definition.id} prompt missing rules`);
   assert.ok(combined.includes('Output'), `${definition.id} prompt missing output format`);
   assert.ok(combined.includes('生成前自检'), `${definition.id} prompt missing quality checklist`);
+  assert.ok(combined.includes('长期项目档案'), `${definition.id} prompt missing project profile memory`);
+  assert.ok(combined.includes('团购券'), `${definition.id} prompt missing profile content`);
   assert.ok(getQualityChecklist(profile).length >= 6, `${definition.id} quality checklist too small`);
 }
 
@@ -42,4 +52,3 @@ console.log(JSON.stringify({
   modules: moduleDefinitions.length,
   message: 'Agent profiles and prompt contracts passed.',
 }, null, 2));
-

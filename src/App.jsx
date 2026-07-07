@@ -10,10 +10,12 @@ import {
   Moon,
   PanelLeft,
   RefreshCw,
+  Save,
   Settings,
   ShieldCheck,
   Sparkles,
   Trash2,
+  UserRound,
 } from 'lucide-react';
 import { modules, moduleMap } from './modules.js';
 
@@ -95,8 +97,10 @@ function App() {
   const [results, setResults] = useState({});
   const [loading, setLoading] = useState(false);
   const [health, setHealth] = useState(null);
+  const [projectProfile, setProjectProfile] = useState(null);
   const [error, setError] = useState('');
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
 
   const module = moduleMap[activeModule];
   const currentResult = results[activeModule];
@@ -110,8 +114,16 @@ function App() {
       .catch(() => setHealth({ ok: false, api: { configured: false } }));
   }
 
+  function refreshProjectProfile() {
+    return fetch('/api/project-profile')
+      .then((res) => res.json())
+      .then((payload) => setProjectProfile(payload.profile || null))
+      .catch(() => setProjectProfile(null));
+  }
+
   useEffect(() => {
     refreshHealth();
+    refreshProjectProfile();
   }, []);
 
   function selectModule(moduleId) {
@@ -232,7 +244,14 @@ function App() {
   if (isOriginalMode) {
     return (
       <div className="original-app-shell">
-        <TopBar module={module} health={health} onSettings={() => setSettingsOpen(true)} originalMode />
+        <TopBar
+          module={module}
+          health={health}
+          projectProfile={projectProfile}
+          onSettings={() => setSettingsOpen(true)}
+          onProjectProfile={() => setProfileOpen(true)}
+          originalMode
+        />
         <div className="original-body">
           <ModuleRail
             activeModule={activeModule}
@@ -269,17 +288,34 @@ function App() {
             onClose={() => setSettingsOpen(false)}
           />
         )}
+        {profileOpen && (
+          <ProjectProfileModal
+            profile={projectProfile}
+            ipContext={ipContext}
+            onSaved={(profile) => {
+              setProjectProfile(profile);
+              refreshHealth();
+            }}
+            onClose={() => setProfileOpen(false)}
+          />
+        )}
       </div>
     );
   }
 
   return (
     <div className="app-shell">
-      <OuterSidebar health={health} onSettings={() => setSettingsOpen(true)} />
+      <OuterSidebar health={health} projectProfile={projectProfile} onSettings={() => setSettingsOpen(true)} onProjectProfile={() => setProfileOpen(true)} />
       <ModuleRail activeModule={activeModule} onSelect={selectModule} />
 
       <main className="workspace">
-        <TopBar module={module} health={health} onSettings={() => setSettingsOpen(true)} />
+        <TopBar
+          module={module}
+          health={health}
+          projectProfile={projectProfile}
+          onSettings={() => setSettingsOpen(true)}
+          onProjectProfile={() => setProfileOpen(true)}
+        />
         <div className="workspace-grid">
           <section className="input-panel">
             <ModuleHeader module={module} completion={completion} hasContext={Boolean(ipContext)} />
@@ -310,11 +346,27 @@ function App() {
           onClose={() => setSettingsOpen(false)}
         />
       )}
+      {profileOpen && (
+        <ProjectProfileModal
+          profile={projectProfile}
+          ipContext={ipContext}
+          onSaved={(profile) => {
+            setProjectProfile(profile);
+            refreshHealth();
+          }}
+          onClose={() => setProfileOpen(false)}
+        />
+      )}
     </div>
   );
 }
 
-function OuterSidebar({ health, onSettings }) {
+function hasProjectProfile(profile) {
+  return Boolean(profile && ['industry', 'persona', 'offer', 'audience', 'conversion', 'ipPositioningSummary']
+    .some((field) => String(profile[field] || '').trim()));
+}
+
+function OuterSidebar({ health, projectProfile, onSettings, onProjectProfile }) {
   return (
     <aside className="outer-sidebar">
       <div className="brand">
@@ -332,6 +384,10 @@ function OuterSidebar({ health, onSettings }) {
       <button className="outer-nav">
         <Bot size={18} />
         我的创作
+      </button>
+      <button className={`outer-nav ${hasProjectProfile(projectProfile) ? 'ready' : ''}`} onClick={onProjectProfile}>
+        <UserRound size={18} />
+        项目档案
       </button>
       <div className="outer-spacer" />
       <div className="profile-row">
@@ -367,17 +423,24 @@ function ModuleRail({ activeModule, onSelect, items = modules, originalMode = fa
 
 }
 
-function TopBar({ module, health, onSettings, originalMode = false }) {
+function TopBar({ module, health, projectProfile, onSettings, onProjectProfile, originalMode = false }) {
+  const profileReady = hasProjectProfile(projectProfile);
   if (originalMode) {
     return (
       <header className="topbar original-topbar">
         <div className="original-topbar-title">
           <h1>流量IP核爆引擎</h1>
         </div>
-        <button className="original-share-button" type="button" onClick={onSettings}>
-          <Settings size={18} />
-          配置API
-        </button>
+        <div className="original-top-actions">
+          <button className={`original-share-button ${profileReady ? 'ready' : ''}`} type="button" onClick={onProjectProfile}>
+            <UserRound size={18} />
+            {profileReady ? '档案已保存' : '项目档案'}
+          </button>
+          <button className="original-share-button" type="button" onClick={onSettings}>
+            <Settings size={18} />
+            配置API
+          </button>
+        </div>
       </header>
     );
   }
@@ -395,6 +458,10 @@ function TopBar({ module, health, onSettings, originalMode = false }) {
         <span className={`status-pill ${health?.api?.configured ? 'ok' : 'warn'}`}>
           {health?.api?.configured ? 'API已配置' : 'API未配置'}
         </span>
+        <button className={`soft-button ${profileReady ? 'ready' : ''}`} onClick={onProjectProfile}>
+          <UserRound size={16} />
+          {profileReady ? '档案已保存' : '项目档案'}
+        </button>
         <button className="soft-button" onClick={onSettings}>
           <Settings size={16} />
           API设置
@@ -748,6 +815,140 @@ function RenderedResult({ result }) {
           <ul>{result.riskNotes.map((item, index) => <li key={index}>{item}</li>)}</ul>
         </div>
       )}
+    </div>
+  );
+}
+
+function ProjectProfileModal({ profile, ipContext, onSaved, onClose }) {
+  const [draft, setDraft] = useState({
+    projectName: profile?.projectName || '',
+    industry: profile?.industry || '',
+    persona: profile?.persona || '',
+    offer: profile?.offer || '',
+    audience: profile?.audience || '',
+    proof: profile?.proof || '',
+    conversion: profile?.conversion || '',
+    voice: profile?.voice || '',
+    ipPositioningSummary: profile?.ipPositioningSummary || '',
+    notes: profile?.notes || '',
+  });
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState('');
+  const [messageType, setMessageType] = useState('info');
+
+  function updateProfileField(key, value) {
+    setDraft((prev) => ({ ...prev, [key]: value }));
+  }
+
+  function useCurrentIpPositioning() {
+    if (!ipContext) {
+      setMessage('当前还没有 IP定位结果。可以先生成 IP定位，或手动填写档案。');
+      setMessageType('error');
+      return;
+    }
+    const summary = [
+      ipContext.summary,
+      ...(ipContext.sections || []).slice(0, 4).map((section) => `${section.title}：${(section.items || []).join('；')}`),
+    ].filter(Boolean).join('\n');
+    setDraft((prev) => ({
+      ...prev,
+      ipPositioningSummary: summary,
+    }));
+    setMessage('已把当前 IP定位结果写入档案草稿，记得保存。');
+    setMessageType('ready');
+  }
+
+  async function saveProfile() {
+    setSaving(true);
+    setMessage('');
+    try {
+      const response = await fetch('/api/project-profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(draft),
+      });
+      const payload = await response.json();
+      if (!response.ok || !payload.ok) throw new Error(payload.message || '保存失败');
+      onSaved?.(payload.profile);
+      setMessage('项目档案已保存，后续所有模块会自动继承。');
+      setMessageType('ready');
+    } catch (error) {
+      setMessage(error.message);
+      setMessageType('error');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="modal-backdrop">
+      <div className="settings-modal profile-modal">
+        <div className="modal-header">
+          <h2>项目档案</h2>
+          <button className="icon-button" onClick={onClose}>x</button>
+        </div>
+        <div className="profile-help">
+          保存一次长期信息，IP定位、选题、脚本、带货都会自动继承，不需要每个模块重复填写。
+        </div>
+        <div className="settings-grid profile-grid">
+          <label className="settings-field">
+            <span>项目名称</span>
+            <input value={draft.projectName} placeholder="例如：杭州高端收纳整理师IP" onChange={(event) => updateProfileField('projectName', event.target.value)} />
+          </label>
+          <label className="settings-field">
+            <span>行业/赛道</span>
+            <input value={draft.industry} placeholder="例如：美业、收纳、团购、本地生活" onChange={(event) => updateProfileField('industry', event.target.value)} />
+          </label>
+          <label className="settings-field">
+            <span>人设/身份</span>
+            <input value={draft.persona} placeholder="例如：老板IP、专家顾问、服务型个人IP" onChange={(event) => updateProfileField('persona', event.target.value)} />
+          </label>
+          <label className="settings-field">
+            <span>产品/服务</span>
+            <textarea value={draft.offer} placeholder="卖什么、价格、交付形式、核心卖点" onChange={(event) => updateProfileField('offer', event.target.value)} />
+          </label>
+          <label className="settings-field">
+            <span>目标用户</span>
+            <textarea value={draft.audience} placeholder="目标人群、场景、痛点、购买动机" onChange={(event) => updateProfileField('audience', event.target.value)} />
+          </label>
+          <label className="settings-field">
+            <span>信任证据</span>
+            <textarea value={draft.proof} placeholder="案例、评价、资质、经验、前后对比、数据" onChange={(event) => updateProfileField('proof', event.target.value)} />
+          </label>
+          <label className="settings-field">
+            <span>成交承接</span>
+            <input value={draft.conversion} placeholder="评论关键词、私信、表单、到店、商品卡、直播间" onChange={(event) => updateProfileField('conversion', event.target.value)} />
+          </label>
+          <label className="settings-field">
+            <span>表达风格</span>
+            <input value={draft.voice} placeholder="专业、犀利、陪伴感、老板视角、顾问感" onChange={(event) => updateProfileField('voice', event.target.value)} />
+          </label>
+          <label className="settings-field profile-wide">
+            <span>IP定位结果</span>
+            <textarea value={draft.ipPositioningSummary} placeholder="可手动填写，也可以用当前 IP定位结果写入" onChange={(event) => updateProfileField('ipPositioningSummary', event.target.value)} />
+          </label>
+          <label className="settings-field profile-wide">
+            <span>补充备注</span>
+            <textarea value={draft.notes} placeholder="禁忌表达、地区、平台、拍摄条件、特殊要求" onChange={(event) => updateProfileField('notes', event.target.value)} />
+          </label>
+        </div>
+        {message && (
+          <div className={`context-strip ${messageType === 'ready' ? 'ready' : ''} ${messageType === 'error' ? 'error' : ''}`}>
+            <ShieldCheck size={18} />
+            {message}
+          </div>
+        )}
+        <div className="modal-actions-row">
+          <button className="soft-button" type="button" onClick={useCurrentIpPositioning}>
+            <RefreshCw size={16} />
+            写入当前IP定位
+          </button>
+          <button className="primary-button" onClick={saveProfile} disabled={saving}>
+            {saving ? <Loader2 className="spin" size={18} /> : <Save size={18} />}
+            {saving ? '保存中' : '保存项目档案'}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
