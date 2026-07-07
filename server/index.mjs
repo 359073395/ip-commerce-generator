@@ -5,14 +5,12 @@ import path from 'node:path';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { detectOpenAIModels, env, getApiStatus, setApiConfig } from './config/env.mjs';
-import { buildPrompt } from './prompt-engine/buildPrompt.mjs';
-import { buildReviewPrompt } from './prompt-engine/reviewPrompt.mjs';
 import { moduleDefinitions } from './prompt-engine/modules.mjs';
-import { callOpenAICompatible } from './providers/openaiCompatible.mjs';
 import { loadManifest, verifyKnowledgeFiles } from './knowledge/loadKnowledge.mjs';
 import { planAgentTask } from './agentPlanner.mjs';
+import { runAgentExecution } from './agentExecutor.mjs';
+import { generateModuleForUser } from './generationService.mjs';
 import {
-  assertGenerationAllowed,
   buildSessionCookie,
   clearSessionCookie,
   createProjectForUser,
@@ -20,10 +18,12 @@ import {
   deleteProjectForUser,
   getProjectForUser,
   getAdminOverview,
+  getAgentRunForUser,
   getGenerationRecordForUser,
   getSessionCookie,
   getSessionUser,
   initializeDatabase,
+  listAgentRunsForUser,
   listAgentTasksForUser,
   listGenerationRecordsForUser,
   listProjectsForUser,
@@ -31,7 +31,6 @@ import {
   loginUser,
   logoutSession,
   recordAgentTask,
-  recordGeneration,
   updateProjectForUser,
   updateUser,
 } from './database.mjs';
@@ -260,6 +259,26 @@ app.get('/api/agent/tasks', async (req, res) => {
   });
 });
 
+app.get('/api/agent/runs', async (req, res) => {
+  const projectId = String(req.query.projectId || '');
+  res.json({
+    ok: true,
+    runs: await listAgentRunsForUser(req.user.id, {
+      projectId: projectId || undefined,
+      limit: req.query.limit,
+    }),
+  });
+});
+
+app.get('/api/agent/runs/:runId', async (req, res) => {
+  const run = await getAgentRunForUser(req.user.id, req.params.runId);
+  if (!run) {
+    res.status(404).json({ ok: false, code: 'AGENT_RUN_NOT_FOUND', message: 'Agent运行记录不存在或无权访问。' });
+    return;
+  }
+  res.json({ ok: true, run });
+});
+
 app.post('/api/agent/plan', async (req, res) => {
   try {
     const requestBody = req.body || {};
@@ -280,6 +299,32 @@ app.post('/api/agent/plan', async (req, res) => {
     res.status(400).json({
       ok: false,
       code: error.code || 'AGENT_PLAN_FAILED',
+      message: error.message,
+    });
+  }
+});
+
+app.post('/api/agent/run', async (req, res) => {
+  try {
+    const requestBody = req.body || {};
+    const projectId = String(requestBody.projectId || '');
+    const project = projectId ? await getProjectForUser(req.user.id, projectId) : (await listProjectsForUser(req.user.id))[0];
+    if (!project) {
+      res.status(400).json({ ok: false, code: 'PROJECT_REQUIRED', message: '请先创建项目档案。' });
+      return;
+    }
+    const execution = await runAgentExecution({
+      user: req.user,
+      project,
+      goal: requestBody.goal,
+      maxSteps: requestBody.maxSteps,
+    });
+    res.json({ ok: true, ...execution });
+  } catch (error) {
+    const status = ['API_NOT_CONFIGURED', 'PROJECT_REQUIRED', 'DAILY_LIMIT_REACHED'].includes(error.code) ? 400 : 500;
+    res.status(status).json({
+      ok: false,
+      code: error.code || 'AGENT_RUN_FAILED',
       message: error.message,
     });
   }
@@ -308,42 +353,18 @@ app.get('/api/generations/:recordId', async (req, res) => {
 app.post('/api/generate', async (req, res) => {
   try {
     const requestBody = req.body || {};
-    await assertGenerationAllowed(req.user);
     const projectId = String(requestBody.projectId || '');
     const project = projectId ? await getProjectForUser(req.user.id, projectId) : (await listProjectsForUser(req.user.id))[0];
     if (!project) {
       res.status(400).json({ ok: false, code: 'PROJECT_REQUIRED', message: '请先创建项目档案。' });
       return;
     }
-    const requestWithMemory = {
-      ...requestBody,
-      projectProfile: project.profile,
-    };
-    const { system, user, definition, agent, knowledge } = await buildPrompt(requestWithMemory);
-    const draftResult = await callOpenAICompatible([
-      { role: 'system', content: system },
-      { role: 'user', content: user },
-    ]);
-    const result = await reviewAndImproveResult({
-      definition,
-      agent,
-      knowledge,
-      requestBody: requestWithMemory,
-      draftResult,
+    const generated = await generateModuleForUser({
+      user: req.user,
+      project,
+      requestBody,
     });
-    const record = await recordGeneration(req.user.id, project.id, definition.id, {
-      moduleLabel: definition.label || definition.name || definition.id,
-      model: env.openaiModel,
-      request: {
-        moduleId: definition.id,
-        projectId: project.id,
-        formData: requestBody.formData || {},
-        selections: requestBody.selections || [],
-        context: requestBody.context || {},
-      },
-      result,
-    });
-    res.json({ ok: true, module: definition, result, record });
+    res.json({ ok: true, module: generated.module, result: generated.result, record: generated.record });
   } catch (error) {
     const status = error.code === 'API_NOT_CONFIGURED' ? 400 : 500;
     res.status(status).json({

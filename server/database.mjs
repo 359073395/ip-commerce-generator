@@ -402,6 +402,28 @@ export async function recordAgentTask(userId, projectId, goal, plan) {
   return getAgentTaskForUser(userId, id);
 }
 
+export async function recordAgentRun(userId, projectId, goal, runDetails = {}) {
+  const db = await getDb();
+  const timestamp = nowIso();
+  const id = runDetails.id || randomId();
+  run(db, `
+    INSERT INTO agent_runs (id, user_id, project_id, goal, status, plan_json, steps_json, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `, [
+    id,
+    userId,
+    projectId || '',
+    String(goal || '').slice(0, 4000),
+    runDetails.status || 'unknown',
+    JSON.stringify(runDetails.plan || {}),
+    JSON.stringify(runDetails.steps || []),
+    timestamp,
+    timestamp,
+  ]);
+  await persistDb(db);
+  return getAgentRunForUser(userId, id);
+}
+
 export async function listAgentTasksForUser(userId, { projectId, limit = 20 } = {}) {
   const db = await getDb();
   const safeLimit = Math.max(1, Math.min(Number(limit) || 20, 100));
@@ -415,6 +437,22 @@ export async function getAgentTaskForUser(userId, taskId) {
   const db = await getDb();
   const row = first(db, 'SELECT * FROM agent_tasks WHERE id = ? AND user_id = ?', [taskId, userId]);
   return row ? agentTaskFromRow(row) : null;
+}
+
+export async function listAgentRunsForUser(userId, { projectId, limit = 20 } = {}) {
+  const db = await getDb();
+  const safeLimit = clampLimit(limit, 1, 100, 20);
+  const rows = projectId
+    ? all(db, 'SELECT * FROM agent_runs WHERE user_id = ? AND project_id = ? ORDER BY created_at DESC LIMIT ?', [userId, projectId, safeLimit])
+    : all(db, 'SELECT * FROM agent_runs WHERE user_id = ? ORDER BY created_at DESC LIMIT ?', [userId, safeLimit]);
+  return rows.map(agentRunFromRow);
+}
+
+export async function getAgentRunForUser(userId, runId) {
+  if (!runId) return null;
+  const db = await getDb();
+  const row = first(db, 'SELECT * FROM agent_runs WHERE id = ? AND user_id = ?', [runId, userId]);
+  return row ? agentRunFromRow(row) : null;
 }
 
 export async function assertGenerationAllowed(user) {
@@ -516,6 +554,18 @@ function migrate(db) {
       goal TEXT NOT NULL,
       status TEXT NOT NULL,
       plan_json TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+    CREATE TABLE IF NOT EXISTS agent_runs (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      project_id TEXT,
+      goal TEXT NOT NULL,
+      status TEXT NOT NULL,
+      plan_json TEXT NOT NULL,
+      steps_json TEXT NOT NULL,
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL,
       FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -668,6 +718,20 @@ function agentTaskFromRow(row) {
   };
 }
 
+function agentRunFromRow(row) {
+  return {
+    id: row.id,
+    userId: row.user_id,
+    projectId: row.project_id || '',
+    goal: row.goal || '',
+    status: row.status || '',
+    plan: parseJsonObject(row.plan_json),
+    steps: parseJsonArray(row.steps_json),
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
 function generationRecordFromRow(row) {
   const request = parseJsonObject(row.request_json);
   const result = parseJsonObject(row.result_json);
@@ -691,6 +755,15 @@ function parseJsonObject(value) {
     return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
   } catch {
     return {};
+  }
+}
+
+function parseJsonArray(value) {
+  try {
+    const parsed = JSON.parse(value || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
   }
 }
 

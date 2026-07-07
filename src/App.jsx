@@ -123,6 +123,9 @@ function App() {
   const [agentTask, setAgentTask] = useState(null);
   const [agentLoading, setAgentLoading] = useState(false);
   const [agentError, setAgentError] = useState('');
+  const [agentRun, setAgentRun] = useState(null);
+  const [agentRunLoading, setAgentRunLoading] = useState(false);
+  const [agentRunError, setAgentRunError] = useState('');
   const [generationHistory, setGenerationHistory] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
 
@@ -248,6 +251,52 @@ function App() {
     window.requestAnimationFrame(() => {
       window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     });
+  }
+
+  async function runAgentAutoChain() {
+    setAgentRunLoading(true);
+    setAgentRunError('');
+    setError('');
+    try {
+      const response = await fetch('/api/agent/run', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          goal: agentGoal,
+          projectId: activeProjectId,
+          maxSteps: 3,
+        }),
+      });
+      const payload = await response.json();
+      if (!response.ok || !payload.ok) throw new Error(payload.message || 'Agent自动执行失败');
+      setAgentPlan(payload.plan);
+      setAgentRun(payload.run);
+      const completedSteps = (payload.steps || []).filter((step) => step.status === 'completed' && step.result);
+      if (completedSteps.length) {
+        const resultUpdates = {};
+        for (const step of completedSteps) {
+          const stepModule = moduleMap[step.moduleId];
+          if (!stepModule) continue;
+          resultUpdates[step.moduleId] = {
+            module: stepModule,
+            result: step.result,
+            generatedAt: step.completedAt || new Date().toISOString(),
+            recordId: step.recordId,
+          };
+        }
+        setResults((prev) => ({ ...prev, ...resultUpdates }));
+        const lastStep = completedSteps[completedSteps.length - 1];
+        if (moduleMap[lastStep.moduleId]) setActiveModule(lastStep.moduleId);
+        window.requestAnimationFrame(() => {
+          window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+        });
+      }
+      refreshGenerationHistory();
+    } catch (error) {
+      setAgentRunError(error.message);
+    } finally {
+      setAgentRunLoading(false);
+    }
   }
 
   async function refreshGenerationHistory() {
@@ -448,8 +497,12 @@ function App() {
                   task={agentTask}
                   loading={agentLoading}
                   error={agentError}
+                  run={agentRun}
+                  runLoading={agentRunLoading}
+                  runError={agentRunError}
                   onPlan={runAgentPlanner}
                   onApply={applyAgentPlan}
+                  onRun={runAgentAutoChain}
                 />
                 <FormGroups module={module} values={forms[activeModule] || {}} onChange={updateField} />
                 <OptionGroups module={module} selections={selections[activeModule] || []} onChange={updateSelection} />
@@ -545,8 +598,12 @@ function App() {
               task={agentTask}
               loading={agentLoading}
               error={agentError}
+              run={agentRun}
+              runLoading={agentRunLoading}
+              runError={agentRunError}
               onPlan={runAgentPlanner}
               onApply={applyAgentPlan}
+              onRun={runAgentAutoChain}
             />
             <ModuleHeader module={module} completion={completion} hasContext={Boolean(ipContext)} />
             {module.inherited && module.frontendMode !== 'original' && <InheritedContext hasContext={Boolean(ipContext)} />}
@@ -608,9 +665,10 @@ function hasProjectProfile(profile) {
     .some((field) => String(profile[field] || '').trim()));
 }
 
-function AgentPlannerPanel({ goal, onGoalChange, plan, task, loading, error, onPlan, onApply }) {
-  const canSubmit = Boolean(String(goal || '').trim()) && !loading;
+function AgentPlannerPanel({ goal, onGoalChange, plan, task, loading, error, run, runLoading, runError, onPlan, onApply, onRun }) {
+  const canSubmit = Boolean(String(goal || '').trim()) && !loading && !runLoading;
   const statusLabel = plan?.status === 'ready' ? '可执行' : plan?.status === 'needs_input' ? '需补充' : plan?.status === 'invalid' ? '无法判断' : '';
+  const canRun = Boolean(String(goal || '').trim()) && !loading && !runLoading;
 
   return (
     <section className="agent-planner">
@@ -638,8 +696,13 @@ function AgentPlannerPanel({ goal, onGoalChange, plan, task, loading, error, onP
             套用到推荐模块
           </button>
         )}
+        <button className="soft-button ready" type="button" onClick={onRun} disabled={!canRun}>
+          {runLoading ? <Loader2 className="spin" size={16} /> : <Bot size={16} />}
+          {runLoading ? '自动执行中' : '自动执行链'}
+        </button>
       </div>
       {error && <ErrorBox message={error} />}
+      {runError && <ErrorBox message={runError} />}
       {plan && (
         <div className="agent-plan-card">
           <div className="agent-plan-summary">
@@ -673,6 +736,34 @@ function AgentPlannerPanel({ goal, onGoalChange, plan, task, loading, error, onP
             <div className="agent-risk-line">
               <CircleAlert size={16} />
               <span>{[...(plan.riskNotes || []), task?.id ? `已记录任务：${task.id.slice(0, 8)}` : ''].filter(Boolean).join(' / ')}</span>
+            </div>
+          )}
+        </div>
+      )}
+      {run && (
+        <div className="agent-run-card">
+          <div className="agent-plan-summary">
+            <strong>Agent执行链</strong>
+            <span>{run.status} / {formatAdminDate(run.createdAt)}</span>
+          </div>
+          {!run.steps?.length && (
+            <div className="agent-risk-line">
+              <CircleAlert size={16} />
+              <span>信息不足时不会消耗模型调用，请先补齐上方追问。</span>
+            </div>
+          )}
+          {Boolean(run.steps?.length) && (
+            <div className="agent-run-steps">
+              {run.steps.map((step) => (
+                <div className={`agent-run-step ${step.status}`} key={`${run.id}-${step.index}-${step.moduleId}`}>
+                  <span>{step.index}</span>
+                  <div>
+                    <strong>{step.moduleLabel || moduleLabelFor(step.moduleId)}</strong>
+                    <p>{step.status === 'completed' ? (step.summary || '已生成并保存结果') : step.error?.message || step.purpose}</p>
+                    {step.recordId && <small>记录 {step.recordId.slice(0, 8)}</small>}
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>
@@ -1240,6 +1331,7 @@ function StateMessage({ title, body, warning }) {
 function RenderedResult({ result }) {
   return (
     <div className="rendered-result">
+      {result.quality && <QualityCard quality={result.quality} />}
       <div className="summary-box">{result.summary}</div>
       {(result.sections || []).map((section) => (
         <div className="result-section" key={section.title}>
@@ -1288,6 +1380,19 @@ function RenderedResult({ result }) {
           <ul>{result.riskNotes.map((item, index) => <li key={index}>{item}</li>)}</ul>
         </div>
       )}
+    </div>
+  );
+}
+
+function QualityCard({ quality }) {
+  const levelLabel = quality.level === 'excellent' ? '优秀' : quality.level === 'pass' ? '通过' : '需复核';
+  return (
+    <div className={`quality-card ${quality.level || 'needs_review'}`}>
+      <div>
+        <strong>质量评估 {quality.score ?? 0}</strong>
+        <span>{levelLabel}</span>
+      </div>
+      <p>{quality.missing?.length ? `需关注：${quality.missing.join('、')}` : '已通过完整度、用户事实、知识库证据和可执行性检查。'}</p>
     </div>
   );
 }

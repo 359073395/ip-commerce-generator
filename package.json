@@ -16,6 +16,9 @@
     "test:auth-projects": "node tools/run-auth-project-test.mjs",
     "test:admin-overview": "node tools/run-admin-overview-test.mjs",
     "test:generation-history": "node tools/run-generation-history-test.mjs",
+    "test:agent-execution": "node tools/run-agent-execution-test.mjs",
+    "test:knowledge-retrieval": "node tools/run-knowledge-retrieval-test.mjs",
+    "test:quality-evaluation": "node tools/run-quality-evaluation-test.mjs",
     "check": "npm run build"
   },
   "dependencies": {
