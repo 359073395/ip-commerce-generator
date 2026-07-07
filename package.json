@@ -15,6 +15,7 @@
     "test:project-profile": "node tools/run-project-profile-test.mjs",
     "test:auth-projects": "node tools/run-auth-project-test.mjs",
     "test:admin-overview": "node tools/run-admin-overview-test.mjs",
+    "test:generation-history": "node tools/run-generation-history-test.mjs",
     "check": "npm run build"
   },
   "dependencies": {

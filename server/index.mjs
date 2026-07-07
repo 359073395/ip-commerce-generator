@@ -20,10 +20,12 @@ import {
   deleteProjectForUser,
   getProjectForUser,
   getAdminOverview,
+  getGenerationRecordForUser,
   getSessionCookie,
   getSessionUser,
   initializeDatabase,
   listAgentTasksForUser,
+  listGenerationRecordsForUser,
   listProjectsForUser,
   listUsers,
   loginUser,
@@ -283,6 +285,26 @@ app.post('/api/agent/plan', async (req, res) => {
   }
 });
 
+app.get('/api/generations', async (req, res) => {
+  res.json({
+    ok: true,
+    records: await listGenerationRecordsForUser(req.user.id, {
+      projectId: String(req.query.projectId || '') || undefined,
+      moduleId: String(req.query.moduleId || '') || undefined,
+      limit: req.query.limit,
+    }),
+  });
+});
+
+app.get('/api/generations/:recordId', async (req, res) => {
+  const record = await getGenerationRecordForUser(req.user.id, req.params.recordId);
+  if (!record) {
+    res.status(404).json({ ok: false, code: 'GENERATION_NOT_FOUND', message: '生成记录不存在或无权访问。' });
+    return;
+  }
+  res.json({ ok: true, record });
+});
+
 app.post('/api/generate', async (req, res) => {
   try {
     const requestBody = req.body || {};
@@ -309,8 +331,19 @@ app.post('/api/generate', async (req, res) => {
       requestBody: requestWithMemory,
       draftResult,
     });
-    await recordGeneration(req.user.id, project.id, definition.id);
-    res.json({ ok: true, module: definition, result });
+    const record = await recordGeneration(req.user.id, project.id, definition.id, {
+      moduleLabel: definition.label || definition.name || definition.id,
+      model: env.openaiModel,
+      request: {
+        moduleId: definition.id,
+        projectId: project.id,
+        formData: requestBody.formData || {},
+        selections: requestBody.selections || [],
+        context: requestBody.context || {},
+      },
+      result,
+    });
+    res.json({ ok: true, module: definition, result, record });
   } catch (error) {
     const status = error.code === 'API_NOT_CONFIGURED' ? 400 : 500;
     res.status(status).json({

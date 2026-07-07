@@ -319,16 +319,66 @@ export async function deleteProjectForUser(userId, projectId) {
   await persistDb(db);
 }
 
-export async function recordGeneration(userId, projectId, moduleId) {
+export async function recordGeneration(userId, projectId, moduleId, details = {}) {
   const db = await getDb();
+  const id = randomId();
+  const timestamp = nowIso();
   run(db, 'INSERT INTO generation_logs (id, user_id, project_id, module_id, created_at) VALUES (?, ?, ?, ?, ?)', [
-    randomId(),
+    id,
     userId,
     projectId || '',
     moduleId || '',
-    nowIso(),
+    timestamp,
   ]);
+  if (details && Object.keys(details).length) {
+    run(db, `
+      INSERT INTO generation_records (
+        id, user_id, project_id, module_id, module_label, model, request_json, result_json, created_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, [
+      id,
+      userId,
+      projectId || '',
+      moduleId || '',
+      String(details.moduleLabel || details.moduleName || moduleId || '').slice(0, 120),
+      String(details.model || '').slice(0, 120),
+      JSON.stringify(details.request || {}),
+      JSON.stringify(details.result || {}),
+      timestamp,
+    ]);
+  }
   await persistDb(db);
+  return getGenerationRecordForUser(userId, id);
+}
+
+export async function listGenerationRecordsForUser(userId, { projectId, moduleId, limit = 20 } = {}) {
+  const db = await getDb();
+  const safeLimit = clampLimit(limit, 1, 100, 20);
+  const clauses = ['user_id = ?'];
+  const params = [userId];
+  if (projectId) {
+    clauses.push('project_id = ?');
+    params.push(projectId);
+  }
+  if (moduleId) {
+    clauses.push('module_id = ?');
+    params.push(moduleId);
+  }
+  params.push(safeLimit);
+  const rows = all(db, `
+    SELECT * FROM generation_records
+    WHERE ${clauses.join(' AND ')}
+    ORDER BY created_at DESC
+    LIMIT ?
+  `, params);
+  return rows.map(generationRecordFromRow);
+}
+
+export async function getGenerationRecordForUser(userId, recordId) {
+  if (!recordId) return null;
+  const db = await getDb();
+  const row = first(db, 'SELECT * FROM generation_records WHERE id = ? AND user_id = ?', [recordId, userId]);
+  return row ? generationRecordFromRow(row) : null;
 }
 
 export async function recordAgentTask(userId, projectId, goal, plan) {
@@ -447,6 +497,18 @@ function migrate(db) {
       module_id TEXT,
       created_at TEXT NOT NULL
     );
+    CREATE TABLE IF NOT EXISTS generation_records (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      project_id TEXT,
+      module_id TEXT,
+      module_label TEXT,
+      model TEXT,
+      request_json TEXT NOT NULL,
+      result_json TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
     CREATE TABLE IF NOT EXISTS agent_tasks (
       id TEXT PRIMARY KEY,
       user_id TEXT NOT NULL,
@@ -525,6 +587,12 @@ function all(db, sql, params = []) {
   }
 }
 
+function clampLimit(value, min, max, fallback) {
+  const limit = Number(value);
+  if (!Number.isFinite(limit)) return fallback;
+  return Math.max(min, Math.min(Math.floor(limit), max));
+}
+
 function toNumber(value) {
   const number = Number(value);
   return Number.isFinite(number) ? number : 0;
@@ -598,6 +666,32 @@ function agentTaskFromRow(row) {
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
+}
+
+function generationRecordFromRow(row) {
+  const request = parseJsonObject(row.request_json);
+  const result = parseJsonObject(row.result_json);
+  return {
+    id: row.id,
+    userId: row.user_id,
+    projectId: row.project_id || '',
+    moduleId: row.module_id || '',
+    moduleLabel: row.module_label || row.module_id || '',
+    model: row.model || '',
+    request,
+    result,
+    summary: String(result.summary || '').slice(0, 240),
+    createdAt: row.created_at,
+  };
+}
+
+function parseJsonObject(value) {
+  try {
+    const parsed = JSON.parse(value || '{}');
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+  } catch {
+    return {};
+  }
 }
 
 function hashPassword(password) {

@@ -83,6 +83,17 @@ function serializeSelections(module, selections) {
   }).filter((item) => item.choice || item.choices?.length);
 }
 
+function restoreSelections(module, savedSelections = []) {
+  const byStep = new Map((savedSelections || []).map((item) => [item.step, item]));
+  return (module.optionGroups || []).map((group, index) => {
+    const saved = byStep.get(group.stepTitle || group.title) || savedSelections[index] || {};
+    if (group.multiSelect) {
+      return Array.isArray(saved.choices) ? saved.choices.join(MULTI_CHOICE_SEPARATOR) : '';
+    }
+    return saved.choice ? selectionValue(group, saved.choice, saved.subChoice) : defaultSelectionsFor(module)[index] || '';
+  });
+}
+
 function requiredFieldLabels(module, formData = {}) {
   return (module.formGroups || [])
     .filter((group) => group.required)
@@ -112,6 +123,8 @@ function App() {
   const [agentTask, setAgentTask] = useState(null);
   const [agentLoading, setAgentLoading] = useState(false);
   const [agentError, setAgentError] = useState('');
+  const [generationHistory, setGenerationHistory] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
 
   const module = moduleMap[activeModule];
   const currentResult = results[activeModule];
@@ -168,6 +181,11 @@ function App() {
   useEffect(() => {
     refreshSession();
   }, []);
+
+  useEffect(() => {
+    if (!authUser || !activeProjectId || !activeModule) return;
+    refreshGenerationHistory();
+  }, [authUser?.id, activeProjectId, activeModule]);
 
   async function handleLogin(user) {
     setAuthUser(user);
@@ -230,6 +248,56 @@ function App() {
     window.requestAnimationFrame(() => {
       window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     });
+  }
+
+  async function refreshGenerationHistory() {
+    if (!activeProjectId || !activeModule) return [];
+    setHistoryLoading(true);
+    try {
+      const params = new URLSearchParams({
+        projectId: activeProjectId,
+        moduleId: activeModule,
+        limit: '12',
+      });
+      const response = await fetch(`/api/generations?${params.toString()}`);
+      const payload = await response.json();
+      if (!response.ok || !payload.ok) throw new Error(payload.message || '读取历史记录失败');
+      setGenerationHistory(payload.records || []);
+      return payload.records || [];
+    } catch {
+      setGenerationHistory([]);
+      return [];
+    } finally {
+      setHistoryLoading(false);
+    }
+  }
+
+  function applyGenerationRecord(record) {
+    const moduleId = record?.moduleId;
+    const targetModule = moduleMap[moduleId];
+    if (!record || !targetModule) return;
+    setActiveModule(moduleId);
+    setForms((prev) => ({
+      ...prev,
+      [moduleId]: {
+        ...(prev[moduleId] || {}),
+        ...(record.request?.formData || {}),
+      },
+    }));
+    setSelections((prev) => ({
+      ...prev,
+      [moduleId]: restoreSelections(targetModule, record.request?.selections || []),
+    }));
+    setResults((prev) => ({
+      ...prev,
+      [moduleId]: {
+        module: targetModule,
+        result: record.result,
+        generatedAt: record.createdAt,
+        recordId: record.id,
+      },
+    }));
+    setError('');
   }
 
   const completion = useMemo(() => {
@@ -300,8 +368,9 @@ function App() {
       }
       setResults((prev) => ({
         ...prev,
-        [activeModule]: { module, result: payload.result, generatedAt: new Date().toISOString() },
+        [activeModule]: { module, result: payload.result, generatedAt: new Date().toISOString(), recordId: payload.record?.id },
       }));
+      refreshGenerationHistory();
     } catch (err) {
       setError(err.message);
     } finally {
@@ -398,7 +467,16 @@ function App() {
                 />
               </section>
 
-              <ResultPanel module={module} result={currentResult?.result} loading={loading} error={error} />
+              <ResultPanel
+                module={module}
+                result={currentResult?.result}
+                loading={loading}
+                error={error}
+                history={generationHistory}
+                historyLoading={historyLoading}
+                onRefreshHistory={refreshGenerationHistory}
+                onLoadHistory={applyGenerationRecord}
+              />
             </div>
           </main>
         </div>
@@ -488,7 +566,16 @@ function App() {
             />
           </section>
 
-          <ResultPanel module={module} result={currentResult?.result} loading={loading} error={error} />
+          <ResultPanel
+            module={module}
+            result={currentResult?.result}
+            loading={loading}
+            error={error}
+            history={generationHistory}
+            historyLoading={historyLoading}
+            onRefreshHistory={refreshGenerationHistory}
+            onLoadHistory={applyGenerationRecord}
+          />
         </div>
       </main>
 
@@ -1073,7 +1160,7 @@ function ErrorBox({ message }) {
   );
 }
 
-function ResultPanel({ module, result, loading, error }) {
+function ResultPanel({ module, result, loading, error, history = [], historyLoading, onRefreshHistory, onLoadHistory }) {
   return (
     <aside className="result-panel">
       <div className="result-header">
@@ -1087,7 +1174,47 @@ function ResultPanel({ module, result, loading, error }) {
       {!loading && error && <StateMessage title="生成未完成" body="请根据左侧提示处理 API 或输入问题。" warning />}
       {!loading && !error && !result && <EmptyResult module={module} />}
       {!loading && result && <RenderedResult result={result} />}
+      <GenerationHistoryPanel
+        history={history}
+        loading={historyLoading}
+        onRefresh={onRefreshHistory}
+        onLoad={onLoadHistory}
+      />
     </aside>
+  );
+}
+
+function GenerationHistoryPanel({ history = [], loading, onRefresh, onLoad }) {
+  return (
+    <div className="generation-history">
+      <div className="history-head">
+        <div>
+          <h3>历史记录</h3>
+          <span>当前项目和模块的成功生成结果</span>
+        </div>
+        <button className="soft-button history-refresh" type="button" onClick={onRefresh} disabled={loading}>
+          {loading ? <Loader2 className="spin" size={15} /> : <RefreshCw size={15} />}
+          刷新
+        </button>
+      </div>
+      {!history.length && (
+        <div className="history-empty">{loading ? '正在读取历史记录...' : '暂无历史记录，生成成功后会自动保存。'}</div>
+      )}
+      {Boolean(history.length) && (
+        <div className="history-list">
+          {history.map((record) => (
+            <div className="history-item" key={record.id}>
+              <div>
+                <strong>{record.moduleLabel || moduleLabelFor(record.moduleId)}</strong>
+                <span>{formatAdminDate(record.createdAt)}{record.model ? ` / ${record.model}` : ''}</span>
+                <p>{record.summary || record.result?.summary || '已保存结构化生成结果'}</p>
+              </div>
+              <button className="soft-button" type="button" onClick={() => onLoad?.(record)}>载入</button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
