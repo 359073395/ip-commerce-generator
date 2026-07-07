@@ -110,6 +110,33 @@ try {
   const crossUserRead = await getAgentRunForUser(creatorB.id, execution.run.id);
   assert.equal(crossUserRead, null, 'agent run reads must be user-scoped');
 
+  const lowQualityExecution = await runAgentExecution({
+    user: creatorA,
+    project: projectWithProfile,
+    goal: combinedGoal,
+    maxSteps: 3,
+    generateStep: async ({ requestBody }) => ({
+      module: { id: requestBody.moduleId, label: requestBody.moduleId },
+      record: { id: 'low-quality-record' },
+      result: {
+        summary: '质量不足的测试结果',
+        sections: [],
+        tables: [],
+        scripts: [],
+        nextActions: [],
+        riskNotes: [],
+        quality: {
+          score: 42,
+          level: 'needs_review',
+          missing: ['完整骨架'],
+        },
+      },
+    }),
+  });
+  assert.equal(lowQualityExecution.status, 'needs_review', 'agent run should stop when a step remains below quality gate');
+  assert.equal(lowQualityExecution.steps.length, 1, 'low quality first step should prevent downstream steps');
+  assert.equal(lowQualityExecution.steps[0].status, 'needs_review');
+
   const invalidExecution = await runAgentExecution({
     user: creatorB,
     project: projectB,
@@ -132,6 +159,7 @@ try {
     ok: true,
     completedSteps: execution.steps.map((item) => item.moduleId),
     persistedRuns: runsA.length,
+    lowQualityStatus: lowQualityExecution.status,
     invalidStatus: invalidExecution.status,
     message: 'Agent execution chain tests passed.',
   }, null, 2));

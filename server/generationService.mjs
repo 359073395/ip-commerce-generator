@@ -2,9 +2,13 @@ import { env } from './config/env.mjs';
 import { assertGenerationAllowed, recordGeneration } from './database.mjs';
 import { loadKnowledgePack } from './knowledge/loadKnowledge.mjs';
 import { buildPrompt } from './prompt-engine/buildPrompt.mjs';
+import { buildQualityRepairPrompt } from './prompt-engine/repairPrompt.mjs';
 import { buildReviewPrompt } from './prompt-engine/reviewPrompt.mjs';
 import { callOpenAICompatible } from './providers/openaiCompatible.mjs';
 import { evaluateResultQuality } from './quality/evaluateResultQuality.mjs';
+
+const qualityRepairThreshold = Number(process.env.QUALITY_REPAIR_THRESHOLD || 70);
+const qualityRepairEnabled = parseBoolean(process.env.QUALITY_REPAIR_ENABLED || 'true');
 
 export async function generateModuleForUser({
   user,
@@ -42,17 +46,14 @@ export async function generateModuleForUser({
     draftResult,
     callModel,
   });
-  const resultWithQuality = qualityEvaluator
-    ? {
-      ...result,
-      quality: qualityEvaluator({
-        result,
-        definition,
-        knowledge,
-        requestBody: requestWithMemory,
-      }),
-    }
-    : result;
+  const resultWithQuality = await finalizeGeneratedResult({
+    result,
+    definition,
+    knowledge,
+    requestBody: requestWithMemory,
+    qualityEvaluator,
+    callModel,
+  });
 
   const record = await recordGeneration(user.id, project.id, definition.id, {
     moduleLabel: definition.label || definition.name || definition.id,
@@ -144,4 +145,152 @@ function normalizeResult(result) {
     nextActions: Array.isArray(result?.nextActions) ? result.nextActions : [],
     riskNotes: Array.isArray(result?.riskNotes) ? [...result.riskNotes] : [],
   };
+}
+
+async function finalizeGeneratedResult({ result, definition, knowledge, requestBody, qualityEvaluator, callModel }) {
+  let enriched = addProductMetadata({
+    result,
+    definition,
+    knowledge,
+    requestBody,
+    qualityEvaluator,
+    repair: null,
+  });
+
+  if (!qualityEvaluator || !qualityRepairEnabled || enriched.quality?.score >= qualityRepairThreshold) {
+    return enriched;
+  }
+
+  try {
+    const repairPrompt = buildQualityRepairPrompt({
+      definition,
+      formData: requestBody.formData || {},
+      selections: requestBody.selections || [],
+      context: {
+        ...(requestBody.context || {}),
+        projectProfile: requestBody.projectProfile,
+      },
+      knowledge,
+      currentResult: enriched,
+      quality: enriched.quality,
+    });
+    const repairedResult = await callModel([
+      { role: 'system', content: repairPrompt.system },
+      { role: 'user', content: repairPrompt.user },
+    ], {
+      temperature: 0.25,
+      maxTokens: env.agentReviewMaxTokens,
+      reasoningEffort: 'low',
+      timeoutMs: env.agentReviewTimeoutMs,
+      disableFallback: true,
+    });
+    const normalizedRepair = appendRiskNote(repairedResult, '质量低于阈值，Agent已自动修复一次。');
+    enriched = addProductMetadata({
+      result: normalizedRepair,
+      definition,
+      knowledge,
+      requestBody,
+      qualityEvaluator,
+      repair: {
+        attempted: true,
+        reason: `quality_score_below_${qualityRepairThreshold}`,
+        beforeScore: enriched.quality?.score ?? 0,
+        status: 'completed',
+      },
+    });
+    return enriched;
+  } catch (error) {
+    return addProductMetadata({
+      result: appendRiskNote(enriched, `质量自动修复未完成：${error.message}`),
+      definition,
+      knowledge,
+      requestBody,
+      qualityEvaluator,
+      repair: {
+        attempted: true,
+        reason: `quality_score_below_${qualityRepairThreshold}`,
+        beforeScore: enriched.quality?.score ?? 0,
+        status: 'failed',
+        message: error.message,
+      },
+    });
+  }
+}
+
+function addProductMetadata({ result, definition, knowledge, requestBody, qualityEvaluator, repair }) {
+  const normalized = normalizeResult(result);
+  const quality = qualityEvaluator
+    ? qualityEvaluator({ result: normalized, definition, knowledge, requestBody })
+    : null;
+  return {
+    ...normalized,
+    knowledgeCitations: buildKnowledgeCitations(knowledge),
+    profileSuggestions: buildProfileSuggestions({ requestBody, result: normalized, definition }),
+    quality: quality ? {
+      ...quality,
+      repair,
+      gate: {
+        threshold: qualityRepairThreshold,
+        passed: quality.score >= qualityRepairThreshold,
+      },
+    } : undefined,
+  };
+}
+
+function buildKnowledgeCitations(knowledge = []) {
+  return (knowledge || []).slice(0, 6).map((item) => ({
+    source: item.source || '',
+    heading: item.heading || '',
+    score: Number(item.score || 0),
+    matchedTerms: Array.isArray(item.matchedTerms) ? item.matchedTerms.slice(0, 8) : [],
+    reasons: Array.isArray(item.scoreReasons) ? item.scoreReasons.slice(0, 6) : [],
+  })).filter((item) => item.source || item.heading);
+}
+
+function buildProfileSuggestions({ requestBody = {}, result = {}, definition = {} }) {
+  const current = requestBody.projectProfile || {};
+  const formData = requestBody.formData || {};
+  const context = requestBody.context || {};
+  const candidates = {
+    industry: firstNonEmpty(formData.industry, formData.industryBackground, current.industry),
+    persona: firstNonEmpty(formData.role, formData.persona, current.persona),
+    offer: firstNonEmpty(formData.offer, formData.product, current.offer),
+    audience: firstNonEmpty(formData.buyer, formData.audience, formData.targetCustomer, current.audience),
+    proof: firstNonEmpty(formData.proof, current.proof),
+    conversion: firstNonEmpty(formData.conversion, current.conversion),
+    ipPositioningSummary: definition.id === 'ip-positioning' ? firstNonEmpty(result.summary, current.ipPositioningSummary) : current.ipPositioningSummary,
+    notes: firstNonEmpty(context.agentGoal, current.notes),
+  };
+  const labels = {
+    industry: '行业/赛道',
+    persona: '身份/人设',
+    offer: '产品/服务',
+    audience: '目标用户',
+    proof: '信任资产',
+    conversion: '承接方式',
+    ipPositioningSummary: 'IP定位摘要',
+    notes: '项目备注',
+  };
+  const items = Object.entries(candidates)
+    .filter(([field, value]) => value && String(value).trim() && String(value).trim() !== String(current[field] || '').trim())
+    .map(([field, value]) => ({
+      field,
+      label: labels[field] || field,
+      current: current[field] || '',
+      suggested: String(value).trim().slice(0, 800),
+      reason: field === 'ipPositioningSummary' ? '来自本次IP定位结果' : '来自本次用户输入或Agent上下文',
+    }));
+  return {
+    hasSuggestions: items.length > 0,
+    items,
+    draftProfile: Object.fromEntries(items.map((item) => [item.field, item.suggested])),
+  };
+}
+
+function firstNonEmpty(...values) {
+  return values.map((value) => String(value || '').trim()).find(Boolean) || '';
+}
+
+function parseBoolean(value) {
+  return ['1', 'true', 'yes', 'y', 'on'].includes(String(value || '').trim().toLowerCase());
 }

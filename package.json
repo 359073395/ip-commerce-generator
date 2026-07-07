@@ -19,6 +19,7 @@
     "test:agent-execution": "node tools/run-agent-execution-test.mjs",
     "test:knowledge-retrieval": "node tools/run-knowledge-retrieval-test.mjs",
     "test:quality-evaluation": "node tools/run-quality-evaluation-test.mjs",
+    "test:productized-generation": "node tools/run-productized-generation-test.mjs",
     "check": "npm run build"
   },
   "dependencies": {

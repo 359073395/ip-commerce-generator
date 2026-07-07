@@ -98,12 +98,41 @@ function safeEqual(actual, expected) {
   return crypto.timingSafeEqual(actualBuffer, expectedBuffer);
 }
 
+function readPackageVersion() {
+  try {
+    const packageJson = JSON.parse(fs.readFileSync(path.resolve(__dirname, '..', 'package.json'), 'utf8'));
+    return packageJson.version || '0.0.0';
+  } catch {
+    return 'unknown';
+  }
+}
+
 app.get('/api/health', async (_req, res) => {
   const manifest = await loadManifest();
+  const knowledge = await verifyKnowledgeFiles();
   res.json({
     ok: true,
     api: getApiStatus(),
     manifest,
+    knowledge: {
+      ok: knowledge.ok,
+      version: knowledge.manifest?.version || manifest.version,
+      files: knowledge.checks?.length || 0,
+      failed: (knowledge.checks || []).filter((item) => !item.ok).map((item) => item.path),
+    },
+    system: {
+      name: 'ip-commerce-generator',
+      version: readPackageVersion(),
+      nodeEnv: env.nodeEnv,
+      auth: 'sqlite-users',
+      features: {
+        agentRuns: true,
+        qualityEvaluation: true,
+        qualityAutoRepair: process.env.QUALITY_REPAIR_ENABLED !== 'false',
+        knowledgeCitations: true,
+        profileSuggestions: true,
+      },
+    },
     modules: moduleDefinitions.map(({ id, label }) => ({ id, label })),
   });
 });

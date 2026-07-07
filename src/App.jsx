@@ -349,6 +349,47 @@ function App() {
     setError('');
   }
 
+  async function applyProfileSuggestions(suggestions) {
+    if (!activeProject || !suggestions?.draftProfile) return;
+    setError('');
+    try {
+      const nextProfile = {
+        ...(activeProject.profile || {}),
+        ...suggestions.draftProfile,
+      };
+      const response = await fetch(`/api/projects/${activeProject.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: activeProject.name,
+          profile: nextProfile,
+        }),
+      });
+      const payload = await response.json();
+      if (!response.ok || !payload.ok) throw new Error(payload.message || '项目档案更新失败');
+      await refreshProjects(payload.project?.id || activeProject.id);
+      setResults((prev) => {
+        const current = prev[activeModule];
+        if (!current?.result) return prev;
+        return {
+          ...prev,
+          [activeModule]: {
+            ...current,
+            result: {
+              ...current.result,
+              profileSuggestions: {
+                ...(current.result.profileSuggestions || {}),
+                appliedAt: new Date().toISOString(),
+              },
+            },
+          },
+        };
+      });
+    } catch (error) {
+      setError(error.message);
+    }
+  }
+
   const completion = useMemo(() => {
     const groups = module.formGroups || [];
     const fields = groups.flatMap((group) => group.fields);
@@ -529,6 +570,7 @@ function App() {
                 historyLoading={historyLoading}
                 onRefreshHistory={refreshGenerationHistory}
                 onLoadHistory={applyGenerationRecord}
+                onApplyProfileSuggestions={applyProfileSuggestions}
               />
             </div>
           </main>
@@ -632,6 +674,7 @@ function App() {
             historyLoading={historyLoading}
             onRefreshHistory={refreshGenerationHistory}
             onLoadHistory={applyGenerationRecord}
+            onApplyProfileSuggestions={applyProfileSuggestions}
           />
         </div>
       </main>
@@ -1251,7 +1294,7 @@ function ErrorBox({ message }) {
   );
 }
 
-function ResultPanel({ module, result, loading, error, history = [], historyLoading, onRefreshHistory, onLoadHistory }) {
+function ResultPanel({ module, result, loading, error, history = [], historyLoading, onRefreshHistory, onLoadHistory, onApplyProfileSuggestions }) {
   return (
     <aside className="result-panel">
       <div className="result-header">
@@ -1264,7 +1307,7 @@ function ResultPanel({ module, result, loading, error, history = [], historyLoad
       {loading && <StateMessage title="正在组装知识库提示词" body="后台会读取模块知识库、用户输入和输出结构，再调用模型。" />}
       {!loading && error && <StateMessage title="生成未完成" body="请根据左侧提示处理 API 或输入问题。" warning />}
       {!loading && !error && !result && <EmptyResult module={module} />}
-      {!loading && result && <RenderedResult result={result} />}
+      {!loading && result && <RenderedResult result={result} onApplyProfileSuggestions={onApplyProfileSuggestions} />}
       <GenerationHistoryPanel
         history={history}
         loading={historyLoading}
@@ -1328,10 +1371,14 @@ function StateMessage({ title, body, warning }) {
   );
 }
 
-function RenderedResult({ result }) {
+function RenderedResult({ result, onApplyProfileSuggestions }) {
   return (
     <div className="rendered-result">
       {result.quality && <QualityCard quality={result.quality} />}
+      {result.knowledgeCitations?.length > 0 && <KnowledgeCitations citations={result.knowledgeCitations} />}
+      {result.profileSuggestions?.hasSuggestions && (
+        <ProfileSuggestionCard suggestions={result.profileSuggestions} onApply={onApplyProfileSuggestions} />
+      )}
       <div className="summary-box">{result.summary}</div>
       {(result.sections || []).map((section) => (
         <div className="result-section" key={section.title}>
@@ -1386,6 +1433,11 @@ function RenderedResult({ result }) {
 
 function QualityCard({ quality }) {
   const levelLabel = quality.level === 'excellent' ? '优秀' : quality.level === 'pass' ? '通过' : '需复核';
+  const repairText = quality.repair?.attempted
+    ? quality.repair.status === 'completed'
+      ? `已自动修复一次：${quality.repair.beforeScore ?? 0} -> ${quality.score ?? 0}`
+      : `自动修复未完成：${quality.repair.message || '模型未返回可用结果'}`
+    : '';
   return (
     <div className={`quality-card ${quality.level || 'needs_review'}`}>
       <div>
@@ -1393,6 +1445,50 @@ function QualityCard({ quality }) {
         <span>{levelLabel}</span>
       </div>
       <p>{quality.missing?.length ? `需关注：${quality.missing.join('、')}` : '已通过完整度、用户事实、知识库证据和可执行性检查。'}</p>
+      {repairText && <p>{repairText}</p>}
+    </div>
+  );
+}
+
+function KnowledgeCitations({ citations = [] }) {
+  return (
+    <div className="knowledge-citations">
+      <div className="mini-card-head">
+        <strong>本次引用知识</strong>
+        <span>{citations.length} 条</span>
+      </div>
+      <div className="citation-list">
+        {citations.map((item, index) => (
+          <div className="citation-item" key={`${item.source}-${item.heading}-${index}`}>
+            <strong>{item.heading || item.source}</strong>
+            <span>{item.source}{item.score ? ` / ${Math.round(item.score)}分` : ''}</span>
+            {Boolean(item.matchedTerms?.length) && <p>{item.matchedTerms.slice(0, 6).join('、')}</p>}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ProfileSuggestionCard({ suggestions, onApply }) {
+  const items = suggestions.items || [];
+  return (
+    <div className="profile-suggestion-card">
+      <div className="mini-card-head">
+        <strong>项目档案建议</strong>
+        <button className="soft-button" type="button" onClick={() => onApply?.(suggestions)} disabled={Boolean(suggestions.appliedAt)}>
+          <Save size={15} />
+          {suggestions.appliedAt ? '已写入' : '写入档案'}
+        </button>
+      </div>
+      <div className="profile-suggestion-list">
+        {items.slice(0, 6).map((item) => (
+          <div className="profile-suggestion-item" key={item.field}>
+            <span>{item.label}</span>
+            <strong>{item.suggested}</strong>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -1575,8 +1671,61 @@ function moduleLabelFor(moduleId) {
   return moduleMap[moduleId]?.label || moduleId || '未知模块';
 }
 
+function SystemStatusBlock({ health }) {
+  if (!health) {
+    return (
+      <div className="system-status-block">
+        <div className="mini-card-head">
+          <strong>系统状态</strong>
+          <span>读取中</span>
+        </div>
+      </div>
+    );
+  }
+  const features = health.system?.features || {};
+  const featureLabels = {
+    agentRuns: 'Agent执行链',
+    qualityEvaluation: '质量评估',
+    qualityAutoRepair: '自动修复',
+    knowledgeCitations: '知识引用',
+    profileSuggestions: '档案建议',
+  };
+  return (
+    <div className="system-status-block">
+      <div className="mini-card-head">
+        <strong>系统状态</strong>
+        <span>{health.system?.version || 'unknown'}</span>
+      </div>
+      <div className="system-status-grid">
+        <div className={`system-status-item ${health.api?.configured ? 'ready' : 'warn'}`}>
+          <span>API</span>
+          <strong>{health.api?.configured ? health.api.model : '未配置'}</strong>
+        </div>
+        <div className={`system-status-item ${health.knowledge?.ok ? 'ready' : 'warn'}`}>
+          <span>知识库</span>
+          <strong>{health.knowledge?.ok ? `${health.knowledge.files || 0} 文件正常` : '需检查'}</strong>
+        </div>
+        <div className="system-status-item ready">
+          <span>模块</span>
+          <strong>{health.modules?.length || 0} 个</strong>
+        </div>
+        <div className="system-status-item ready">
+          <span>用户体系</span>
+          <strong>{health.system?.auth || 'sqlite-users'}</strong>
+        </div>
+      </div>
+      <div className="feature-chip-row">
+        {Object.entries(featureLabels).map(([key, label]) => (
+          <span className={features[key] ? 'ready' : 'warn'} key={key}>{label}</span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function EnhancedAdminUsersModal({ onClose }) {
   const [overview, setOverview] = useState(null);
+  const [systemHealth, setSystemHealth] = useState(null);
   const [users, setUsers] = useState([]);
   const [draft, setDraft] = useState({ username: '', password: '', role: 'user', dailyLimit: 50 });
   const [message, setMessage] = useState('');
@@ -1584,11 +1733,16 @@ function EnhancedAdminUsersModal({ onClose }) {
   const [loading, setLoading] = useState(false);
 
   async function loadUsers() {
-    const response = await fetch('/api/admin/overview');
-    const payload = await response.json();
-    if (!response.ok || !payload.ok) throw new Error(payload.message || '读取管理员统计失败');
+    const [overviewResponse, healthResponse] = await Promise.all([
+      fetch('/api/admin/overview'),
+      fetch('/api/health'),
+    ]);
+    const payload = await overviewResponse.json();
+    if (!overviewResponse.ok || !payload.ok) throw new Error(payload.message || '读取管理员统计失败');
+    const healthPayload = await healthResponse.json().catch(() => null);
     setOverview(payload.overview || null);
     setUsers(payload.overview?.users || []);
+    setSystemHealth(healthPayload || null);
   }
 
   useEffect(() => {
@@ -1694,6 +1848,8 @@ function EnhancedAdminUsersModal({ onClose }) {
             <small>今日 {totals.todayAgentTasks ?? 0}</small>
           </div>
         </div>
+
+        <SystemStatusBlock health={systemHealth} />
 
         <div className="user-create-grid">
           <label className="settings-field">

@@ -3,6 +3,8 @@ import { recordAgentRun } from './database.mjs';
 import { generateModuleForUser } from './generationService.mjs';
 import { getModuleDefinition } from './prompt-engine/modules.mjs';
 
+const agentQualityGateThreshold = Number(process.env.AGENT_QUALITY_GATE_THRESHOLD || process.env.QUALITY_REPAIR_THRESHOLD || 70);
+
 const defaultFlows = {
   personal_ip: ['ip-positioning', 'viral-topics', 'script'],
   commerce_video: ['commerce', 'script'],
@@ -67,9 +69,11 @@ export async function runAgentExecution({
         project,
         requestBody,
       });
+      const qualityScore = Number(generated.result?.quality?.score ?? 100);
+      const stepStatus = qualityScore < agentQualityGateThreshold ? 'needs_review' : 'completed';
       completedSteps.push({
         ...step,
-        status: 'completed',
+        status: stepStatus,
         startedAt,
         completedAt: new Date().toISOString(),
         request: {
@@ -82,6 +86,10 @@ export async function runAgentExecution({
         summary: generated.result?.summary || '',
         result: generated.result || {},
       });
+      if (stepStatus === 'needs_review') {
+        status = 'needs_review';
+        break;
+      }
     } catch (error) {
       status = 'failed';
       completedSteps.push({
