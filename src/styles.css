@@ -454,6 +454,151 @@ button:disabled {
   font-weight: 800;
 }
 
+.agent-planner {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 14px;
+  border: 1px solid #28425f;
+  border-radius: 8px;
+  background: #0d1d30;
+}
+
+.original-input-panel .agent-planner {
+  margin: 18px 0;
+}
+
+.agent-planner-head,
+.agent-actions,
+.agent-plan-summary,
+.agent-risk-line,
+.agent-module-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.agent-planner-head {
+  justify-content: space-between;
+}
+
+.agent-planner h2,
+.agent-planner h3 {
+  margin: 0;
+}
+
+.agent-planner h2 {
+  font-size: 18px;
+}
+
+.agent-planner h3 {
+  margin-bottom: 8px;
+  color: #eef3ff;
+  font-size: 14px;
+}
+
+.agent-goal-input {
+  width: 100%;
+  min-height: 74px;
+  resize: vertical;
+  border: 1px solid #40516a;
+  border-radius: 8px;
+  outline: none;
+  padding: 12px;
+  background: #15263a;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.agent-goal-input:focus {
+  border-color: rgba(99, 230, 190, 0.75);
+}
+
+.agent-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: #223247;
+  color: #cbd7e8;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.agent-status.ready {
+  color: #041a13;
+  background: var(--accent-2);
+}
+
+.agent-status.needs_input {
+  color: #332506;
+  background: var(--warn);
+}
+
+.agent-status.invalid {
+  color: #fff;
+  background: #9c3b49;
+}
+
+.agent-plan-card {
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #33445d;
+  border-radius: 8px;
+  background: #102033;
+}
+
+.agent-plan-summary {
+  justify-content: space-between;
+  color: #dfe8f6;
+}
+
+.agent-plan-summary span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.agent-mini-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.agent-mini-grid ul {
+  margin: 0;
+  padding-left: 18px;
+  color: #cbd7e8;
+  line-height: 1.55;
+}
+
+.agent-module-row {
+  flex-wrap: wrap;
+}
+
+.agent-module-chip {
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid #40516a;
+  border-radius: 999px;
+  background: #1b2a3d;
+  color: #d8e2f1;
+  font-weight: 800;
+}
+
+.agent-module-chip:hover {
+  color: #041a13;
+  background: var(--accent-2);
+}
+
+.agent-risk-line {
+  align-items: flex-start;
+  color: #f7dca0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 .completion {
   display: grid;
   place-items: center;
@@ -1301,6 +1446,10 @@ th {
     flex-direction: column;
   }
 
+  .agent-mini-grid {
+    grid-template-columns: 1fr;
+  }
+
   .user-create-grid {
     grid-template-columns: 1fr;
   }
@@ -1412,6 +1561,18 @@ th {
   .topbar {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .agent-planner-head,
+  .agent-actions,
+  .agent-plan-summary {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .agent-actions .primary-button,
+  .agent-actions .soft-button {
+    width: 100%;
   }
 
   .workspace-grid {

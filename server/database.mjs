@@ -174,6 +174,42 @@ export async function recordGeneration(userId, projectId, moduleId) {
   await persistDb(db);
 }
 
+export async function recordAgentTask(userId, projectId, goal, plan) {
+  const db = await getDb();
+  const timestamp = nowIso();
+  const id = randomId();
+  run(db, `
+    INSERT INTO agent_tasks (id, user_id, project_id, goal, status, plan_json, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `, [
+    id,
+    userId,
+    projectId || '',
+    String(goal || '').slice(0, 4000),
+    plan?.status || 'unknown',
+    JSON.stringify(plan || {}),
+    timestamp,
+    timestamp,
+  ]);
+  await persistDb(db);
+  return getAgentTaskForUser(userId, id);
+}
+
+export async function listAgentTasksForUser(userId, { projectId, limit = 20 } = {}) {
+  const db = await getDb();
+  const safeLimit = Math.max(1, Math.min(Number(limit) || 20, 100));
+  const rows = projectId
+    ? all(db, 'SELECT * FROM agent_tasks WHERE user_id = ? AND project_id = ? ORDER BY created_at DESC LIMIT ?', [userId, projectId, safeLimit])
+    : all(db, 'SELECT * FROM agent_tasks WHERE user_id = ? ORDER BY created_at DESC LIMIT ?', [userId, safeLimit]);
+  return rows.map(agentTaskFromRow);
+}
+
+export async function getAgentTaskForUser(userId, taskId) {
+  const db = await getDb();
+  const row = first(db, 'SELECT * FROM agent_tasks WHERE id = ? AND user_id = ?', [taskId, userId]);
+  return row ? agentTaskFromRow(row) : null;
+}
+
 export async function assertGenerationAllowed(user) {
   if (user.role === 'admin') return;
   const limit = Number(user.dailyLimit ?? user.daily_limit ?? 50);
@@ -253,6 +289,17 @@ function migrate(db) {
       project_id TEXT,
       module_id TEXT,
       created_at TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS agent_tasks (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      project_id TEXT,
+      goal TEXT NOT NULL,
+      status TEXT NOT NULL,
+      plan_json TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
     );
   `);
 }
@@ -368,6 +415,25 @@ function projectFromRow(row) {
   };
 }
 
+function agentTaskFromRow(row) {
+  let plan = {};
+  try {
+    plan = JSON.parse(row.plan_json || '{}');
+  } catch {
+    plan = {};
+  }
+  return {
+    id: row.id,
+    userId: row.user_id,
+    projectId: row.project_id,
+    goal: row.goal,
+    status: row.status,
+    plan,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
 function hashPassword(password) {
   const salt = crypto.randomBytes(16).toString('hex');
   const hash = crypto.scryptSync(String(password), salt, 64).toString('hex');
@@ -425,4 +491,3 @@ function normalizeProjectName(name) {
   const value = String(name || '').trim();
   return value || '默认项目';
 }
-

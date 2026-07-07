@@ -17,7 +17,9 @@ const {
   listProjectsForUser,
   listUsers,
   loginUser,
+  listAgentTasksForUser,
   recordGeneration,
+  recordAgentTask,
   updateProjectForUser,
   updateUser,
 } = await import('../server/database.mjs');
@@ -77,6 +79,16 @@ try {
 
   const twoProjects = await listProjectsForUser(userLogin.user.id);
   assert.equal(twoProjects.length, 2, 'user should support multiple projects');
+
+  const task = await recordAgentTask(userLogin.user.id, updatedUserProject.id, 'plan my next content step', {
+    status: 'ready',
+    recommendedModuleId: 'ip-positioning',
+  });
+  assert.equal(task.userId, userLogin.user.id, 'agent task should belong to user');
+  const userTasks = await listAgentTasksForUser(userLogin.user.id, { projectId: updatedUserProject.id });
+  assert.equal(userTasks.length, 1, 'user should see own agent task');
+  const adminTasks = await listAgentTasksForUser(adminLogin.user.id);
+  assert.equal(adminTasks.length, 0, 'admin should not see another user agent task through user-scoped listing');
 
   await recordGeneration(userLogin.user.id, updatedUserProject.id, 'ip-positioning');
   await assert.rejects(

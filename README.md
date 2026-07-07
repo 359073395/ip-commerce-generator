@@ -9,8 +9,10 @@
 - 每个用户拥有独立项目列表，每个项目都有自己的长期档案记忆。
 - 项目档案会保存行业、人设、产品/服务、目标用户、信任证据、承接方式、IP定位结果等信息，后续所有模块自动继承。
 - 管理员在网页里配置模型 API：Base URL、API Key、自动检测模型、选择模型。
+- 智能任务入口：用户输入一句目标后，系统先判断个人IP/带货/组合路径，推荐模块，并在信息不足时追问，不直接胡编。
 - 前端保留“点开继续选择”的原站体验，模块包括 IP定位、爆款选题、成交选题、痛点选题、脚本创作、文案二创、爆款拆解、文案洗稿、带货。
 - 后端结合 Agent 配置、4P原则、八大爆款元素、知识库模板和质量自检生成完整骨架，不输出最小骨架。
+- Agent Planner 不依赖模型 API，可在 API 未配置或模型不稳定时稳定输出任务判断、缺失问题和下一步路径。
 - VPS 默认端口模式：Node 服务监听 `0.0.0.0:8790`，方便宝塔、1Panel、Nginx、Caddy、x-ui 等工具反代。
 
 ## 本地运行
@@ -75,7 +77,7 @@ AGENT_REVIEW_TIMEOUT_MS=20000
 
 ## 数据存储
 
-多用户、登录会话、项目档案、生成记录保存在：
+多用户、登录会话、项目档案、智能任务规划、生成记录保存在：
 
 ```text
 data/app.db
@@ -164,6 +166,7 @@ npm run verify:knowledge
 npm run build
 npm run verify:knowledge
 npm run test:agent-contract
+npm run test:agent-planner-dirty
 npm run test:project-profile
 npm run test:auth-projects
 ```

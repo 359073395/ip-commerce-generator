@@ -107,6 +107,11 @@ function App() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
+  const [agentGoal, setAgentGoal] = useState('');
+  const [agentPlan, setAgentPlan] = useState(null);
+  const [agentTask, setAgentTask] = useState(null);
+  const [agentLoading, setAgentLoading] = useState(false);
+  const [agentError, setAgentError] = useState('');
 
   const module = moduleMap[activeModule];
   const currentResult = results[activeModule];
@@ -179,6 +184,48 @@ function App() {
 
   function selectModule(moduleId) {
     setActiveModule(moduleId);
+    setError('');
+    window.requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    });
+  }
+
+  async function runAgentPlanner() {
+    setAgentLoading(true);
+    setAgentError('');
+    try {
+      const response = await fetch('/api/agent/plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          goal: agentGoal,
+          projectId: activeProjectId,
+        }),
+      });
+      const payload = await response.json();
+      if (!response.ok || !payload.ok) throw new Error(payload.message || '智能任务规划失败');
+      setAgentPlan(payload.plan);
+      setAgentTask(payload.task);
+    } catch (error) {
+      setAgentError(error.message);
+    } finally {
+      setAgentLoading(false);
+    }
+  }
+
+  function applyAgentPlan(plan = agentPlan) {
+    const moduleId = plan?.recommendedModuleId;
+    if (!moduleId || !moduleMap[moduleId]) return;
+    setActiveModule(moduleId);
+    if (plan.suggestedFormData) {
+      setForms((prev) => ({
+        ...prev,
+        [moduleId]: {
+          ...(prev[moduleId] || {}),
+          ...plan.suggestedFormData,
+        },
+      }));
+    }
     setError('');
     window.requestAnimationFrame(() => {
       window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
@@ -325,6 +372,16 @@ function App() {
           <main className="workspace original-workspace">
             <div className="workspace-grid original-workspace-grid">
               <section className="input-panel original-input-panel">
+                <AgentPlannerPanel
+                  goal={agentGoal}
+                  onGoalChange={setAgentGoal}
+                  plan={agentPlan}
+                  task={agentTask}
+                  loading={agentLoading}
+                  error={agentError}
+                  onPlan={runAgentPlanner}
+                  onApply={applyAgentPlan}
+                />
                 <FormGroups module={module} values={forms[activeModule] || {}} onChange={updateField} />
                 <OptionGroups module={module} selections={selections[activeModule] || []} onChange={updateSelection} />
                 {error && <ErrorBox message={error} />}
@@ -403,6 +460,16 @@ function App() {
         />
         <div className="workspace-grid">
           <section className="input-panel">
+            <AgentPlannerPanel
+              goal={agentGoal}
+              onGoalChange={setAgentGoal}
+              plan={agentPlan}
+              task={agentTask}
+              loading={agentLoading}
+              error={agentError}
+              onPlan={runAgentPlanner}
+              onApply={applyAgentPlan}
+            />
             <ModuleHeader module={module} completion={completion} hasContext={Boolean(ipContext)} />
             {module.inherited && module.frontendMode !== 'original' && <InheritedContext hasContext={Boolean(ipContext)} />}
             <OptionGroups module={module} selections={selections[activeModule] || []} onChange={updateSelection} />
@@ -452,6 +519,79 @@ function App() {
 function hasProjectProfile(profile) {
   return Boolean(profile && ['industry', 'persona', 'offer', 'audience', 'conversion', 'ipPositioningSummary']
     .some((field) => String(profile[field] || '').trim()));
+}
+
+function AgentPlannerPanel({ goal, onGoalChange, plan, task, loading, error, onPlan, onApply }) {
+  const canSubmit = Boolean(String(goal || '').trim()) && !loading;
+  const statusLabel = plan?.status === 'ready' ? '可执行' : plan?.status === 'needs_input' ? '需补充' : plan?.status === 'invalid' ? '无法判断' : '';
+
+  return (
+    <section className="agent-planner">
+      <div className="agent-planner-head">
+        <div>
+          <p className="module-kicker">Agent流程中枢</p>
+          <h2>智能任务入口</h2>
+        </div>
+        {plan && <span className={`agent-status ${plan.status}`}>{statusLabel}</span>}
+      </div>
+      <textarea
+        className="agent-goal-input"
+        value={goal}
+        onChange={(event) => onGoalChange(event.target.value)}
+        placeholder="输入你的目标，例如：我是做本地美业的老板，想做一个能获客成交的个人IP账号。"
+      />
+      <div className="agent-actions">
+        <button className="primary-button" type="button" onClick={onPlan} disabled={!canSubmit}>
+          {loading ? <Loader2 className="spin" size={18} /> : <Sparkles size={18} />}
+          {loading ? '规划中' : '智能规划'}
+        </button>
+        {plan?.recommendedModuleId && (
+          <button className="soft-button" type="button" onClick={() => onApply(plan)}>
+            <CheckCircle2 size={16} />
+            套用到推荐模块
+          </button>
+        )}
+      </div>
+      {error && <ErrorBox message={error} />}
+      {plan && (
+        <div className="agent-plan-card">
+          <div className="agent-plan-summary">
+            <strong>{plan.taskTypeLabel}</strong>
+            <span>推荐：{plan.recommendedModuleLabel} / 置信度 {Math.round((plan.confidence || 0) * 100)}%</span>
+          </div>
+          <div className="agent-mini-grid">
+            <div>
+              <h3>判断依据</h3>
+              <ul>{(plan.reasoning || []).map((item, index) => <li key={index}>{item}</li>)}</ul>
+            </div>
+            <div>
+              <h3>{plan.missingQuestions?.length ? '需要补充' : '下一步'}</h3>
+              <ul>
+                {(plan.missingQuestions?.length ? plan.missingQuestions : plan.actionPlan || []).map((item, index) => (
+                  <li key={index}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          {Boolean(plan.recommendedModules?.length) && (
+            <div className="agent-module-row">
+              {plan.recommendedModules.map((item) => (
+                <button className="agent-module-chip" type="button" key={item.id} onClick={() => onApply({ ...plan, recommendedModuleId: item.id, suggestedFormData: plan.suggestedFormData })}>
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          )}
+          {Boolean(plan.dirtyFlags?.length || plan.riskNotes?.length) && (
+            <div className="agent-risk-line">
+              <CircleAlert size={16} />
+              <span>{[...(plan.riskNotes || []), task?.id ? `已记录任务：${task.id.slice(0, 8)}` : ''].filter(Boolean).join(' / ')}</span>
+            </div>
+          )}
+        </div>
+      )}
+    </section>
+  );
 }
 
 function BootScreen() {

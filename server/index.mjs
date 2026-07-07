@@ -10,6 +10,7 @@ import { buildReviewPrompt } from './prompt-engine/reviewPrompt.mjs';
 import { moduleDefinitions } from './prompt-engine/modules.mjs';
 import { callOpenAICompatible } from './providers/openaiCompatible.mjs';
 import { loadManifest, verifyKnowledgeFiles } from './knowledge/loadKnowledge.mjs';
+import { planAgentTask } from './agentPlanner.mjs';
 import {
   assertGenerationAllowed,
   buildSessionCookie,
@@ -21,10 +22,12 @@ import {
   getSessionCookie,
   getSessionUser,
   initializeDatabase,
+  listAgentTasksForUser,
   listProjectsForUser,
   listUsers,
   loginUser,
   logoutSession,
+  recordAgentTask,
   recordGeneration,
   updateProjectForUser,
   updateUser,
@@ -236,6 +239,42 @@ app.delete('/api/projects/:projectId', async (req, res) => {
     res.json({ ok: true });
   } catch (error) {
     res.status(400).json({ ok: false, code: error.code || 'PROJECT_DELETE_FAILED', message: error.message });
+  }
+});
+
+app.get('/api/agent/tasks', async (req, res) => {
+  const projectId = String(req.query.projectId || '');
+  res.json({
+    ok: true,
+    tasks: await listAgentTasksForUser(req.user.id, {
+      projectId: projectId || undefined,
+      limit: req.query.limit,
+    }),
+  });
+});
+
+app.post('/api/agent/plan', async (req, res) => {
+  try {
+    const requestBody = req.body || {};
+    const projectId = String(requestBody.projectId || '');
+    const project = projectId ? await getProjectForUser(req.user.id, projectId) : (await listProjectsForUser(req.user.id))[0];
+    if (!project) {
+      res.status(400).json({ ok: false, code: 'PROJECT_REQUIRED', message: '请先创建项目档案。' });
+      return;
+    }
+    const plan = planAgentTask({
+      goal: requestBody.goal,
+      project,
+      projectProfile: project.profile,
+    });
+    const task = await recordAgentTask(req.user.id, project.id, requestBody.goal, plan);
+    res.json({ ok: true, task, plan });
+  } catch (error) {
+    res.status(400).json({
+      ok: false,
+      code: error.code || 'AGENT_PLAN_FAILED',
+      message: error.message,
+    });
   }
 });
 
