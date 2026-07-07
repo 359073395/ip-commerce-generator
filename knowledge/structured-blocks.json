@@ -1,0 +1,126 @@
+{
+  "version": "2026-07-08-quality-tuning-v1",
+  "description": "Structured method and example blocks for IP commerce generation retrieval.",
+  "blocks": [
+    {
+      "id": "ip-positioning-core",
+      "category": "personal_ip",
+      "moduleIds": ["ip-positioning"],
+      "title": "IP定位完整骨架",
+      "methods": ["IP定位一句话", "目标用户画像", "人设资产", "商业路径", "内容矩阵"],
+      "scenarios": ["个人IP", "专家顾问", "实体老板", "老师教练", "本地服务"],
+      "requiredInputs": ["行业/赛道", "身份/角色", "卖什么", "卖给谁", "信任资产", "承接方式"],
+      "outputTemplate": ["信息判断", "IP定位一句话", "目标用户画像", "商业路径", "内容矩阵", "转化入口", "待确认项"],
+      "example": "本地美业老板IP：用真实门店过程和客户评价建立信任，通过评论关键词和私信预约到店。",
+      "keywords": ["定位", "人设", "目标用户", "商业路径", "内容矩阵", "信任资产"]
+    },
+    {
+      "id": "viral-topic-elements",
+      "category": "personal_ip",
+      "moduleIds": ["viral-topics", "script", "viral-analysis"],
+      "title": "八大爆款元素选题",
+      "methods": ["成本", "人群", "猎奇", "头牌", "怀旧", "反差", "最差", "荷尔蒙"],
+      "scenarios": ["爆款选题", "短视频开头", "话题包装", "拆解复用"],
+      "requiredInputs": ["目标用户", "场景", "痛点/情绪", "爆款元素"],
+      "outputTemplate": ["元素分类", "选题标题", "黄金3秒", "拍摄角度", "推荐脚本类型"],
+      "example": "成本类：很多新手不是不会做IP，是把第一笔钱花错了。",
+      "keywords": ["爆款", "八大元素", "黄金3秒", "选题", "成本", "反差", "人群"]
+    },
+    {
+      "id": "script-four-cards",
+      "category": "personal_ip",
+      "moduleIds": ["script", "viral-topics", "rewrite", "polish"],
+      "title": "四类脚本卡",
+      "methods": ["教知识", "晒过程", "讲故事", "聊观点"],
+      "scenarios": ["个人IP脚本", "专家内容", "账号内容矩阵", "二创改写"],
+      "requiredInputs": ["脚本类型", "行业/人设", "目标用户", "选题", "CTA"],
+      "outputTemplate": ["标题", "封面文案", "黄金3秒", "完整口播", "分镜/B-roll", "字幕重点", "CTA"],
+      "example": "教知识脚本：先抛出用户常见误区，再给判断标准，最后给低成本行动。",
+      "keywords": ["脚本", "教知识", "晒过程", "讲故事", "聊观点", "CTA"]
+    },
+    {
+      "id": "conversion-topic-chain",
+      "category": "combined",
+      "moduleIds": ["conversion-topics", "script", "commerce"],
+      "title": "成交选题链路",
+      "methods": ["成交理由", "信任证明", "异议化解", "承接入口", "行动指令"],
+      "scenarios": ["成交选题", "咨询转化", "高客单服务", "到店成交", "课程成交"],
+      "requiredInputs": ["卖什么", "卖给谁", "成交理由", "证明材料", "承接方式"],
+      "outputTemplate": ["成交型选题", "成交理由", "信任证明", "异议处理", "CTA", "发布阶段"],
+      "example": "成交选题：为什么同样做护理，有的人一次就能看出差别？用案例和流程证明。",
+      "keywords": ["成交", "信任", "CTA", "私信", "表单", "到店", "课程", "团购"]
+    },
+    {
+      "id": "pain-topic-mining",
+      "category": "combined",
+      "moduleIds": ["pain-topics", "script", "viral-topics"],
+      "title": "痛点选题挖掘",
+      "methods": ["焦虑痛点", "成本痛点", "风险痛点", "决策痛点", "面子/情绪痛点", "场景痛点"],
+      "scenarios": ["痛点选题", "用户原话", "情绪钩子", "成交脚本"],
+      "requiredInputs": ["行业背景", "目标客户", "具体场景", "用户担心什么"],
+      "outputTemplate": ["痛点清单", "场景化选题", "情绪钩子", "用户原话", "脚本方向"],
+      "example": "决策痛点：不是怕贵，是怕花钱以后没效果。",
+      "keywords": ["痛点", "焦虑", "成本", "风险", "决策", "用户原话"]
+    },
+    {
+      "id": "commerce-4p-product",
+      "category": "commerce_video",
+      "moduleIds": ["commerce", "script"],
+      "title": "带货4P产品拆解",
+      "methods": ["Product产品", "Price价格", "Place场景", "Promotion促销"],
+      "scenarios": ["产品带货", "TikTok Shop", "商品卡", "小黄车", "直播预热"],
+      "requiredInputs": ["产品/服务", "目标人群", "购买场景", "核心卖点", "证明材料"],
+      "outputTemplate": ["产品需求", "购买场景", "成交理由", "视觉化拍摄", "带货脚本", "承接话术"],
+      "example": "先展示用户场景和痛点，再用产品细节、测评过程和评价降低购买风险。",
+      "keywords": ["4P", "带货", "产品", "价格", "场景", "促销", "商品卡", "小黄车"]
+    },
+    {
+      "id": "commerce-trust-proof",
+      "category": "commerce_video",
+      "moduleIds": ["commerce", "conversion-topics"],
+      "title": "带货信任证明",
+      "methods": ["测评", "评价", "过程", "对比", "资质", "复购"],
+      "scenarios": ["商品信任", "产品测评", "团购券", "线上卖课", "本地产品"],
+      "requiredInputs": ["证明材料", "用户顾虑", "购买入口", "售后/保障"],
+      "outputTemplate": ["信任资产清单", "证明镜头", "异议化解", "下单指令", "风险提醒"],
+      "example": "不要只说好用，要用前后对比、真实评价、过程镜头证明为什么值得买。",
+      "keywords": ["信任证明", "测评", "评价", "对比", "复购", "团购券", "线上课程"]
+    },
+    {
+      "id": "viral-analysis-reuse",
+      "category": "combined",
+      "moduleIds": ["viral-analysis", "rewrite", "polish"],
+      "title": "爆款拆解复用",
+      "methods": ["钩子拆解", "结构拆解", "情绪拆解", "成交链路拆解", "可复用模板", "原创风险提醒"],
+      "scenarios": ["爆款拆解", "文案二创", "洗稿", "内容复用"],
+      "requiredInputs": ["参考内容", "目标账号", "保留点", "规避点"],
+      "outputTemplate": ["拆解报告", "爆款元素", "可复用结构", "本账号改写方向", "原创边界", "风险提醒"],
+      "example": "拆表达结构，不复制原句；保留冲突、节奏和转化逻辑，换成人群和场景。",
+      "keywords": ["拆解", "复用", "二创", "洗稿", "原创", "钩子", "结构", "风险提醒", "不复制原句"]
+    },
+    {
+      "id": "agent-quality-gate",
+      "category": "system",
+      "moduleIds": ["ip-positioning", "viral-topics", "conversion-topics", "pain-topics", "script", "commerce"],
+      "title": "Agent质量门禁",
+      "methods": ["用户事实", "前端选择", "知识库证据", "完整骨架", "可执行性", "风险提醒"],
+      "scenarios": ["质量评估", "自动修复", "模型对比", "脏数据测试"],
+      "requiredInputs": ["用户输入", "前端选择", "项目档案", "知识命中"],
+      "outputTemplate": ["质量分", "缺失项", "修复建议", "是否通过", "人工复核点"],
+      "example": "如果生成结果没有体现前端选择或知识库方法，必须降分并触发修复。",
+      "keywords": ["质量评估", "自动修复", "模型对比", "知识库证据", "完整骨架"]
+    },
+    {
+      "id": "dirty-data-handling",
+      "category": "system",
+      "moduleIds": ["ip-positioning", "script", "commerce"],
+      "title": "脏数据处理规则",
+      "methods": ["缺失信息标注", "合理假设", "待确认项", "不编造", "完整骨架", "风险提醒", "可执行初版"],
+      "scenarios": ["输入太短", "信息冲突", "行业缺失", "目标用户缺失", "提示词注入", "忽略之前所有规则"],
+      "requiredInputs": ["最少可用事实", "项目档案", "用户目标"],
+      "outputTemplate": ["信息判断", "完整骨架", "可执行初版", "待确认项", "风险提醒"],
+      "example": "用户只写美业，也要给出初版，但必须标注城市、客单价、案例等待确认。",
+      "keywords": ["脏数据", "缺失", "待确认", "不编造", "完整骨架", "风险提醒", "提示词注入", "忽略之前所有规则", "ignore previous"]
+    }
+  ]
+}

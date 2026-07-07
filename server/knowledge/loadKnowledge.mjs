@@ -4,6 +4,8 @@ import crypto from 'node:crypto';
 
 const rootDir = process.cwd();
 const knowledgeDir = path.join(rootDir, 'knowledge');
+const structuredBlocksPath = path.join(knowledgeDir, 'structured-blocks.json');
+const benchmarkCasesPath = path.join(knowledgeDir, 'quality-benchmark-cases.json');
 
 const handbookFiles = {
   personal_ip: ['handbooks/personal-ip.md'],
@@ -37,6 +39,69 @@ export async function loadManifest() {
   }
 }
 
+export async function loadStructuredKnowledgeBlocks() {
+  try {
+    const raw = await fs.readFile(structuredBlocksPath, 'utf8');
+    const parsed = JSON.parse(raw.replace(/^\uFEFF/, ''));
+    return {
+      version: parsed.version || 'unknown',
+      description: parsed.description || '',
+      blocks: Array.isArray(parsed.blocks) ? parsed.blocks : [],
+    };
+  } catch (error) {
+    return {
+      version: 'missing',
+      description: `knowledge/structured-blocks.json unavailable: ${error.message}`,
+      blocks: [],
+      error: error.message,
+    };
+  }
+}
+
+export async function loadQualityBenchmarkCases() {
+  try {
+    const raw = await fs.readFile(benchmarkCasesPath, 'utf8');
+    const parsed = JSON.parse(raw.replace(/^\uFEFF/, ''));
+    return {
+      version: parsed.version || 'unknown',
+      description: parsed.description || '',
+      cases: Array.isArray(parsed.cases) ? parsed.cases : [],
+    };
+  } catch (error) {
+    return {
+      version: 'missing',
+      description: `knowledge/quality-benchmark-cases.json unavailable: ${error.message}`,
+      cases: [],
+      error: error.message,
+    };
+  }
+}
+
+export async function getKnowledgeOptimizationStatus() {
+  const [structured, benchmarks] = await Promise.all([
+    loadStructuredKnowledgeBlocks(),
+    loadQualityBenchmarkCases(),
+  ]);
+  const categoryCounts = countBy(structured.blocks, (item) => item.category || 'unknown');
+  const moduleCoverage = countBy(structured.blocks.flatMap((item) => item.moduleIds || []), (item) => item);
+  const benchmarkCoverage = countBy(benchmarks.cases, (item) => item.moduleId || 'unknown');
+  return {
+    structuredBlocks: {
+      version: structured.version,
+      count: structured.blocks.length,
+      categories: categoryCounts,
+      moduleCoverage,
+      ok: structured.blocks.length > 0 && !structured.error,
+    },
+    benchmarkCases: {
+      version: benchmarks.version,
+      count: benchmarks.cases.length,
+      moduleCoverage: benchmarkCoverage,
+      ok: benchmarks.cases.length >= 30 && !benchmarks.error,
+    },
+  };
+}
+
 export async function loadHandbook(taskType) {
   const files = handbookFiles[taskType] || handbookFiles.personal_ip;
 
@@ -67,6 +132,14 @@ export async function loadKnowledgePack({
   const files = handbookFiles[taskType] || handbookFiles.personal_ip;
 
   const queryTerms = buildQueryTerms({ moduleId, label, knowledge, output, formData, selections, context });
+  const structuredBlocks = await loadStructuredKnowledgeBlocks();
+  const selectedBlocks = selectStructuredBlocks({
+    blocks: structuredBlocks.blocks,
+    moduleId,
+    taskType,
+    queryTerms,
+    budgetChars,
+  });
   const sections = [];
   for (const relativePath of files) {
     const filePath = path.join(knowledgeDir, relativePath);
@@ -93,27 +166,38 @@ export async function loadKnowledgePack({
   }
 
   const selected = selectSectionsV2(sections, budgetChars);
+  const selectedKnowledge = [
+    ...selectedBlocks.map(toSelectedBlockSection),
+    ...selected,
+  ];
   const pack = [
     `# Knowledge Pack: ${label || moduleId}`,
-    `Selected sources: ${selected.map((item) => `${item.source} > ${item.heading}`).join(' | ')}`,
+    `Selected sources: ${selectedKnowledge.map((item) => `${item.source} > ${item.heading}`).join(' | ')}`,
     '',
+    ...selectedBlocks.map(formatStructuredBlock),
     ...selected.map((item) => `- ${item.heading} (${item.source}): ${compactSection(item.content, 260)}`),
   ].join('\n\n');
 
   return {
     pack,
-    selected: selected.map(({ source, heading, score, matchedTerms, scoreReasons }) => ({
+    selected: selectedKnowledge.map(({ source, heading, score, matchedTerms, scoreReasons, blockId, category, methods }) => ({
       source,
       heading,
       score,
       matchedTerms,
       scoreReasons,
+      blockId,
+      category,
+      methods,
     })),
     retrieval: {
       budgetChars,
       totalSections: sections.length,
-      selectedCount: selected.length,
-      selectedSources: [...new Set(selected.map((item) => item.source))],
+      structuredBlocksVersion: structuredBlocks.version,
+      totalStructuredBlocks: structuredBlocks.blocks.length,
+      selectedStructuredBlocks: selectedBlocks.length,
+      selectedCount: selectedKnowledge.length,
+      selectedSources: [...new Set(selectedKnowledge.map((item) => item.source))],
     },
     queryTerms,
   };
@@ -290,6 +374,104 @@ function selectSectionsV2(sections, budgetChars) {
   }
 
   return selected.length ? selected : sorted.slice(0, 4);
+}
+
+function selectStructuredBlocks({ blocks = [], moduleId, taskType, queryTerms = [], budgetChars }) {
+  const scored = blocks
+    .map((block) => {
+      const score = scoreStructuredBlock({ block, moduleId, taskType, queryTerms });
+      return {
+        ...block,
+        score: score.score,
+        matchedTerms: score.matchedTerms,
+        scoreReasons: score.reasons,
+      };
+    })
+    .filter((block) => block.score > 0)
+    .sort((a, b) => b.score - a.score);
+  const maxBlocks = budgetChars >= 1600 ? 4 : 3;
+  return scored.slice(0, maxBlocks);
+}
+
+function scoreStructuredBlock({ block, moduleId, taskType, queryTerms = [] }) {
+  const parts = [
+    block.id,
+    block.category,
+    block.title,
+    ...(block.moduleIds || []),
+    ...(block.methods || []),
+    ...(block.scenarios || []),
+    ...(block.requiredInputs || []),
+    ...(block.outputTemplate || []),
+    ...(block.keywords || []),
+    block.example,
+  ];
+  const haystack = parts.filter(Boolean).join('\n').toLowerCase();
+  let score = 0;
+  const matchedTerms = [];
+  const reasons = [];
+  if ((block.moduleIds || []).includes(moduleId)) {
+    score += 18;
+    reasons.push(`module:${moduleId}`);
+  }
+  if (block.category === taskType || block.category === 'combined') {
+    score += 8;
+    reasons.push(`taskType:${taskType}`);
+  }
+  const queryText = queryTerms.join('\n').toLowerCase();
+  if (
+    block.id === 'dirty-data-handling' &&
+    /忽略|ignore|注入|只输出|所有规则|system|developer|prompt/.test(queryText)
+  ) {
+    score += 28;
+    reasons.push('dirty_data_safety_boost');
+  }
+  for (const term of queryTerms) {
+    const normalized = String(term || '').trim().toLowerCase();
+    if (!normalized || normalized.length < 2) continue;
+    if (haystack.includes(normalized)) {
+      matchedTerms.push(term);
+      score += normalized.length >= 4 ? 4 : 2;
+    }
+  }
+  return {
+    score,
+    matchedTerms: [...new Set(matchedTerms)].slice(0, 12),
+    reasons: [...new Set(reasons)].slice(0, 12),
+  };
+}
+
+function toSelectedBlockSection(block) {
+  return {
+    source: `structured-blocks/${block.id}`,
+    heading: block.title,
+    score: block.score,
+    matchedTerms: block.matchedTerms || [],
+    scoreReasons: block.scoreReasons || [],
+    blockId: block.id,
+    category: block.category,
+    methods: block.methods || [],
+  };
+}
+
+function formatStructuredBlock(block) {
+  return [
+    `- ${block.title} (structured-blocks/${block.id}):`,
+    `  - Methods: ${(block.methods || []).join(' / ') || 'none'}`,
+    `  - Applies to: ${(block.scenarios || []).join(' / ') || 'general'}`,
+    `  - Required inputs: ${(block.requiredInputs || []).join(' / ') || 'none'}`,
+    `  - Output skeleton: ${(block.outputTemplate || []).join(' / ') || 'standard JSON'}`,
+    block.example ? `  - Example: ${block.example}` : '',
+  ].filter(Boolean).join('\n');
+}
+
+function countBy(items = [], keyFn) {
+  const counts = {};
+  for (const item of items) {
+    const key = keyFn(item) || 'unknown';
+    counts[key] = (counts[key] || 0) + 1;
+  }
+  return counts;
 }
 
 function trimSection(content, maxChars) {

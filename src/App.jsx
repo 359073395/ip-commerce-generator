@@ -1689,7 +1689,10 @@ function SystemStatusBlock({ health }) {
     qualityAutoRepair: '自动修复',
     knowledgeCitations: '知识引用',
     profileSuggestions: '档案建议',
+    structuredKnowledge: '结构化知识',
+    qualityBenchmark: '质量测试集',
   };
+  const optimization = health.knowledge?.optimization || {};
   return (
     <div className="system-status-block">
       <div className="mini-card-head">
@@ -1704,6 +1707,14 @@ function SystemStatusBlock({ health }) {
         <div className={`system-status-item ${health.knowledge?.ok ? 'ready' : 'warn'}`}>
           <span>知识库</span>
           <strong>{health.knowledge?.ok ? `${health.knowledge.files || 0} 文件正常` : '需检查'}</strong>
+        </div>
+        <div className={`system-status-item ${optimization.structuredBlocks?.ok ? 'ready' : 'warn'}`}>
+          <span>知识块</span>
+          <strong>{optimization.structuredBlocks?.count || 0} 个</strong>
+        </div>
+        <div className={`system-status-item ${optimization.benchmarkCases?.ok ? 'ready' : 'warn'}`}>
+          <span>测试集</span>
+          <strong>{optimization.benchmarkCases?.count || 0} 条</strong>
         </div>
         <div className="system-status-item ready">
           <span>模块</span>

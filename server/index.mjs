@@ -6,7 +6,7 @@ import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { detectOpenAIModels, env, getApiStatus, setApiConfig } from './config/env.mjs';
 import { moduleDefinitions } from './prompt-engine/modules.mjs';
-import { loadManifest, verifyKnowledgeFiles } from './knowledge/loadKnowledge.mjs';
+import { getKnowledgeOptimizationStatus, loadManifest, verifyKnowledgeFiles } from './knowledge/loadKnowledge.mjs';
 import { planAgentTask } from './agentPlanner.mjs';
 import { runAgentExecution } from './agentExecutor.mjs';
 import { generateModuleForUser } from './generationService.mjs';
@@ -110,6 +110,7 @@ function readPackageVersion() {
 app.get('/api/health', async (_req, res) => {
   const manifest = await loadManifest();
   const knowledge = await verifyKnowledgeFiles();
+  const optimization = await getKnowledgeOptimizationStatus();
   res.json({
     ok: true,
     api: getApiStatus(),
@@ -119,6 +120,7 @@ app.get('/api/health', async (_req, res) => {
       version: knowledge.manifest?.version || manifest.version,
       files: knowledge.checks?.length || 0,
       failed: (knowledge.checks || []).filter((item) => !item.ok).map((item) => item.path),
+      optimization,
     },
     system: {
       name: 'ip-commerce-generator',
@@ -131,6 +133,8 @@ app.get('/api/health', async (_req, res) => {
         qualityAutoRepair: process.env.QUALITY_REPAIR_ENABLED !== 'false',
         knowledgeCitations: true,
         profileSuggestions: true,
+        structuredKnowledge: optimization.structuredBlocks.ok,
+        qualityBenchmark: optimization.benchmarkCases.ok,
       },
     },
     modules: moduleDefinitions.map(({ id, label }) => ({ id, label })),
