@@ -12,6 +12,7 @@
     "verify:knowledge": "node --input-type=module -e \"import('./server/knowledge/loadKnowledge.mjs').then(async ({ verifyKnowledgeFiles }) => { const result = await verifyKnowledgeFiles(); console.log(JSON.stringify(result, null, 2)); process.exit(result.ok ? 0 : 1); })\"",
     "test:agent-contract": "node tools/run-agent-contract-test.mjs",
     "test:project-profile": "node tools/run-project-profile-test.mjs",
+    "test:auth-projects": "node tools/run-auth-project-test.mjs",
     "check": "npm run build"
   },
   "dependencies": {
@@ -23,6 +24,7 @@
     "lucide-react": "^0.468.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "sql.js": "^1.14.1",
     "vite": "^6.0.5"
   }
 }

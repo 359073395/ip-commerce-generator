@@ -1,19 +1,17 @@
-# IP商业方案生成器
+# IP商业内容 Agent 系统
 
-这是一个本地和 VPS 都可部署的知识库驱动 Web 应用。前端保留“点开继续选择”的模块体验，后台把用户填写的表格、层级选项、IP定位上下文和项目内 `knowledge/` 资料组装成提示词，再发送给兼容 OpenAI API 的大模型。
+这是一个知识库驱动的 Web 应用，用来把前端表单、层级选项、IP定位上下文、项目档案记忆和 `knowledge/` 资料一起组装成提示词，再交给兼容 OpenAI API 的大模型生成完整内容骨架。
 
-## 第一版功能
+## 核心功能
 
-- 不需要注册登录。
-- VPS 部署默认开启网页访问密码；先输入账号密码，才能进入网页和调用 API。
-- API 可以在网页里配置，保存后写入服务端 `.env`；安装时不需要填写 API。
-- 知识库资料已经项目化，部署到 VPS 时读取 `knowledge/` 目录。
-- 模块顺序：`IP定位`、`爆款选题`、`成交选题`、`痛点选题`、`脚本创作`、`文案二创`、`爆款拆解`、`文案洗稿`、`带货`。
-- 每个模块默认输出完整骨架，不输出最小版本。
-- 每个模块内置 Agent 配置：角色、目标、工具、规则和输出格式。
-- 默认开启 Agent 自检：先生成初稿，再按知识库规则评审修正一遍。
-- 支持项目档案记忆：保存行业、人设、产品/服务、目标用户、信任证据和承接方式后，所有模块自动继承。
-- 后续模块会继承 `IP定位` 生成结果作为上下文。
+- SQLite 多用户登录：不再默认使用统一网页密码。
+- 管理员创建用户、禁用用户、重置密码、设置每日生成次数。
+- 每个用户拥有独立项目列表，每个项目都有自己的长期档案记忆。
+- 项目档案会保存行业、人设、产品/服务、目标用户、信任证据、承接方式、IP定位结果等信息，后续所有模块自动继承。
+- 管理员在网页里配置模型 API：Base URL、API Key、自动检测模型、选择模型。
+- 前端保留“点开继续选择”的原站体验，模块包括 IP定位、爆款选题、成交选题、痛点选题、脚本创作、文案二创、爆款拆解、文案洗稿、带货。
+- 后端结合 Agent 配置、4P原则、八大爆款元素、知识库模板和质量自检生成完整骨架，不输出最小骨架。
+- VPS 默认端口模式：Node 服务监听 `0.0.0.0:8790`，方便宝塔、1Panel、Nginx、Caddy、x-ui 等工具反代。
 
 ## 本地运行
 
@@ -23,22 +21,43 @@ cp .env.example .env
 npm run dev
 ```
 
-浏览器打开：
+打开：
 
 ```text
-http://127.0.0.1:5173
+http://127.0.0.1:5173/
 ```
 
-`.env` 示例：
+开发环境里，Vite 默认把 `/api` 代理到 `http://127.0.0.1:8790`。如果后端端口不同：
 
 ```bash
+VITE_API_TARGET=http://127.0.0.1:8796 npm run dev
+```
+
+首次启动时会创建管理员账号：
+
+```env
+ADMIN_USERNAME=admin
+INITIAL_ADMIN_PASSWORD=change-this-admin-password
+```
+
+登录后由管理员在右上角“配置API”里填写模型接口；普通用户不会看到 API 设置入口。
+
+## 环境变量
+
+```env
 OPENAI_BASE_URL=https://api.example.com/v1
 OPENAI_API_KEY=replace-with-your-key
 OPENAI_MODEL=gpt-5.5
 OPENAI_FALLBACK_MODELS=gpt-5.4,gemini-3-flash,gpt-5.4-mini
+
 APP_AUTH_ENABLED=false
-APP_AUTH_USER=admin
-APP_AUTH_PASSWORD=change-this-password
+# Optional legacy shared page password. Keep disabled for normal multi-user login.
+# APP_AUTH_USER=admin
+# APP_AUTH_PASSWORD=change-this-password
+
+ADMIN_USERNAME=admin
+INITIAL_ADMIN_PASSWORD=change-this-admin-password
+
 PORT=8790
 HOST=0.0.0.0
 OPENAI_TIMEOUT_MS=45000
@@ -52,150 +71,78 @@ AGENT_REVIEW_MAX_TOKENS=1200
 AGENT_REVIEW_TIMEOUT_MS=20000
 ```
 
-## 生产运行
+`APP_AUTH_ENABLED=false` 是默认值，表示统一网页密码关闭。保留这些变量只是为了兼容老部署或外层 Basic Auth 需求。
 
-```bash
-npm install
-npm run build
-NODE_ENV=production node server/index.mjs
-```
+## 数据存储
 
-生产服务默认监听：
+多用户、登录会话、项目档案、生成记录保存在：
 
 ```text
-http://服务器IP:8790
+data/app.db
 ```
 
-## VPS一键部署
+旧版单项目档案 `data/project-profile.json` 如果存在，会在首次初始化数据库时导入到管理员默认项目。以后主要使用 `data/app.db`。
 
-把项目上传到 VPS 后，在项目根目录执行：
+不要把 `data/app.db`、`.env`、API Key 或真实用户数据提交到 GitHub。
 
-```bash
-sudo bash scripts/deploy-vps.sh
-```
+## VPS 一键安装
 
-安装时默认不配置 API。部署完成后打开网页，点右上角“配置API”，填写 Base URL、API Key，并自动检测模型。
-
-也可以通过环境变量预置配置：
-
-```bash
-OPENAI_BASE_URL=https://api.example.com/v1 \
-OPENAI_API_KEY=sk-xxxx \
-OPENAI_MODEL=gpt-5.5 \
-OPENAI_FALLBACK_MODELS=gpt-5.4,gemini-3-flash,gpt-5.4-mini \
-OPENAI_TIMEOUT_MS=45000 \
-PORT=8790 \
-sudo -E bash scripts/deploy-vps.sh
-```
-
-脚本会完成：
-
-- 检查或安装 Node.js 20。
-- 安装依赖并构建前端。
-- 生成 `.env`；如果已经存在，会保留 API 配置并更新部署默认项；需要完全重写时使用 `FORCE_ENV=1`。
-- 默认开启应用自带网页密码，密码保存在 `.env`，不依赖 Nginx。
-- 写入质量优先的模型配置：`gpt-5.5` 主模型，`gpt-5.4,gemini-3-flash,gpt-5.4-mini` 备用模型，主模型超时 `45000ms`。
-- 写入 Agent 自检配置：`AGENT_REVIEW_ENABLED=true`，生成质量优先；自检默认最多等待 `20000ms`，如果想提升速度可改为 `false` 后重启服务。
-- 校验 `knowledge/manifest.json` 中的知识库文件。
-- 创建并启动 systemd 服务 `ip-commerce-generator`。
-- 默认使用端口模式：Node 服务监听 `0.0.0.0:8790`，方便用宝塔、1Panel、Nginx、Caddy、x-ui 等工具反代。
-- 如果需要脚本自动安装 Nginx Basic Auth，可以设置 `ENABLE_NGINX_BASIC_AUTH=yes`。开启后 Node 服务只监听 `127.0.0.1`，外部访问走 Nginx 鉴权。
-
-默认端口模式访问：
-
-```text
-http://服务器IP:8790/
-```
-
-首次打开会弹出浏览器账号密码框。默认账号是 `admin`，安装脚本会自动生成密码并在安装完成时输出。
-
-查看当前网页密码：
-
-```bash
-sudo grep -E '^(APP_AUTH_USER|APP_AUTH_PASSWORD)=' /opt/ip-commerce-generator/.env
-```
-
-修改网页密码：
-
-```bash
-sudo sed -i 's/^APP_AUTH_USER=.*/APP_AUTH_USER="admin"/' /opt/ip-commerce-generator/.env
-sudo sed -i 's/^APP_AUTH_PASSWORD=.*/APP_AUTH_PASSWORD="your-new-password"/' /opt/ip-commerce-generator/.env
-sudo systemctl restart ip-commerce-generator
-```
-
-如果你已经用宝塔、1Panel、Nginx、Caddy 或 x-ui 在外层做了访问控制，也可以关闭应用自带密码：
-
-```bash
-sudo sed -i 's/^APP_AUTH_ENABLED=.*/APP_AUTH_ENABLED="false"/' /opt/ip-commerce-generator/.env
-sudo systemctl restart ip-commerce-generator
-```
-
-如果开启 Basic Auth，则访问：
-
-```text
-http://服务器IP/
-```
-
-如果项目已经托管到 Git，也可以让脚本自动拉取：
-
-```bash
-APP_DIR=/opt/ip-commerce-generator \
-APP_GIT_URL=https://your-git-repo.git \
-sudo -E bash scripts/deploy-vps.sh
-```
-
-常用运维命令：
-
-```bash
-sudo systemctl status ip-commerce-generator
-sudo journalctl -u ip-commerce-generator -f
-sudo systemctl restart ip-commerce-generator
-curl -u "admin:你的网页密码" http://127.0.0.1:8790/api/health
-```
-
-## GitHub一键安装
-
-项目公开后，可以在任意 Ubuntu/Debian VPS 上用一条命令安装：
+公开仓库安装：
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/359073395/ip-commerce-generator/main/scripts/install-from-github.sh | sudo bash
 ```
 
-也可以指定仓库、分支和安装目录：
+指定仓库、分支、目录：
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/359073395/ip-commerce-generator/main/scripts/install-from-github.sh | sudo env GITHUB_REPO=359073395/ip-commerce-generator GITHUB_REF=main APP_DIR=/opt/ip-commerce-generator bash
 ```
 
-这个脚本会从 GitHub 下载项目 tarball；如果 VPS 上已有 `.env`，会自动保留原 API 配置。
-如果 VPS 上已有 `data/project-profile.json`，也会自动保留项目档案。
+安装完成后脚本会输出：
 
-默认安装完成后会输出访问地址 `http://服务器IP:8790/`。进入网站后，在右上角“配置API”里填写兼容 OpenAI API 的 Base URL、API Key，并选择模型。
+- 访问地址，例如 `http://服务器IP:8790/`
+- 初始管理员用户名
+- 初始管理员密码
+- 健康检查命令
 
-安装完成后还会输出网页访问账号和密码。这个密码保护整个网页和后端 API，不会影响你在网页里配置大模型 API。
+第一次进入网页后，用管理员账号登录，再在网页里配置 API。API 不需要在安装命令里填写。
 
-如果安装后网页打不开，先确认访问的是：
-
-```text
-http://服务器IP:8790/
-```
-
-默认端口模式需要访问 `:8790`。如果仍然打不开，通常是云服务器安全组或防火墙没有放行 TCP 8790。可以在 VPS 上运行诊断：
+如果网页打不开，先在 VPS 上诊断：
 
 ```bash
 sudo bash /opt/ip-commerce-generator/scripts/diagnose-vps.sh
 ```
 
-常见修复：
+端口模式需要云服务器安全组或防火墙放行 TCP 8790：
 
 ```bash
 sudo ufw allow 8790/tcp
 sudo systemctl restart ip-commerce-generator
 ```
 
+## 升级部署
+
+在 VPS 上重新运行一键安装脚本即可。脚本会保留 `.env` 和 `data/`，不会覆盖已有用户、项目档案和 API 配置。
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/359073395/ip-commerce-generator/main/scripts/install-from-github.sh | sudo bash
+```
+
+注意：`INITIAL_ADMIN_PASSWORD` 只在数据库第一次创建管理员时生效。已有 `data/app.db` 后，修改 `.env` 里的这个值不会重置管理员密码，需要在后台“用户管理”里重置。
+
+## 常用运维命令
+
+```bash
+sudo systemctl status ip-commerce-generator --no-pager
+sudo journalctl -u ip-commerce-generator -f
+sudo systemctl restart ip-commerce-generator
+curl http://127.0.0.1:8790/api/health
+```
+
 ## 知识库稳定性
 
-服务端只读取项目内 `knowledge/`，不会依赖 Windows 本地路径。部署时要确保这些文件一起上传：
+服务端只读取项目内 `knowledge/`，不依赖 Windows 本地路径。部署时要确保这些文件一起上传：
 
 - `knowledge/handbooks/personal-ip.md`
 - `knowledge/handbooks/commerce-video.md`
@@ -203,14 +150,20 @@ sudo systemctl restart ip-commerce-generator
 - `knowledge/templates/*.json`
 - `knowledge/manifest.json`
 
-如果更新知识库文件，需要同步更新 `knowledge/manifest.json`，否则 `/api/knowledge/verify` 会提示哈希不一致。
+校验知识库：
 
-## 项目档案记忆
-
-网页里的“项目档案”会保存到服务端：
-
-```text
-data/project-profile.json
+```bash
+npm run verify:knowledge
 ```
 
-这个文件不会提交到 GitHub，适合保存你自己的行业、人设、产品、目标用户、承接方式和 IP定位结果。后续所有模块生成时，后端会自动读取它作为长期记忆。
+如果更新知识库文件，需要同步更新 `knowledge/manifest.json`，否则 `/api/knowledge/verify` 会提示哈希不一致。
+
+## 测试
+
+```bash
+npm run build
+npm run verify:knowledge
+npm run test:agent-contract
+npm run test:project-profile
+npm run test:auth-projects
+```

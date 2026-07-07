@@ -6,6 +6,7 @@ import {
   ClipboardCopy,
   Download,
   FileText,
+  LogOut,
   Loader2,
   Moon,
   PanelLeft,
@@ -15,6 +16,7 @@ import {
   ShieldCheck,
   Sparkles,
   Trash2,
+  UserPlus,
   UserRound,
 } from 'lucide-react';
 import { modules, moduleMap } from './modules.js';
@@ -96,16 +98,22 @@ function App() {
   const [selections, setSelections] = useState(initialSelections);
   const [results, setResults] = useState({});
   const [loading, setLoading] = useState(false);
+  const [authUser, setAuthUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [projects, setProjects] = useState([]);
+  const [activeProjectId, setActiveProjectId] = useState('');
   const [health, setHealth] = useState(null);
-  const [projectProfile, setProjectProfile] = useState(null);
   const [error, setError] = useState('');
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [adminOpen, setAdminOpen] = useState(false);
 
   const module = moduleMap[activeModule];
   const currentResult = results[activeModule];
   const ipContext = results['ip-positioning']?.result || null;
   const isOriginalMode = module.frontendMode === 'original';
+  const activeProject = projects.find((item) => item.id === activeProjectId) || projects[0] || null;
+  const projectProfile = activeProject?.profile || null;
 
   function refreshHealth() {
     return fetch('/api/health')
@@ -114,17 +122,60 @@ function App() {
       .catch(() => setHealth({ ok: false, api: { configured: false } }));
   }
 
-  function refreshProjectProfile() {
-    return fetch('/api/project-profile')
-      .then((res) => res.json())
-      .then((payload) => setProjectProfile(payload.profile || null))
-      .catch(() => setProjectProfile(null));
+  function refreshProjects(preferredProjectId = activeProjectId) {
+    return fetch('/api/projects')
+      .then((res) => {
+        if (res.status === 401) throw new Error('AUTH_REQUIRED');
+        return res.json();
+      })
+      .then((payload) => {
+        const nextProjects = payload.projects || [];
+        setProjects(nextProjects);
+        const storedProjectId = window.localStorage?.getItem('ip-commerce-project-id') || '';
+        const nextProjectId = [preferredProjectId, storedProjectId, nextProjects[0]?.id]
+          .find((id) => id && nextProjects.some((project) => project.id === id)) || '';
+        setActiveProjectId(nextProjectId);
+        if (nextProjectId) window.localStorage?.setItem('ip-commerce-project-id', nextProjectId);
+        return nextProjects;
+      })
+      .catch((err) => {
+        if (err.message === 'AUTH_REQUIRED') setAuthUser(null);
+        setProjects([]);
+      });
+  }
+
+  async function refreshSession() {
+    setAuthLoading(true);
+    try {
+      const response = await fetch('/api/auth/me');
+      if (!response.ok) {
+        setAuthUser(null);
+        return;
+      }
+      const payload = await response.json();
+      setAuthUser(payload.user);
+      await Promise.all([refreshHealth(), refreshProjects()]);
+    } finally {
+      setAuthLoading(false);
+    }
   }
 
   useEffect(() => {
-    refreshHealth();
-    refreshProjectProfile();
+    refreshSession();
   }, []);
+
+  async function handleLogin(user) {
+    setAuthUser(user);
+    await Promise.all([refreshHealth(), refreshProjects()]);
+  }
+
+  async function logout() {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    setAuthUser(null);
+    setProjects([]);
+    setActiveProjectId('');
+    setResults({});
+  }
 
   function selectModule(moduleId) {
     setActiveModule(moduleId);
@@ -190,6 +241,7 @@ function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           moduleId: activeModule,
+          projectId: activeProjectId,
           formData: forms[activeModule],
           selections: serializeSelections(module, selections[activeModule] || []),
           context: activeModule === 'ip-positioning' ? {} : { ipPositioning: ipContext },
@@ -242,14 +294,25 @@ function App() {
   }
 
   if (isOriginalMode) {
+    if (authLoading) return <BootScreen />;
+    if (!authUser) return <LoginScreen onLogin={handleLogin} />;
     return (
       <div className="original-app-shell">
         <TopBar
           module={module}
           health={health}
           projectProfile={projectProfile}
+          projects={projects}
+          activeProjectId={activeProjectId}
+          authUser={authUser}
+          onProjectChange={(projectId) => {
+            setActiveProjectId(projectId);
+            window.localStorage?.setItem('ip-commerce-project-id', projectId);
+          }}
           onSettings={() => setSettingsOpen(true)}
           onProjectProfile={() => setProfileOpen(true)}
+          onAdmin={() => setAdminOpen(true)}
+          onLogout={logout}
           originalMode
         />
         <div className="original-body">
@@ -268,6 +331,7 @@ function App() {
                 <ActionBar
                   loading={loading}
                   apiConfigured={health?.api?.configured}
+                  canConfigureApi={authUser?.role === 'admin'}
                   primaryLabel={module.generateLabel}
                   onGenerate={generate}
                   onClear={clearCurrent}
@@ -281,7 +345,7 @@ function App() {
             </div>
           </main>
         </div>
-        {settingsOpen && (
+        {settingsOpen && authUser?.role === 'admin' && (
           <SettingsModal
             health={health}
             onConfigured={(api) => setHealth((prev) => ({ ...(prev || {}), api }))}
@@ -291,21 +355,33 @@ function App() {
         {profileOpen && (
           <ProjectProfileModal
             profile={projectProfile}
+            project={activeProject}
             ipContext={ipContext}
-            onSaved={(profile) => {
-              setProjectProfile(profile);
+            onSaved={(project) => {
+              refreshProjects(project.id);
               refreshHealth();
             }}
             onClose={() => setProfileOpen(false)}
           />
         )}
+        {adminOpen && authUser?.role === 'admin' && <AdminUsersModal onClose={() => setAdminOpen(false)} />}
       </div>
     );
   }
 
+  if (authLoading) return <BootScreen />;
+  if (!authUser) return <LoginScreen onLogin={handleLogin} />;
+
   return (
     <div className="app-shell">
-      <OuterSidebar health={health} projectProfile={projectProfile} onSettings={() => setSettingsOpen(true)} onProjectProfile={() => setProfileOpen(true)} />
+      <OuterSidebar
+        health={health}
+        projectProfile={projectProfile}
+        authUser={authUser}
+        onSettings={() => setSettingsOpen(true)}
+        onProjectProfile={() => setProfileOpen(true)}
+        onAdmin={() => setAdminOpen(true)}
+      />
       <ModuleRail activeModule={activeModule} onSelect={selectModule} />
 
       <main className="workspace">
@@ -313,8 +389,17 @@ function App() {
           module={module}
           health={health}
           projectProfile={projectProfile}
+          projects={projects}
+          activeProjectId={activeProjectId}
+          authUser={authUser}
+          onProjectChange={(projectId) => {
+            setActiveProjectId(projectId);
+            window.localStorage?.setItem('ip-commerce-project-id', projectId);
+          }}
           onSettings={() => setSettingsOpen(true)}
           onProjectProfile={() => setProfileOpen(true)}
+          onAdmin={() => setAdminOpen(true)}
+          onLogout={logout}
         />
         <div className="workspace-grid">
           <section className="input-panel">
@@ -326,6 +411,7 @@ function App() {
             <ActionBar
               loading={loading}
               apiConfigured={health?.api?.configured}
+              canConfigureApi={authUser?.role === 'admin'}
               primaryLabel={module.generateLabel}
               onGenerate={generate}
               onClear={clearCurrent}
@@ -339,7 +425,7 @@ function App() {
         </div>
       </main>
 
-      {settingsOpen && (
+      {settingsOpen && authUser?.role === 'admin' && (
         <SettingsModal
           health={health}
           onConfigured={(api) => setHealth((prev) => ({ ...(prev || {}), api }))}
@@ -349,14 +435,16 @@ function App() {
       {profileOpen && (
         <ProjectProfileModal
           profile={projectProfile}
+          project={activeProject}
           ipContext={ipContext}
-          onSaved={(profile) => {
-            setProjectProfile(profile);
+          onSaved={(project) => {
+            refreshProjects(project.id);
             refreshHealth();
           }}
           onClose={() => setProfileOpen(false)}
         />
       )}
+      {adminOpen && authUser?.role === 'admin' && <AdminUsersModal onClose={() => setAdminOpen(false)} />}
     </div>
   );
 }
@@ -366,7 +454,69 @@ function hasProjectProfile(profile) {
     .some((field) => String(profile[field] || '').trim()));
 }
 
-function OuterSidebar({ health, projectProfile, onSettings, onProjectProfile }) {
+function BootScreen() {
+  return (
+    <div className="auth-shell">
+      <div className="auth-card">
+        <Loader2 className="spin" size={24} />
+        <h1>流量IP核爆引擎</h1>
+        <p>正在检查登录状态</p>
+      </div>
+    </div>
+  );
+}
+
+function LoginScreen({ onLogin }) {
+  const [username, setUsername] = useState('admin');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  async function login(event) {
+    event.preventDefault();
+    setLoading(true);
+    setError('');
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+      const payload = await response.json();
+      if (!response.ok || !payload.ok) throw new Error(payload.message || '登录失败');
+      onLogin(payload.user);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="auth-shell">
+      <form className="auth-card" onSubmit={login}>
+        <div className="brand-mark auth-mark">创</div>
+        <h1>流量IP核爆引擎</h1>
+        <p>使用你的独立账号登录，每个用户只能看到自己的项目档案。</p>
+        <label className="settings-field">
+          <span>用户名</span>
+          <input value={username} onChange={(event) => setUsername(event.target.value)} autoComplete="username" />
+        </label>
+        <label className="settings-field">
+          <span>密码</span>
+          <input type="password" value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="current-password" />
+        </label>
+        {error && <ErrorBox message={error} />}
+        <button className="primary-button full" disabled={loading || !username || !password}>
+          {loading ? <Loader2 className="spin" size={18} /> : <ShieldCheck size={18} />}
+          {loading ? '登录中' : '登录'}
+        </button>
+      </form>
+    </div>
+  );
+}
+
+function OuterSidebar({ health, projectProfile, authUser, onSettings, onProjectProfile, onAdmin }) {
   return (
     <aside className="outer-sidebar">
       <div className="brand">
@@ -389,14 +539,22 @@ function OuterSidebar({ health, projectProfile, onSettings, onProjectProfile }) 
         <UserRound size={18} />
         项目档案
       </button>
+      {authUser?.role === 'admin' && (
+        <button className="outer-nav" onClick={onAdmin}>
+          <UserPlus size={18} />
+          用户管理
+        </button>
+      )}
       <div className="outer-spacer" />
       <div className="profile-row">
         <div className="avatar">你</div>
         <span>{health?.api?.configured ? 'API已配置' : 'API未配置'}</span>
         <Moon size={18} />
+        {authUser?.role === 'admin' && (
         <button className="icon-button" onClick={onSettings} aria-label="API设置">
           <Settings size={18} />
         </button>
+        )}
       </div>
     </aside>
   );
@@ -423,8 +581,26 @@ function ModuleRail({ activeModule, onSelect, items = modules, originalMode = fa
 
 }
 
-function TopBar({ module, health, projectProfile, onSettings, onProjectProfile, originalMode = false }) {
+function TopBar({
+  module,
+  health,
+  projectProfile,
+  projects = [],
+  activeProjectId,
+  authUser,
+  onProjectChange,
+  onSettings,
+  onProjectProfile,
+  onAdmin,
+  onLogout,
+  originalMode = false,
+}) {
   const profileReady = hasProjectProfile(projectProfile);
+  const projectSelector = (
+    <select className="project-select" value={activeProjectId || ''} onChange={(event) => onProjectChange?.(event.target.value)}>
+      {projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}
+    </select>
+  );
   if (originalMode) {
     return (
       <header className="topbar original-topbar">
@@ -432,13 +608,26 @@ function TopBar({ module, health, projectProfile, onSettings, onProjectProfile, 
           <h1>流量IP核爆引擎</h1>
         </div>
         <div className="original-top-actions">
+          {projectSelector}
           <button className={`original-share-button ${profileReady ? 'ready' : ''}`} type="button" onClick={onProjectProfile}>
             <UserRound size={18} />
             {profileReady ? '档案已保存' : '项目档案'}
           </button>
-          <button className="original-share-button" type="button" onClick={onSettings}>
-            <Settings size={18} />
+          {authUser?.role === 'admin' && (
+            <button className="original-share-button" type="button" onClick={onAdmin}>
+              <UserPlus size={18} />
+              用户管理
+            </button>
+          )}
+          {authUser?.role === 'admin' && (
+            <button className="original-share-button" type="button" onClick={onSettings}>
+              <Settings size={18} />
             配置API
+            </button>
+          )}
+          <button className="original-share-button" type="button" onClick={onLogout}>
+            <LogOut size={18} />
+            退出
           </button>
         </div>
       </header>
@@ -455,6 +644,7 @@ function TopBar({ module, health, projectProfile, onSettings, onProjectProfile, 
         <h1>{module.name}</h1>
       </div>
       <div className="top-actions">
+        {projectSelector}
         <span className={`status-pill ${health?.api?.configured ? 'ok' : 'warn'}`}>
           {health?.api?.configured ? 'API已配置' : 'API未配置'}
         </span>
@@ -462,9 +652,21 @@ function TopBar({ module, health, projectProfile, onSettings, onProjectProfile, 
           <UserRound size={16} />
           {profileReady ? '档案已保存' : '项目档案'}
         </button>
-        <button className="soft-button" onClick={onSettings}>
-          <Settings size={16} />
+        {authUser?.role === 'admin' && (
+          <button className="soft-button" onClick={onSettings}>
+            <Settings size={16} />
           API设置
+          </button>
+        )}
+        {authUser?.role === 'admin' && (
+          <button className="soft-button" onClick={onAdmin}>
+            <UserPlus size={16} />
+            用户管理
+          </button>
+        )}
+        <button className="soft-button" onClick={onLogout}>
+          <LogOut size={16} />
+          退出
         </button>
       </div>
     </header>
@@ -690,7 +892,7 @@ function FieldGroup({ group, values, onChange, compact = false }) {
   );
 }
 
-function ActionBar({ loading, apiConfigured, primaryLabel, onGenerate, onClear, onCopy, onExport, hasResult }) {
+function ActionBar({ loading, apiConfigured, canConfigureApi, primaryLabel, onGenerate, onClear, onCopy, onExport, hasResult }) {
   return (
     <div className="action-bar">
       <button className="primary-button" onClick={onGenerate} disabled={loading}>
@@ -713,7 +915,11 @@ function ActionBar({ loading, apiConfigured, primaryLabel, onGenerate, onClear, 
         <Trash2 size={16} />
         清空
       </button>
-      {!apiConfigured && <span className="inline-warning">API未配置，生成前请点击右上角配置API。</span>}
+      {!apiConfigured && (
+        <span className="inline-warning">
+          {canConfigureApi ? 'API未配置，生成前请点击右上角配置API。' : 'API未配置，请联系管理员配置后再生成。'}
+        </span>
+      )}
     </div>
   );
 }
@@ -819,7 +1025,7 @@ function RenderedResult({ result }) {
   );
 }
 
-function ProjectProfileModal({ profile, ipContext, onSaved, onClose }) {
+function ProjectProfileModal({ profile, project, ipContext, onSaved, onClose }) {
   const [draft, setDraft] = useState({
     projectName: profile?.projectName || '',
     industry: profile?.industry || '',
@@ -862,15 +1068,37 @@ function ProjectProfileModal({ profile, ipContext, onSaved, onClose }) {
     setSaving(true);
     setMessage('');
     try {
-      const response = await fetch('/api/project-profile', {
-        method: 'PUT',
+      const response = await fetch(project?.id ? `/api/projects/${project.id}` : '/api/projects', {
+        method: project?.id ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(draft),
+        body: JSON.stringify({ name: draft.projectName || project?.name || '默认项目', profile: draft }),
       });
       const payload = await response.json();
       if (!response.ok || !payload.ok) throw new Error(payload.message || '保存失败');
-      onSaved?.(payload.profile);
+      onSaved?.(payload.project);
       setMessage('项目档案已保存，后续所有模块会自动继承。');
+      setMessageType('ready');
+    } catch (error) {
+      setMessage(error.message);
+      setMessageType('error');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function saveAsNewProject() {
+    setSaving(true);
+    setMessage('');
+    try {
+      const response = await fetch('/api/projects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: draft.projectName || '新项目', profile: draft }),
+      });
+      const payload = await response.json();
+      if (!response.ok || !payload.ok) throw new Error(payload.message || '创建失败');
+      onSaved?.(payload.project);
+      setMessage('新项目已创建并保存。');
       setMessageType('ready');
     } catch (error) {
       setMessage(error.message);
@@ -884,7 +1112,7 @@ function ProjectProfileModal({ profile, ipContext, onSaved, onClose }) {
     <div className="modal-backdrop">
       <div className="settings-modal profile-modal">
         <div className="modal-header">
-          <h2>项目档案</h2>
+          <h2>{project?.id ? '项目档案' : '新建项目档案'}</h2>
           <button className="icon-button" onClick={onClose}>x</button>
         </div>
         <div className="profile-help">
@@ -943,10 +1171,153 @@ function ProjectProfileModal({ profile, ipContext, onSaved, onClose }) {
             <RefreshCw size={16} />
             写入当前IP定位
           </button>
+          {project?.id && (
+            <button className="soft-button" type="button" onClick={saveAsNewProject} disabled={saving}>
+              <UserPlus size={16} />
+              另存为新项目
+            </button>
+          )}
           <button className="primary-button" onClick={saveProfile} disabled={saving}>
             {saving ? <Loader2 className="spin" size={18} /> : <Save size={18} />}
             {saving ? '保存中' : '保存项目档案'}
           </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AdminUsersModal({ onClose }) {
+  const [users, setUsers] = useState([]);
+  const [draft, setDraft] = useState({ username: '', password: '', role: 'user', dailyLimit: 50 });
+  const [message, setMessage] = useState('');
+  const [messageType, setMessageType] = useState('info');
+  const [loading, setLoading] = useState(false);
+
+  async function loadUsers() {
+    const response = await fetch('/api/admin/users');
+    const payload = await response.json();
+    if (!response.ok || !payload.ok) throw new Error(payload.message || '读取用户失败');
+    setUsers(payload.users || []);
+  }
+
+  useEffect(() => {
+    loadUsers().catch((error) => {
+      setMessage(error.message);
+      setMessageType('error');
+    });
+  }, []);
+
+  async function createNewUser() {
+    setLoading(true);
+    setMessage('');
+    try {
+      const response = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(draft),
+      });
+      const payload = await response.json();
+      if (!response.ok || !payload.ok) throw new Error(payload.message || '创建失败');
+      setDraft({ username: '', password: '', role: 'user', dailyLimit: 50 });
+      await loadUsers();
+      setMessage('用户已创建。');
+      setMessageType('ready');
+    } catch (error) {
+      setMessage(error.message);
+      setMessageType('error');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function patchUser(userId, updates) {
+    setLoading(true);
+    setMessage('');
+    try {
+      const response = await fetch(`/api/admin/users/${userId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates),
+      });
+      const payload = await response.json();
+      if (!response.ok || !payload.ok) throw new Error(payload.message || '更新失败');
+      await loadUsers();
+      setMessage('用户已更新。');
+      setMessageType('ready');
+    } catch (error) {
+      setMessage(error.message);
+      setMessageType('error');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="modal-backdrop">
+      <div className="settings-modal admin-modal">
+        <div className="modal-header">
+          <h2>用户管理</h2>
+          <button className="icon-button" onClick={onClose}>x</button>
+        </div>
+        <div className="profile-help">
+          管理员手动创建账号。普通用户只能访问自己的项目档案和生成内容；API 配置仅管理员可操作。
+        </div>
+        <div className="user-create-grid">
+          <label className="settings-field">
+            <span>用户名</span>
+            <input value={draft.username} onChange={(event) => setDraft((prev) => ({ ...prev, username: event.target.value }))} />
+          </label>
+          <label className="settings-field">
+            <span>初始密码</span>
+            <input type="password" value={draft.password} onChange={(event) => setDraft((prev) => ({ ...prev, password: event.target.value }))} />
+          </label>
+          <label className="settings-field">
+            <span>角色</span>
+            <select value={draft.role} onChange={(event) => setDraft((prev) => ({ ...prev, role: event.target.value }))}>
+              <option value="user">普通用户</option>
+              <option value="admin">管理员</option>
+            </select>
+          </label>
+          <label className="settings-field">
+            <span>每日次数</span>
+            <input type="number" min="0" value={draft.dailyLimit} onChange={(event) => setDraft((prev) => ({ ...prev, dailyLimit: event.target.value }))} />
+          </label>
+          <button className="primary-button user-create-button" disabled={loading || !draft.username || !draft.password} onClick={createNewUser}>
+            <UserPlus size={18} />
+            创建用户
+          </button>
+        </div>
+        {message && (
+          <div className={`context-strip ${messageType === 'ready' ? 'ready' : ''} ${messageType === 'error' ? 'error' : ''}`}>
+            <ShieldCheck size={18} />
+            {message}
+          </div>
+        )}
+        <div className="user-list">
+          {users.map((user) => (
+            <div className="user-row" key={user.id}>
+              <div>
+                <strong>{user.username}</strong>
+                <span>{user.role === 'admin' ? '管理员' : '普通用户'} / {user.status === 'active' ? '启用' : '禁用'} / 每日 {user.daily_limit ?? user.dailyLimit} 次</span>
+              </div>
+              <div className="user-actions">
+                <button className="soft-button" disabled={loading} onClick={() => patchUser(user.id, { status: user.status === 'active' ? 'disabled' : 'active' })}>
+                  {user.status === 'active' ? '禁用' : '启用'}
+                </button>
+                <button
+                  className="soft-button"
+                  disabled={loading}
+                  onClick={() => {
+                    const password = window.prompt(`给 ${user.username} 设置新密码`);
+                    if (password) patchUser(user.id, { password });
+                  }}
+                >
+                  重置密码
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>

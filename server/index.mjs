@@ -10,7 +10,25 @@ import { buildReviewPrompt } from './prompt-engine/reviewPrompt.mjs';
 import { moduleDefinitions } from './prompt-engine/modules.mjs';
 import { callOpenAICompatible } from './providers/openaiCompatible.mjs';
 import { loadManifest, verifyKnowledgeFiles } from './knowledge/loadKnowledge.mjs';
-import { loadProjectProfile, projectProfileIsEmpty, saveProjectProfile } from './projectProfile.mjs';
+import {
+  assertGenerationAllowed,
+  buildSessionCookie,
+  clearSessionCookie,
+  createProjectForUser,
+  createUser,
+  deleteProjectForUser,
+  getProjectForUser,
+  getSessionCookie,
+  getSessionUser,
+  initializeDatabase,
+  listProjectsForUser,
+  listUsers,
+  loginUser,
+  logoutSession,
+  recordGeneration,
+  updateProjectForUser,
+  updateUser,
+} from './database.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -19,6 +37,8 @@ const app = express();
 app.use(cors());
 app.use(requireBasicAuth);
 app.use(express.json({ limit: '2mb' }));
+
+await initializeDatabase();
 
 function requireBasicAuth(req, res, next) {
   if (!env.appAuthEnabled || req.method === 'OPTIONS') {
@@ -75,42 +95,63 @@ function safeEqual(actual, expected) {
 
 app.get('/api/health', async (_req, res) => {
   const manifest = await loadManifest();
-  const projectProfile = await loadProjectProfile();
   res.json({
     ok: true,
     api: getApiStatus(),
     manifest,
     modules: moduleDefinitions.map(({ id, label }) => ({ id, label })),
-    projectProfile: {
-      configured: !projectProfileIsEmpty(projectProfile),
-      updatedAt: projectProfile.updatedAt,
-    },
   });
 });
 
-app.get('/api/project-profile', async (_req, res) => {
-  const profile = await loadProjectProfile();
-  res.json({ ok: true, profile, configured: !projectProfileIsEmpty(profile) });
-});
-
-app.put('/api/project-profile', async (req, res) => {
+app.post('/api/auth/login', async (req, res) => {
   try {
-    const profile = await saveProjectProfile(req.body || {});
-    res.json({ ok: true, profile, configured: !projectProfileIsEmpty(profile) });
+    const { user, session } = await loginUser(req.body?.username, req.body?.password);
+    res.setHeader('Set-Cookie', buildSessionCookie(session.token));
+    res.json({ ok: true, user, expiresAt: session.expiresAt });
   } catch (error) {
-    res.status(400).json({
+    res.status(401).json({
       ok: false,
-      code: 'PROJECT_PROFILE_SAVE_FAILED',
+      code: error.code || 'LOGIN_FAILED',
       message: error.message,
     });
   }
 });
 
+app.get('/api/auth/me', requireUser, async (req, res) => {
+  res.json({ ok: true, user: req.user });
+});
+
+app.post('/api/auth/logout', requireUser, async (req, res) => {
+  await logoutSession(getSessionCookie(req));
+  res.setHeader('Set-Cookie', clearSessionCookie());
+  res.json({ ok: true });
+});
+
+app.use('/api', requireUser);
+
+async function requireUser(req, res, next) {
+  const user = await getSessionUser(getSessionCookie(req));
+  if (!user) {
+    res.status(401).json({ ok: false, code: 'AUTH_REQUIRED', message: '请先登录。' });
+    return;
+  }
+  req.user = user;
+  next();
+}
+
+function requireAdmin(req, res, next) {
+  if (req.user?.role !== 'admin') {
+    res.status(403).json({ ok: false, code: 'ADMIN_REQUIRED', message: '需要管理员权限。' });
+    return;
+  }
+  next();
+}
+
 app.get('/api/knowledge/verify', async (_req, res) => {
   res.json(await verifyKnowledgeFiles());
 });
 
-app.post('/api/config/models', async (req, res) => {
+app.post('/api/config/models', requireAdmin, async (req, res) => {
   try {
     const result = await detectOpenAIModels(req.body || {});
     res.json({ ok: true, ...result });
@@ -123,7 +164,7 @@ app.post('/api/config/models', async (req, res) => {
   }
 });
 
-app.post('/api/config', async (req, res) => {
+app.post('/api/config', requireAdmin, async (req, res) => {
   try {
     const api = setApiConfig(req.body || {});
     res.json({ ok: true, api });
@@ -136,13 +177,81 @@ app.post('/api/config', async (req, res) => {
   }
 });
 
+app.get('/api/admin/users', requireAdmin, async (_req, res) => {
+  res.json({ ok: true, users: await listUsers() });
+});
+
+app.post('/api/admin/users', requireAdmin, async (req, res) => {
+  try {
+    const user = await createUser(req.body || {});
+    res.json({ ok: true, user });
+  } catch (error) {
+    res.status(400).json({ ok: false, code: error.code || 'USER_CREATE_FAILED', message: error.message });
+  }
+});
+
+app.patch('/api/admin/users/:userId', requireAdmin, async (req, res) => {
+  try {
+    const user = await updateUser(req.params.userId, req.body || {});
+    res.json({ ok: true, user });
+  } catch (error) {
+    res.status(400).json({ ok: false, code: error.code || 'USER_UPDATE_FAILED', message: error.message });
+  }
+});
+
+app.get('/api/projects', async (req, res) => {
+  res.json({ ok: true, projects: await listProjectsForUser(req.user.id) });
+});
+
+app.post('/api/projects', async (req, res) => {
+  try {
+    const project = await createProjectForUser(req.user.id, req.body || {});
+    res.json({ ok: true, project });
+  } catch (error) {
+    res.status(400).json({ ok: false, code: error.code || 'PROJECT_CREATE_FAILED', message: error.message });
+  }
+});
+
+app.get('/api/projects/:projectId', async (req, res) => {
+  const project = await getProjectForUser(req.user.id, req.params.projectId);
+  if (!project) {
+    res.status(404).json({ ok: false, code: 'PROJECT_NOT_FOUND', message: '项目不存在或无权访问。' });
+    return;
+  }
+  res.json({ ok: true, project });
+});
+
+app.put('/api/projects/:projectId', async (req, res) => {
+  try {
+    const project = await updateProjectForUser(req.user.id, req.params.projectId, req.body || {});
+    res.json({ ok: true, project });
+  } catch (error) {
+    res.status(400).json({ ok: false, code: error.code || 'PROJECT_UPDATE_FAILED', message: error.message });
+  }
+});
+
+app.delete('/api/projects/:projectId', async (req, res) => {
+  try {
+    await deleteProjectForUser(req.user.id, req.params.projectId);
+    res.json({ ok: true });
+  } catch (error) {
+    res.status(400).json({ ok: false, code: error.code || 'PROJECT_DELETE_FAILED', message: error.message });
+  }
+});
+
 app.post('/api/generate', async (req, res) => {
   try {
     const requestBody = req.body || {};
-    const projectProfile = await loadProjectProfile();
+    await assertGenerationAllowed(req.user);
+    const projectId = String(requestBody.projectId || '');
+    const project = projectId ? await getProjectForUser(req.user.id, projectId) : (await listProjectsForUser(req.user.id))[0];
+    if (!project) {
+      res.status(400).json({ ok: false, code: 'PROJECT_REQUIRED', message: '请先创建项目档案。' });
+      return;
+    }
     const requestWithMemory = {
       ...requestBody,
-      projectProfile,
+      projectProfile: project.profile,
     };
     const { system, user, definition, agent, knowledge } = await buildPrompt(requestWithMemory);
     const draftResult = await callOpenAICompatible([
@@ -156,6 +265,7 @@ app.post('/api/generate', async (req, res) => {
       requestBody: requestWithMemory,
       draftResult,
     });
+    await recordGeneration(req.user.id, project.id, definition.id);
     res.json({ ok: true, module: definition, result });
   } catch (error) {
     const status = error.code === 'API_NOT_CONFIGURED' ? 400 : 500;

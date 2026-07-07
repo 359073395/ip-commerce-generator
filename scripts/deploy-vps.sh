@@ -26,9 +26,11 @@ DEFAULT_AGENT_REVIEW_TIMEOUT_MS="${AGENT_REVIEW_TIMEOUT_MS:-20000}"
 DEFAULT_ENABLE_NGINX_BASIC_AUTH="${ENABLE_NGINX_BASIC_AUTH:-no}"
 DEFAULT_BASIC_AUTH_USER="${BASIC_AUTH_USER:-admin}"
 GENERATED_BASIC_AUTH_PASSWORD="${GENERATED_BASIC_AUTH_PASSWORD:-no}"
-DEFAULT_APP_AUTH_ENABLED="${APP_AUTH_ENABLED:-true}"
+DEFAULT_APP_AUTH_ENABLED="${APP_AUTH_ENABLED:-false}"
 DEFAULT_APP_AUTH_USER="${APP_AUTH_USER:-admin}"
 GENERATED_APP_AUTH_PASSWORD="${GENERATED_APP_AUTH_PASSWORD:-no}"
+DEFAULT_ADMIN_USERNAME="${ADMIN_USERNAME:-admin}"
+GENERATED_INITIAL_ADMIN_PASSWORD="${GENERATED_INITIAL_ADMIN_PASSWORD:-no}"
 
 log() {
   printf '\n[%s] %s\n' "$APP_NAME" "$*"
@@ -161,6 +163,8 @@ collect_env_settings() {
   APP_AUTH_ENABLED_WAS_SET="${APP_AUTH_ENABLED+x}"
   APP_AUTH_USER_WAS_SET="${APP_AUTH_USER+x}"
   APP_AUTH_PASSWORD_WAS_SET="${APP_AUTH_PASSWORD+x}"
+  ADMIN_USERNAME_WAS_SET="${ADMIN_USERNAME+x}"
+  INITIAL_ADMIN_PASSWORD_WAS_SET="${INITIAL_ADMIN_PASSWORD+x}"
   AGENT_REVIEW_ENABLED_WAS_SET="${AGENT_REVIEW_ENABLED+x}"
   AGENT_REVIEW_MAX_TOKENS_WAS_SET="${AGENT_REVIEW_MAX_TOKENS+x}"
   AGENT_REVIEW_TIMEOUT_MS_WAS_SET="${AGENT_REVIEW_TIMEOUT_MS+x}"
@@ -180,6 +184,8 @@ collect_env_settings() {
   APP_AUTH_ENABLED="${APP_AUTH_ENABLED:-$DEFAULT_APP_AUTH_ENABLED}"
   APP_AUTH_USER="${APP_AUTH_USER:-$DEFAULT_APP_AUTH_USER}"
   APP_AUTH_PASSWORD="${APP_AUTH_PASSWORD:-}"
+  ADMIN_USERNAME="${ADMIN_USERNAME:-$DEFAULT_ADMIN_USERNAME}"
+  INITIAL_ADMIN_PASSWORD="${INITIAL_ADMIN_PASSWORD:-}"
   PORT="${PORT:-8790}"
   ENABLE_NGINX_BASIC_AUTH="${ENABLE_NGINX_BASIC_AUTH:-$DEFAULT_ENABLE_NGINX_BASIC_AUTH}"
 
@@ -238,10 +244,17 @@ write_env_file() {
     if [[ -z "$APP_AUTH_PASSWORD_WAS_SET" ]]; then
       APP_AUTH_PASSWORD="$(read_env_value APP_AUTH_PASSWORD)"
     fi
-    if [[ -z "$APP_AUTH_ENABLED_WAS_SET" ]]; then
-      local existing_app_auth_enabled
-      existing_app_auth_enabled="$(read_env_value APP_AUTH_ENABLED)"
-      [[ -z "$existing_app_auth_enabled" ]] || APP_AUTH_ENABLED="$existing_app_auth_enabled"
+    # The shared page password is deprecated. Keep it disabled on upgrades
+    # unless the operator explicitly passes APP_AUTH_ENABLED=true.
+    if [[ -z "$ADMIN_USERNAME_WAS_SET" ]]; then
+      local existing_admin_username
+      existing_admin_username="$(read_env_value ADMIN_USERNAME)"
+      [[ -z "$existing_admin_username" ]] || ADMIN_USERNAME="$existing_admin_username"
+    fi
+    if [[ -z "$INITIAL_ADMIN_PASSWORD_WAS_SET" ]]; then
+      local existing_initial_admin_password
+      existing_initial_admin_password="$(read_env_value INITIAL_ADMIN_PASSWORD)"
+      [[ -z "$existing_initial_admin_password" ]] || INITIAL_ADMIN_PASSWORD="$existing_initial_admin_password"
     fi
     if [[ -z "$AGENT_REVIEW_ENABLED_WAS_SET" ]]; then
       local existing_agent_review_enabled
@@ -262,6 +275,7 @@ write_env_file() {
 
   APP_AUTH_ENABLED="${APP_AUTH_ENABLED:-$DEFAULT_APP_AUTH_ENABLED}"
   APP_AUTH_USER="${APP_AUTH_USER:-$DEFAULT_APP_AUTH_USER}"
+  ADMIN_USERNAME="${ADMIN_USERNAME:-$DEFAULT_ADMIN_USERNAME}"
   AGENT_REVIEW_ENABLED="${AGENT_REVIEW_ENABLED:-$DEFAULT_AGENT_REVIEW_ENABLED}"
   AGENT_REVIEW_MAX_TOKENS="${AGENT_REVIEW_MAX_TOKENS:-$DEFAULT_AGENT_REVIEW_MAX_TOKENS}"
   AGENT_REVIEW_TIMEOUT_MS="${AGENT_REVIEW_TIMEOUT_MS:-$DEFAULT_AGENT_REVIEW_TIMEOUT_MS}"
@@ -288,6 +302,11 @@ write_env_file() {
     GENERATED_BASIC_AUTH_PASSWORD="no"
   fi
 
+  if [[ -z "$INITIAL_ADMIN_PASSWORD" ]]; then
+    INITIAL_ADMIN_PASSWORD="$(openssl rand -base64 18)"
+    GENERATED_INITIAL_ADMIN_PASSWORD="yes"
+  fi
+
   log "Writing production .env..."
   {
     printf 'OPENAI_BASE_URL=%s\n' "$(quote_env_value "$OPENAI_BASE_URL")"
@@ -297,6 +316,8 @@ write_env_file() {
     printf 'APP_AUTH_ENABLED=%s\n' "$(quote_env_value "$APP_AUTH_ENABLED")"
     printf 'APP_AUTH_USER=%s\n' "$(quote_env_value "$APP_AUTH_USER")"
     printf 'APP_AUTH_PASSWORD=%s\n' "$(quote_env_value "$APP_AUTH_PASSWORD")"
+    printf 'ADMIN_USERNAME=%s\n' "$(quote_env_value "$ADMIN_USERNAME")"
+    printf 'INITIAL_ADMIN_PASSWORD=%s\n' "$(quote_env_value "$INITIAL_ADMIN_PASSWORD")"
     printf 'PORT=%s\n' "$(quote_env_value "$PORT")"
     printf 'HOST=%s\n' "$(quote_env_value "$HOST")"
     printf 'OPENAI_TIMEOUT_MS=%s\n' "$(quote_env_value "$OPENAI_TIMEOUT_MS")"
@@ -476,7 +497,13 @@ print_result() {
       log "Web password: the value saved in ${APP_DIR}/.env"
     fi
   else
-    log "Web password is disabled. Set APP_AUTH_ENABLED=true to require a password."
+    log "Unified web password is disabled. User login is handled by app accounts."
+  fi
+  log "Admin login username: ${ADMIN_USERNAME}"
+  if [[ "${GENERATED_INITIAL_ADMIN_PASSWORD}" == "yes" ]]; then
+    log "Generated initial admin password: ${INITIAL_ADMIN_PASSWORD}"
+  else
+    log "Initial admin password: the value saved in ${APP_DIR}/.env"
   fi
   if [[ "${ENABLE_NGINX_BASIC_AUTH}" == "yes" ]]; then
     log "If the page does not open, check your cloud security group/firewall and allow inbound TCP 80."

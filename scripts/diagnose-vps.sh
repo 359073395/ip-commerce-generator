@@ -37,7 +37,7 @@ fi
 
 section "App .env without secrets"
 if [[ -f "${APP_DIR}/.env" ]]; then
-  sed -E 's/^(OPENAI_API_KEY=).*/\1***redacted***/; s/^(APP_AUTH_PASSWORD=).*/\1***redacted***/' "${APP_DIR}/.env" || true
+  sed -E 's/^(OPENAI_API_KEY=).*/\1***redacted***/; s/^(APP_AUTH_PASSWORD=).*/\1***redacted***/; s/^(INITIAL_ADMIN_PASSWORD=).*/\1***redacted***/' "${APP_DIR}/.env" || true
 else
   echo "${APP_DIR}/.env not found"
 fi
