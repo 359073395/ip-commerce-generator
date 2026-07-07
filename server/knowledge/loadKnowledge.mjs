@@ -180,7 +180,7 @@ export async function loadKnowledgePack({
 
   return {
     pack,
-    selected: selectedKnowledge.map(({ source, heading, score, matchedTerms, scoreReasons, blockId, category, methods }) => ({
+    selected: selectedKnowledge.map(({ source, heading, score, matchedTerms, scoreReasons, blockId, category, methods, keywords, scenarios }) => ({
       source,
       heading,
       score,
@@ -189,6 +189,8 @@ export async function loadKnowledgePack({
       blockId,
       category,
       methods,
+      keywords,
+      scenarios,
     })),
     retrieval: {
       budgetChars,
@@ -389,7 +391,7 @@ function selectStructuredBlocks({ blocks = [], moduleId, taskType, queryTerms = 
     })
     .filter((block) => block.score > 0)
     .sort((a, b) => b.score - a.score);
-  const maxBlocks = budgetChars >= 1600 ? 4 : 3;
+  const maxBlocks = budgetChars >= 1600 ? 8 : 6;
   return scored.slice(0, maxBlocks);
 }
 
@@ -451,6 +453,8 @@ function toSelectedBlockSection(block) {
     blockId: block.id,
     category: block.category,
     methods: block.methods || [],
+    keywords: block.keywords || [],
+    scenarios: block.scenarios || [],
   };
 }
 
@@ -458,6 +462,7 @@ function formatStructuredBlock(block) {
   return [
     `- ${block.title} (structured-blocks/${block.id}):`,
     `  - Methods: ${(block.methods || []).join(' / ') || 'none'}`,
+    `  - Keywords: ${(block.keywords || []).join(' / ') || 'none'}`,
     `  - Applies to: ${(block.scenarios || []).join(' / ') || 'general'}`,
     `  - Required inputs: ${(block.requiredInputs || []).join(' / ') || 'none'}`,
     `  - Output skeleton: ${(block.outputTemplate || []).join(' / ') || 'standard JSON'}`,

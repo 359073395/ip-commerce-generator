@@ -5,122 +5,2987 @@
     {
       "id": "ip-positioning-core",
       "category": "personal_ip",
-      "moduleIds": ["ip-positioning"],
+      "moduleIds": [
+        "ip-positioning"
+      ],
       "title": "IP定位完整骨架",
-      "methods": ["IP定位一句话", "目标用户画像", "人设资产", "商业路径", "内容矩阵"],
-      "scenarios": ["个人IP", "专家顾问", "实体老板", "老师教练", "本地服务"],
-      "requiredInputs": ["行业/赛道", "身份/角色", "卖什么", "卖给谁", "信任资产", "承接方式"],
-      "outputTemplate": ["信息判断", "IP定位一句话", "目标用户画像", "商业路径", "内容矩阵", "转化入口", "待确认项"],
+      "methods": [
+        "IP定位一句话",
+        "目标用户画像",
+        "人设资产",
+        "商业路径",
+        "内容矩阵",
+        "专家顾问合规定位",
+        "行业模板匹配"
+      ],
+      "scenarios": [
+        "个人IP",
+        "专家顾问",
+        "实体老板",
+        "老师教练",
+        "本地服务"
+      ],
+      "requiredInputs": [
+        "行业/赛道",
+        "身份/角色",
+        "卖什么",
+        "卖给谁",
+        "信任资产",
+        "承接方式"
+      ],
+      "outputTemplate": [
+        "信息判断",
+        "IP定位一句话",
+        "目标用户画像",
+        "商业路径",
+        "内容矩阵",
+        "转化入口",
+        "待确认项"
+      ],
       "example": "本地美业老板IP：用真实门店过程和客户评价建立信任，通过评论关键词和私信预约到店。",
-      "keywords": ["定位", "人设", "目标用户", "商业路径", "内容矩阵", "信任资产"]
+      "keywords": [
+        "定位",
+        "人设",
+        "目标用户",
+        "商业路径",
+        "内容矩阵",
+        "信任资产",
+        "专家顾问",
+        "合规",
+        "律师",
+        "健康",
+        "家装",
+        "预算",
+        "宠物",
+        "新手",
+        "教育",
+        "学员",
+        "企业服务"
+      ]
     },
     {
       "id": "viral-topic-elements",
       "category": "personal_ip",
-      "moduleIds": ["viral-topics", "script", "viral-analysis"],
+      "moduleIds": [
+        "viral-topics",
+        "script",
+        "viral-analysis"
+      ],
       "title": "八大爆款元素选题",
-      "methods": ["成本", "人群", "猎奇", "头牌", "怀旧", "反差", "最差", "荷尔蒙"],
-      "scenarios": ["爆款选题", "短视频开头", "话题包装", "拆解复用"],
-      "requiredInputs": ["目标用户", "场景", "痛点/情绪", "爆款元素"],
-      "outputTemplate": ["元素分类", "选题标题", "黄金3秒", "拍摄角度", "推荐脚本类型"],
+      "methods": [
+        "成本",
+        "人群",
+        "猎奇",
+        "头牌",
+        "怀旧",
+        "反差",
+        "最差",
+        "荷尔蒙",
+        "创始人观点",
+        "反常识选题",
+        "吸引力选题",
+        "冷启动选题"
+      ],
+      "scenarios": [
+        "爆款选题",
+        "短视频开头",
+        "话题包装",
+        "拆解复用"
+      ],
+      "requiredInputs": [
+        "目标用户",
+        "场景",
+        "痛点/情绪",
+        "爆款元素"
+      ],
+      "outputTemplate": [
+        "元素分类",
+        "选题标题",
+        "黄金3秒",
+        "拍摄角度",
+        "推荐脚本类型"
+      ],
       "example": "成本类：很多新手不是不会做IP，是把第一笔钱花错了。",
-      "keywords": ["爆款", "八大元素", "黄金3秒", "选题", "成本", "反差", "人群"]
+      "keywords": [
+        "爆款",
+        "八大元素",
+        "黄金3秒",
+        "选题",
+        "成本",
+        "反差",
+        "人群",
+        "创始人",
+        "反常识",
+        "新旧对比",
+        "前后",
+        "吸引力",
+        "体面",
+        "发布节奏",
+        "冷启动"
+      ]
     },
     {
       "id": "script-four-cards",
       "category": "personal_ip",
-      "moduleIds": ["script", "viral-topics", "rewrite", "polish"],
+      "moduleIds": [
+        "script",
+        "viral-topics",
+        "rewrite",
+        "polish"
+      ],
       "title": "四类脚本卡",
-      "methods": ["教知识", "晒过程", "讲故事", "聊观点"],
-      "scenarios": ["个人IP脚本", "专家内容", "账号内容矩阵", "二创改写"],
-      "requiredInputs": ["脚本类型", "行业/人设", "目标用户", "选题", "CTA"],
-      "outputTemplate": ["标题", "封面文案", "黄金3秒", "完整口播", "分镜/B-roll", "字幕重点", "CTA"],
+      "methods": [
+        "教知识",
+        "晒过程",
+        "讲故事",
+        "聊观点",
+        "推荐型脚本",
+        "解题型脚本",
+        "案例型脚本",
+        "揭秘型脚本",
+        "测评脚本",
+        "观点立场脚本"
+      ],
+      "scenarios": [
+        "个人IP脚本",
+        "专家内容",
+        "账号内容矩阵",
+        "二创改写"
+      ],
+      "requiredInputs": [
+        "脚本类型",
+        "行业/人设",
+        "目标用户",
+        "选题",
+        "CTA"
+      ],
+      "outputTemplate": [
+        "标题",
+        "封面文案",
+        "黄金3秒",
+        "完整口播",
+        "分镜/B-roll",
+        "字幕重点",
+        "CTA"
+      ],
       "example": "教知识脚本：先抛出用户常见误区，再给判断标准，最后给低成本行动。",
-      "keywords": ["脚本", "教知识", "晒过程", "讲故事", "聊观点", "CTA"]
+      "keywords": [
+        "脚本",
+        "教知识",
+        "晒过程",
+        "讲故事",
+        "聊观点",
+        "CTA",
+        "推荐型",
+        "解题型",
+        "案例型",
+        "揭秘型",
+        "判断标准",
+        "方法总结",
+        "误区",
+        "测评",
+        "对比",
+        "个人故事",
+        "转折",
+        "立场",
+        "争议",
+        "评论互动",
+        "任务挑战",
+        "风险提醒",
+        "直播预热",
+        "团购"
+      ]
     },
     {
       "id": "conversion-topic-chain",
       "category": "combined",
-      "moduleIds": ["conversion-topics", "script", "commerce"],
+      "moduleIds": [
+        "conversion-topics",
+        "script",
+        "commerce"
+      ],
       "title": "成交选题链路",
-      "methods": ["成交理由", "信任证明", "异议化解", "承接入口", "行动指令"],
-      "scenarios": ["成交选题", "咨询转化", "高客单服务", "到店成交", "课程成交"],
-      "requiredInputs": ["卖什么", "卖给谁", "成交理由", "证明材料", "承接方式"],
-      "outputTemplate": ["成交型选题", "成交理由", "信任证明", "异议处理", "CTA", "发布阶段"],
+      "methods": [
+        "成交理由",
+        "信任证明",
+        "异议化解",
+        "承接入口",
+        "行动指令",
+        "信任阶梯",
+        "顾虑化解",
+        "到店预约"
+      ],
+      "scenarios": [
+        "成交选题",
+        "咨询转化",
+        "高客单服务",
+        "到店成交",
+        "课程成交"
+      ],
+      "requiredInputs": [
+        "卖什么",
+        "卖给谁",
+        "成交理由",
+        "证明材料",
+        "承接方式"
+      ],
+      "outputTemplate": [
+        "成交型选题",
+        "成交理由",
+        "信任证明",
+        "异议处理",
+        "CTA",
+        "发布阶段"
+      ],
       "example": "成交选题：为什么同样做护理，有的人一次就能看出差别？用案例和流程证明。",
-      "keywords": ["成交", "信任", "CTA", "私信", "表单", "到店", "课程", "团购"]
+      "keywords": [
+        "成交",
+        "信任",
+        "CTA",
+        "私信",
+        "表单",
+        "到店",
+        "课程",
+        "团购",
+        "信任阶梯",
+        "咨询",
+        "预约",
+        "同城",
+        "顾虑",
+        "被坑",
+        "团购券"
+      ]
     },
     {
       "id": "pain-topic-mining",
       "category": "combined",
-      "moduleIds": ["pain-topics", "script", "viral-topics"],
+      "moduleIds": [
+        "pain-topics",
+        "script",
+        "viral-topics"
+      ],
       "title": "痛点选题挖掘",
-      "methods": ["焦虑痛点", "成本痛点", "风险痛点", "决策痛点", "面子/情绪痛点", "场景痛点"],
-      "scenarios": ["痛点选题", "用户原话", "情绪钩子", "成交脚本"],
-      "requiredInputs": ["行业背景", "目标客户", "具体场景", "用户担心什么"],
-      "outputTemplate": ["痛点清单", "场景化选题", "情绪钩子", "用户原话", "脚本方向"],
+      "methods": [
+        "焦虑痛点",
+        "成本痛点",
+        "风险痛点",
+        "决策痛点",
+        "面子/情绪痛点",
+        "场景痛点"
+      ],
+      "scenarios": [
+        "痛点选题",
+        "用户原话",
+        "情绪钩子",
+        "成交脚本"
+      ],
+      "requiredInputs": [
+        "行业背景",
+        "目标客户",
+        "具体场景",
+        "用户担心什么"
+      ],
+      "outputTemplate": [
+        "痛点清单",
+        "场景化选题",
+        "情绪钩子",
+        "用户原话",
+        "脚本方向"
+      ],
       "example": "决策痛点：不是怕贵，是怕花钱以后没效果。",
-      "keywords": ["痛点", "焦虑", "成本", "风险", "决策", "用户原话"]
+      "keywords": [
+        "痛点",
+        "焦虑",
+        "成本",
+        "风险",
+        "决策",
+        "用户原话",
+        "风险提醒",
+        "待确认",
+        "判断标准"
+      ]
     },
     {
       "id": "commerce-4p-product",
       "category": "commerce_video",
-      "moduleIds": ["commerce", "script"],
+      "moduleIds": [
+        "commerce",
+        "script"
+      ],
       "title": "带货4P产品拆解",
-      "methods": ["Product产品", "Price价格", "Place场景", "Promotion促销"],
-      "scenarios": ["产品带货", "TikTok Shop", "商品卡", "小黄车", "直播预热"],
-      "requiredInputs": ["产品/服务", "目标人群", "购买场景", "核心卖点", "证明材料"],
-      "outputTemplate": ["产品需求", "购买场景", "成交理由", "视觉化拍摄", "带货脚本", "承接话术"],
+      "methods": [
+        "Product产品",
+        "Price价格",
+        "Place场景",
+        "Promotion促销",
+        "团购券带货",
+        "同城到店",
+        "视觉化证明"
+      ],
+      "scenarios": [
+        "产品带货",
+        "TikTok Shop",
+        "商品卡",
+        "小黄车",
+        "直播预热"
+      ],
+      "requiredInputs": [
+        "产品/服务",
+        "目标人群",
+        "购买场景",
+        "核心卖点",
+        "证明材料"
+      ],
+      "outputTemplate": [
+        "产品需求",
+        "购买场景",
+        "成交理由",
+        "视觉化拍摄",
+        "带货脚本",
+        "承接话术"
+      ],
       "example": "先展示用户场景和痛点，再用产品细节、测评过程和评价降低购买风险。",
-      "keywords": ["4P", "带货", "产品", "价格", "场景", "促销", "商品卡", "小黄车"]
+      "keywords": [
+        "4P",
+        "带货",
+        "产品",
+        "价格",
+        "场景",
+        "促销",
+        "商品卡",
+        "小黄车",
+        "团购券",
+        "同城",
+        "视觉化",
+        "企业服务",
+        "短句"
+      ]
     },
     {
       "id": "commerce-trust-proof",
       "category": "commerce_video",
-      "moduleIds": ["commerce", "conversion-topics"],
+      "moduleIds": [
+        "commerce",
+        "conversion-topics"
+      ],
       "title": "带货信任证明",
-      "methods": ["测评", "评价", "过程", "对比", "资质", "复购"],
-      "scenarios": ["商品信任", "产品测评", "团购券", "线上卖课", "本地产品"],
-      "requiredInputs": ["证明材料", "用户顾虑", "购买入口", "售后/保障"],
-      "outputTemplate": ["信任资产清单", "证明镜头", "异议化解", "下单指令", "风险提醒"],
+      "methods": [
+        "测评",
+        "评价",
+        "过程",
+        "对比",
+        "资质",
+        "复购"
+      ],
+      "scenarios": [
+        "商品信任",
+        "产品测评",
+        "团购券",
+        "线上卖课",
+        "本地产品"
+      ],
+      "requiredInputs": [
+        "证明材料",
+        "用户顾虑",
+        "购买入口",
+        "售后/保障"
+      ],
+      "outputTemplate": [
+        "信任资产清单",
+        "证明镜头",
+        "异议化解",
+        "下单指令",
+        "风险提醒"
+      ],
       "example": "不要只说好用，要用前后对比、真实评价、过程镜头证明为什么值得买。",
-      "keywords": ["信任证明", "测评", "评价", "对比", "复购", "团购券", "线上课程"]
+      "keywords": [
+        "信任证明",
+        "测评",
+        "评价",
+        "对比",
+        "复购",
+        "团购券",
+        "线上课程"
+      ]
     },
     {
       "id": "viral-analysis-reuse",
       "category": "combined",
-      "moduleIds": ["viral-analysis", "rewrite", "polish"],
+      "moduleIds": [
+        "viral-analysis",
+        "rewrite",
+        "polish"
+      ],
       "title": "爆款拆解复用",
-      "methods": ["钩子拆解", "结构拆解", "情绪拆解", "成交链路拆解", "可复用模板", "原创风险提醒"],
-      "scenarios": ["爆款拆解", "文案二创", "洗稿", "内容复用"],
-      "requiredInputs": ["参考内容", "目标账号", "保留点", "规避点"],
-      "outputTemplate": ["拆解报告", "爆款元素", "可复用结构", "本账号改写方向", "原创边界", "风险提醒"],
+      "methods": [
+        "钩子拆解",
+        "结构拆解",
+        "情绪拆解",
+        "成交链路拆解",
+        "可复用模板",
+        "原创风险提醒",
+        "数据复盘",
+        "咨询转化诊断"
+      ],
+      "scenarios": [
+        "爆款拆解",
+        "文案二创",
+        "洗稿",
+        "内容复用"
+      ],
+      "requiredInputs": [
+        "参考内容",
+        "目标账号",
+        "保留点",
+        "规避点"
+      ],
+      "outputTemplate": [
+        "拆解报告",
+        "爆款元素",
+        "可复用结构",
+        "本账号改写方向",
+        "原创边界",
+        "风险提醒"
+      ],
       "example": "拆表达结构，不复制原句；保留冲突、节奏和转化逻辑，换成人群和场景。",
-      "keywords": ["拆解", "复用", "二创", "洗稿", "原创", "钩子", "结构", "风险提醒", "不复制原句"]
+      "keywords": [
+        "拆解",
+        "复用",
+        "二创",
+        "洗稿",
+        "原创",
+        "钩子",
+        "结构",
+        "风险提醒",
+        "不复制原句",
+        "复盘",
+        "咨询",
+        "高播放低咨询",
+        "数据复盘"
+      ]
     },
     {
       "id": "agent-quality-gate",
       "category": "system",
-      "moduleIds": ["ip-positioning", "viral-topics", "conversion-topics", "pain-topics", "script", "commerce"],
+      "moduleIds": [
+        "ip-positioning",
+        "viral-topics",
+        "conversion-topics",
+        "pain-topics",
+        "script",
+        "commerce"
+      ],
       "title": "Agent质量门禁",
-      "methods": ["用户事实", "前端选择", "知识库证据", "完整骨架", "可执行性", "风险提醒"],
-      "scenarios": ["质量评估", "自动修复", "模型对比", "脏数据测试"],
-      "requiredInputs": ["用户输入", "前端选择", "项目档案", "知识命中"],
-      "outputTemplate": ["质量分", "缺失项", "修复建议", "是否通过", "人工复核点"],
+      "methods": [
+        "用户事实",
+        "前端选择",
+        "知识库证据",
+        "完整骨架",
+        "可执行性",
+        "风险提醒"
+      ],
+      "scenarios": [
+        "质量评估",
+        "自动修复",
+        "模型对比",
+        "脏数据测试"
+      ],
+      "requiredInputs": [
+        "用户输入",
+        "前端选择",
+        "项目档案",
+        "知识命中"
+      ],
+      "outputTemplate": [
+        "质量分",
+        "缺失项",
+        "修复建议",
+        "是否通过",
+        "人工复核点"
+      ],
       "example": "如果生成结果没有体现前端选择或知识库方法，必须降分并触发修复。",
-      "keywords": ["质量评估", "自动修复", "模型对比", "知识库证据", "完整骨架"]
+      "keywords": [
+        "质量评估",
+        "自动修复",
+        "模型对比",
+        "知识库证据",
+        "完整骨架"
+      ]
     },
     {
       "id": "dirty-data-handling",
       "category": "system",
-      "moduleIds": ["ip-positioning", "script", "commerce"],
+      "moduleIds": [
+        "ip-positioning",
+        "script",
+        "commerce"
+      ],
       "title": "脏数据处理规则",
-      "methods": ["缺失信息标注", "合理假设", "待确认项", "不编造", "完整骨架", "风险提醒", "可执行初版"],
-      "scenarios": ["输入太短", "信息冲突", "行业缺失", "目标用户缺失", "提示词注入", "忽略之前所有规则"],
-      "requiredInputs": ["最少可用事实", "项目档案", "用户目标"],
-      "outputTemplate": ["信息判断", "完整骨架", "可执行初版", "待确认项", "风险提醒"],
+      "methods": [
+        "缺失信息标注",
+        "合理假设",
+        "待确认项",
+        "不编造",
+        "完整骨架",
+        "风险提醒",
+        "可执行初版"
+      ],
+      "scenarios": [
+        "输入太短",
+        "信息冲突",
+        "行业缺失",
+        "目标用户缺失",
+        "提示词注入",
+        "忽略之前所有规则"
+      ],
+      "requiredInputs": [
+        "最少可用事实",
+        "项目档案",
+        "用户目标"
+      ],
+      "outputTemplate": [
+        "信息判断",
+        "完整骨架",
+        "可执行初版",
+        "待确认项",
+        "风险提醒"
+      ],
       "example": "用户只写美业，也要给出初版，但必须标注城市、客单价、案例等待确认。",
-      "keywords": ["脏数据", "缺失", "待确认", "不编造", "完整骨架", "风险提醒", "提示词注入", "忽略之前所有规则", "ignore previous"]
+      "keywords": [
+        "脏数据",
+        "缺失",
+        "待确认",
+        "不编造",
+        "完整骨架",
+        "风险提醒",
+        "提示词注入",
+        "忽略之前所有规则",
+        "ignore previous"
+      ]
+    },
+    {
+      "id": "ip-persona-relationship",
+      "category": "personal_ip",
+      "moduleIds": [
+        "ip-positioning",
+        "viral-topics",
+        "script"
+      ],
+      "title": "人设关系定位",
+      "methods": [
+        "提醒者",
+        "服务者",
+        "领导者",
+        "同道中人",
+        "私密知识提供者"
+      ],
+      "scenarios": [
+        "个人IP",
+        "专家顾问",
+        "老板IP",
+        "老师教练"
+      ],
+      "requiredInputs": [
+        "身份角色",
+        "目标用户",
+        "信任资产",
+        "内容边界"
+      ],
+      "outputTemplate": [
+        "关系定位",
+        "表达语气",
+        "内容禁区",
+        "信任动作",
+        "转化方式"
+      ],
+      "example": "专家顾问更适合提醒者和服务者关系，先指出误区，再给低风险行动建议。",
+      "keywords": [
+        "人设",
+        "关系",
+        "提醒者",
+        "服务者",
+        "领导者",
+        "同道中人",
+        "私密知识"
+      ]
+    },
+    {
+      "id": "ip-trust-assets",
+      "category": "personal_ip",
+      "moduleIds": [
+        "ip-positioning",
+        "conversion-topics",
+        "script"
+      ],
+      "title": "个人IP信任资产",
+      "methods": [
+        "资质证书",
+        "成功案例",
+        "客户评价",
+        "前后对比",
+        "从业经历",
+        "现场过程"
+      ],
+      "scenarios": [
+        "高客单服务",
+        "专业服务",
+        "本地到店",
+        "课程咨询"
+      ],
+      "requiredInputs": [
+        "证明材料",
+        "可展示边界",
+        "客户顾虑",
+        "成交入口"
+      ],
+      "outputTemplate": [
+        "信任资产清单",
+        "证明镜头",
+        "可说证据",
+        "不可夸大点",
+        "承接话术"
+      ],
+      "example": "不要只说专业，要把从业经历、案例类型、客户评价和交付过程变成视频证据。",
+      "keywords": [
+        "信任资产",
+        "资质",
+        "案例",
+        "客户评价",
+        "前后对比",
+        "从业经历"
+      ]
+    },
+    {
+      "id": "ip-content-matrix",
+      "category": "personal_ip",
+      "moduleIds": [
+        "ip-positioning",
+        "viral-topics",
+        "script"
+      ],
+      "title": "个人IP内容矩阵",
+      "methods": [
+        "聊观点",
+        "教知识",
+        "晒过程",
+        "讲故事",
+        "做承接"
+      ],
+      "scenarios": [
+        "账号冷启动",
+        "内容规划",
+        "周更选题",
+        "IP定位后续"
+      ],
+      "requiredInputs": [
+        "人设",
+        "目标用户",
+        "产品服务",
+        "可拍素材",
+        "承接方式"
+      ],
+      "outputTemplate": [
+        "内容支柱",
+        "选题方向",
+        "脚本类型",
+        "素材清单",
+        "发布节奏"
+      ],
+      "example": "专家IP用教知识建立专业，用晒过程建立真实，用讲故事建立信任，用观点拉开差异。",
+      "keywords": [
+        "内容矩阵",
+        "内容支柱",
+        "选题方向",
+        "发布节奏",
+        "素材清单"
+      ]
+    },
+    {
+      "id": "ip-commercial-path",
+      "category": "personal_ip",
+      "moduleIds": [
+        "ip-positioning",
+        "conversion-topics"
+      ],
+      "title": "个人IP商业路径",
+      "methods": [
+        "咨询服务",
+        "到店服务",
+        "课程训练营",
+        "高客单服务",
+        "私域成交",
+        "品牌合作"
+      ],
+      "scenarios": [
+        "IP变现",
+        "商业定位",
+        "私域承接",
+        "课程成交"
+      ],
+      "requiredInputs": [
+        "卖什么",
+        "客单价",
+        "成交周期",
+        "用户信任门槛",
+        "交付能力"
+      ],
+      "outputTemplate": [
+        "变现路径",
+        "内容任务",
+        "信任门槛",
+        "承接入口",
+        "数据复盘"
+      ],
+      "example": "高客单服务不能只做流量，要先用案例和过程降低信任门槛，再引导咨询。",
+      "keywords": [
+        "商业路径",
+        "变现",
+        "咨询",
+        "课程",
+        "私域",
+        "高客单",
+        "品牌合作"
+      ]
+    },
+    {
+      "id": "ip-local-business-template",
+      "category": "personal_ip",
+      "moduleIds": [
+        "ip-positioning",
+        "conversion-topics",
+        "script"
+      ],
+      "title": "本地实体老板IP模板",
+      "methods": [
+        "老板真人",
+        "门店现场",
+        "服务过程",
+        "客户评价",
+        "到店预约",
+        "团购券"
+      ],
+      "scenarios": [
+        "美业",
+        "餐饮",
+        "宠物",
+        "家装",
+        "摄影",
+        "亲子娱乐"
+      ],
+      "requiredInputs": [
+        "城市/商圈",
+        "门店品类",
+        "主卖服务",
+        "到店理由",
+        "证明材料"
+      ],
+      "outputTemplate": [
+        "老板人设",
+        "同城用户",
+        "到店理由",
+        "内容矩阵",
+        "团购/预约CTA"
+      ],
+      "example": "本地门店要把位置、服务过程、老板态度和客户反馈变成用户到店理由。",
+      "keywords": [
+        "本地实体",
+        "老板IP",
+        "门店",
+        "到店",
+        "团购券",
+        "同城"
+      ]
+    },
+    {
+      "id": "ip-expert-consultant-template",
+      "category": "personal_ip",
+      "moduleIds": [
+        "ip-positioning",
+        "viral-topics",
+        "script"
+      ],
+      "title": "专家顾问IP模板",
+      "methods": [
+        "误区提醒",
+        "判断标准",
+        "案例拆解",
+        "风险提示",
+        "咨询承接"
+      ],
+      "scenarios": [
+        "律师",
+        "医生",
+        "财税顾问",
+        "心理咨询",
+        "企业顾问"
+      ],
+      "requiredInputs": [
+        "专业身份",
+        "目标客户",
+        "常见误区",
+        "资质/经历",
+        "合规边界"
+      ],
+      "outputTemplate": [
+        "专业定位",
+        "信任背书",
+        "内容禁区",
+        "选题库",
+        "咨询CTA"
+      ],
+      "example": "律师IP适合用风险提醒和判断标准建立专业，不直接承诺结果。",
+      "keywords": [
+        "专家顾问",
+        "律师",
+        "医生",
+        "财税",
+        "咨询",
+        "风险提示"
+      ]
+    },
+    {
+      "id": "ip-teacher-coach-template",
+      "category": "personal_ip",
+      "moduleIds": [
+        "ip-positioning",
+        "script",
+        "conversion-topics"
+      ],
+      "title": "老师教练IP模板",
+      "methods": [
+        "知识拆解",
+        "练习任务",
+        "学员案例",
+        "课程承接",
+        "社群陪跑"
+      ],
+      "scenarios": [
+        "教育培训",
+        "技能课程",
+        "健身教练",
+        "职业规划",
+        "训练营"
+      ],
+      "requiredInputs": [
+        "课程主题",
+        "学员阶段",
+        "学习痛点",
+        "案例反馈",
+        "课程入口"
+      ],
+      "outputTemplate": [
+        "老师定位",
+        "课程价值",
+        "内容阶梯",
+        "学员案例",
+        "报名CTA"
+      ],
+      "example": "老师IP要把知识点拆成可执行小任务，让用户感觉学完马上能用。",
+      "keywords": [
+        "老师",
+        "教练",
+        "课程",
+        "训练营",
+        "学员案例",
+        "社群"
+      ]
+    },
+    {
+      "id": "ip-founder-viewpoint-template",
+      "category": "personal_ip",
+      "moduleIds": [
+        "viral-topics",
+        "script",
+        "ip-positioning"
+      ],
+      "title": "创始人观点IP模板",
+      "methods": [
+        "行业判断",
+        "反常识观点",
+        "创业故事",
+        "经营复盘",
+        "团队价值观"
+      ],
+      "scenarios": [
+        "创始人",
+        "老板IP",
+        "企业服务",
+        "品牌人设"
+      ],
+      "requiredInputs": [
+        "行业立场",
+        "经营经历",
+        "反对什么",
+        "支持什么",
+        "业务承接"
+      ],
+      "outputTemplate": [
+        "观点标题",
+        "立场依据",
+        "故事证明",
+        "用户启发",
+        "商业承接"
+      ],
+      "example": "创始人内容要有明确立场，用经历和复盘证明观点，而不是空讲鸡汤。",
+      "keywords": [
+        "创始人",
+        "老板观点",
+        "反常识",
+        "经营复盘",
+        "创业故事"
+      ]
+    },
+    {
+      "id": "viral-cost-element",
+      "category": "personal_ip",
+      "moduleIds": [
+        "viral-topics",
+        "script"
+      ],
+      "title": "成本类爆款元素",
+      "methods": [
+        "省钱",
+        "省时间",
+        "省精力",
+        "少踩坑",
+        "少走弯路"
+      ],
+      "scenarios": [
+        "新手用户",
+        "价格敏感",
+        "高客单决策",
+        "避坑内容"
+      ],
+      "requiredInputs": [
+        "用户要付出的成本",
+        "错误选择",
+        "替代方案",
+        "可验证收益"
+      ],
+      "outputTemplate": [
+        "成本冲突",
+        "错误做法",
+        "低成本方案",
+        "行动建议"
+      ],
+      "example": "很多新手不是做不好，是第一笔预算就花错了。",
+      "keywords": [
+        "成本",
+        "省钱",
+        "省时间",
+        "少踩坑",
+        "价格",
+        "预算"
+      ]
+    },
+    {
+      "id": "viral-people-element",
+      "category": "personal_ip",
+      "moduleIds": [
+        "viral-topics",
+        "pain-topics"
+      ],
+      "title": "人群类爆款元素",
+      "methods": [
+        "特定身份",
+        "圈层共鸣",
+        "阶段标签",
+        "职业标签",
+        "家庭角色"
+      ],
+      "scenarios": [
+        "宝妈",
+        "老板",
+        "新手",
+        "职场女性",
+        "中老年",
+        "同行"
+      ],
+      "requiredInputs": [
+        "具体人群",
+        "人群处境",
+        "共同痛点",
+        "身份表达"
+      ],
+      "outputTemplate": [
+        "人群标签",
+        "共鸣场景",
+        "痛点表达",
+        "选题标题"
+      ],
+      "example": "第一次养猫的新手，最容易把这3件事做反。",
+      "keywords": [
+        "人群",
+        "宝妈",
+        "老板",
+        "新手",
+        "职场",
+        "圈层"
+      ]
+    },
+    {
+      "id": "viral-curiosity-element",
+      "category": "personal_ip",
+      "moduleIds": [
+        "viral-topics",
+        "viral-analysis",
+        "script"
+      ],
+      "title": "猎奇类爆款元素",
+      "methods": [
+        "内幕",
+        "反常识",
+        "外行不知道",
+        "行业秘密",
+        "极端案例"
+      ],
+      "scenarios": [
+        "知识科普",
+        "行业揭秘",
+        "拆解视频",
+        "观点视频"
+      ],
+      "requiredInputs": [
+        "外行误区",
+        "行业真实情况",
+        "不能泄露的边界",
+        "可验证证据"
+      ],
+      "outputTemplate": [
+        "猎奇钩子",
+        "认知反差",
+        "真实解释",
+        "风险边界"
+      ],
+      "example": "外行以为越贵越好，内行其实先看这一个细节。",
+      "keywords": [
+        "猎奇",
+        "内幕",
+        "反常识",
+        "行业秘密",
+        "外行不知道"
+      ]
+    },
+    {
+      "id": "viral-authority-element",
+      "category": "personal_ip",
+      "moduleIds": [
+        "viral-topics",
+        "script",
+        "conversion-topics"
+      ],
+      "title": "头牌类爆款元素",
+      "methods": [
+        "第一名",
+        "天花板",
+        "高标准",
+        "标杆案例",
+        "顶配体验"
+      ],
+      "scenarios": [
+        "高端服务",
+        "品牌背书",
+        "案例展示",
+        "门店种草"
+      ],
+      "requiredInputs": [
+        "标杆对象",
+        "高标准细节",
+        "证明材料",
+        "用户向往"
+      ],
+      "outputTemplate": [
+        "头牌信号",
+        "标准解释",
+        "证明镜头",
+        "转化理由"
+      ],
+      "example": "真正高端的服务，不是贵在装修，而是贵在这三个判断标准。",
+      "keywords": [
+        "头牌",
+        "第一",
+        "天花板",
+        "标杆",
+        "高端",
+        "标准"
+      ]
+    },
+    {
+      "id": "viral-nostalgia-element",
+      "category": "personal_ip",
+      "moduleIds": [
+        "viral-topics",
+        "script"
+      ],
+      "title": "怀旧类爆款元素",
+      "methods": [
+        "过去对比现在",
+        "年代记忆",
+        "旧经验新做法",
+        "熟悉场景"
+      ],
+      "scenarios": [
+        "本地生活",
+        "家庭用户",
+        "中老年",
+        "行业变迁"
+      ],
+      "requiredInputs": [
+        "过去场景",
+        "现在变化",
+        "用户情绪",
+        "新解决方案"
+      ],
+      "outputTemplate": [
+        "怀旧开头",
+        "变化冲突",
+        "新旧对比",
+        "行动建议"
+      ],
+      "example": "以前大家这样选没问题，但现在再这样做，很容易多花钱。",
+      "keywords": [
+        "怀旧",
+        "过去",
+        "现在",
+        "年代",
+        "新旧对比"
+      ]
+    },
+    {
+      "id": "viral-contrast-element",
+      "category": "personal_ip",
+      "moduleIds": [
+        "viral-topics",
+        "script",
+        "viral-analysis"
+      ],
+      "title": "反差类爆款元素",
+      "methods": [
+        "前后对比",
+        "身份反差",
+        "价格反差",
+        "结果反差",
+        "认知反差"
+      ],
+      "scenarios": [
+        "案例视频",
+        "观点视频",
+        "测评视频",
+        "到店转化"
+      ],
+      "requiredInputs": [
+        "反差对象",
+        "对比证据",
+        "变化原因",
+        "用户启发"
+      ],
+      "outputTemplate": [
+        "反差钩子",
+        "对比证据",
+        "原因解释",
+        "可复制动作"
+      ],
+      "example": "同样是护理，有人越做越差，有人一次就能看出变化，区别在这一步。",
+      "keywords": [
+        "反差",
+        "对比",
+        "前后",
+        "认知反差",
+        "结果反差"
+      ]
+    },
+    {
+      "id": "viral-worst-element",
+      "category": "personal_ip",
+      "moduleIds": [
+        "viral-topics",
+        "pain-topics",
+        "script"
+      ],
+      "title": "最差类爆款元素",
+      "methods": [
+        "避雷",
+        "最不推荐",
+        "错误清单",
+        "反面案例",
+        "踩坑复盘"
+      ],
+      "scenarios": [
+        "避坑内容",
+        "选购决策",
+        "服务选择",
+        "新手教育"
+      ],
+      "requiredInputs": [
+        "常见错误",
+        "错误后果",
+        "判断标准",
+        "替代方案"
+      ],
+      "outputTemplate": [
+        "避雷标题",
+        "错误清单",
+        "后果提醒",
+        "正确做法"
+      ],
+      "example": "这3种服务看起来便宜，但后期最容易多花钱。",
+      "keywords": [
+        "最差",
+        "避雷",
+        "不推荐",
+        "错误",
+        "踩坑",
+        "反面案例"
+      ]
+    },
+    {
+      "id": "viral-attraction-element",
+      "category": "personal_ip",
+      "moduleIds": [
+        "viral-topics",
+        "script"
+      ],
+      "title": "荷尔蒙类爆款元素",
+      "methods": [
+        "好看",
+        "体面",
+        "吸引力",
+        "面子",
+        "关系评价"
+      ],
+      "scenarios": [
+        "美业",
+        "穿搭",
+        "形象管理",
+        "家居审美",
+        "社交场景"
+      ],
+      "requiredInputs": [
+        "审美目标",
+        "社交场景",
+        "用户想被如何评价",
+        "证明镜头"
+      ],
+      "outputTemplate": [
+        "吸引力钩子",
+        "场景代入",
+        "改变路径",
+        "视觉证明"
+      ],
+      "example": "真正显贵的不是买贵的，而是这三个细节不廉价。",
+      "keywords": [
+        "荷尔蒙",
+        "好看",
+        "体面",
+        "吸引力",
+        "面子",
+        "审美"
+      ]
+    },
+    {
+      "id": "script-knowledge-recommend",
+      "category": "personal_ip",
+      "moduleIds": [
+        "script",
+        "viral-topics"
+      ],
+      "title": "教知识-推荐型脚本",
+      "methods": [
+        "美好愿景",
+        "固定人群",
+        "推荐理由",
+        "低门槛行动"
+      ],
+      "scenarios": [
+        "知识科普",
+        "课程种草",
+        "服务推荐",
+        "工具推荐"
+      ],
+      "requiredInputs": [
+        "推荐对象",
+        "适用人群",
+        "推荐理由",
+        "行动入口"
+      ],
+      "outputTemplate": [
+        "推荐钩子",
+        "适用人群",
+        "推荐理由",
+        "行动步骤",
+        "CTA"
+      ],
+      "example": "如果你是第一次做个人IP，先别急着拍日常，先把这张表填完。",
+      "keywords": [
+        "推荐型",
+        "教知识",
+        "适用人群",
+        "推荐理由",
+        "行动步骤"
+      ]
+    },
+    {
+      "id": "script-knowledge-solve",
+      "category": "personal_ip",
+      "moduleIds": [
+        "script",
+        "pain-topics"
+      ],
+      "title": "教知识-解题型脚本",
+      "methods": [
+        "提出难题",
+        "拆成步骤",
+        "降低成本",
+        "给标准答案"
+      ],
+      "scenarios": [
+        "用户疑问",
+        "操作教程",
+        "误区纠正",
+        "专业服务"
+      ],
+      "requiredInputs": [
+        "用户问题",
+        "错误做法",
+        "正确步骤",
+        "判断标准"
+      ],
+      "outputTemplate": [
+        "问题钩子",
+        "错误原因",
+        "解决步骤",
+        "判断标准",
+        "CTA"
+      ],
+      "example": "用户不是不想做内容，是不知道第一条视频该解决谁的什么问题。",
+      "keywords": [
+        "解题型",
+        "教知识",
+        "问题",
+        "步骤",
+        "判断标准"
+      ]
+    },
+    {
+      "id": "script-knowledge-case",
+      "category": "personal_ip",
+      "moduleIds": [
+        "script",
+        "conversion-topics"
+      ],
+      "title": "教知识-案例型脚本",
+      "methods": [
+        "案例处境",
+        "关键动作",
+        "方法总结",
+        "用户迁移"
+      ],
+      "scenarios": [
+        "客户案例",
+        "学员案例",
+        "服务复盘",
+        "成交证明"
+      ],
+      "requiredInputs": [
+        "案例背景",
+        "问题",
+        "解决过程",
+        "结果边界"
+      ],
+      "outputTemplate": [
+        "案例钩子",
+        "处境描述",
+        "解决动作",
+        "方法总结",
+        "风险提醒"
+      ],
+      "example": "一个客户原来只会发产品图，后来改成讲用户场景，咨询量才开始稳定。",
+      "keywords": [
+        "案例型",
+        "案例",
+        "复盘",
+        "方法总结",
+        "成交证明"
+      ]
+    },
+    {
+      "id": "script-knowledge-reveal",
+      "category": "personal_ip",
+      "moduleIds": [
+        "script",
+        "viral-topics"
+      ],
+      "title": "教知识-揭秘型脚本",
+      "methods": [
+        "行业误区",
+        "幕后原因",
+        "判断方法",
+        "避坑建议"
+      ],
+      "scenarios": [
+        "行业揭秘",
+        "专业顾问",
+        "避坑科普",
+        "反常识观点"
+      ],
+      "requiredInputs": [
+        "误区",
+        "真实原因",
+        "证据",
+        "正确做法"
+      ],
+      "outputTemplate": [
+        "揭秘钩子",
+        "误区解释",
+        "真实原因",
+        "判断方法",
+        "CTA"
+      ],
+      "example": "你以为价格低是优惠，其实很多时候是把关键服务拆掉了。",
+      "keywords": [
+        "揭秘型",
+        "行业揭秘",
+        "误区",
+        "真实原因",
+        "避坑"
+      ]
+    },
+    {
+      "id": "script-process-show",
+      "category": "personal_ip",
+      "moduleIds": [
+        "script",
+        "commerce",
+        "viral-analysis"
+      ],
+      "title": "晒过程-过程展示脚本",
+      "methods": [
+        "现场过程",
+        "交付步骤",
+        "关键细节",
+        "证明材料"
+      ],
+      "scenarios": [
+        "本地门店",
+        "服务交付",
+        "产品制作",
+        "客户现场"
+      ],
+      "requiredInputs": [
+        "可拍现场",
+        "过程步骤",
+        "用户顾虑",
+        "证明点"
+      ],
+      "outputTemplate": [
+        "过程钩子",
+        "步骤展示",
+        "细节证明",
+        "用户收益",
+        "CTA"
+      ],
+      "example": "不要只拍成品，要拍用户看不见但最影响结果的过程细节。",
+      "keywords": [
+        "晒过程",
+        "过程展示",
+        "现场",
+        "交付",
+        "细节证明"
+      ]
+    },
+    {
+      "id": "script-process-review",
+      "category": "commerce_video",
+      "moduleIds": [
+        "script",
+        "commerce"
+      ],
+      "title": "晒过程-测评产品脚本",
+      "methods": [
+        "真实体验",
+        "横向对比",
+        "极限测试",
+        "替用户质检"
+      ],
+      "scenarios": [
+        "产品测评",
+        "带货视频",
+        "商品卡",
+        "TikTok Shop"
+      ],
+      "requiredInputs": [
+        "产品",
+        "测试场景",
+        "对比对象",
+        "下单入口"
+      ],
+      "outputTemplate": [
+        "测评钩子",
+        "测试过程",
+        "对比证据",
+        "购买建议",
+        "商品CTA"
+      ],
+      "example": "先展示真实使用场景，再做对比测试，最后告诉用户适不适合买。",
+      "keywords": [
+        "测评",
+        "产品测评",
+        "带货",
+        "商品卡",
+        "对比测试"
+      ]
+    },
+    {
+      "id": "script-process-challenge",
+      "category": "combined",
+      "moduleIds": [
+        "script",
+        "viral-topics"
+      ],
+      "title": "晒过程-任务挑战脚本",
+      "methods": [
+        "设定挑战",
+        "过程记录",
+        "结果揭晓",
+        "经验总结"
+      ],
+      "scenarios": [
+        "过程型视频",
+        "挑战视频",
+        "服务体验",
+        "账号实验"
+      ],
+      "requiredInputs": [
+        "挑战目标",
+        "限制条件",
+        "执行过程",
+        "结果"
+      ],
+      "outputTemplate": [
+        "挑战钩子",
+        "规则说明",
+        "过程推进",
+        "结果揭晓",
+        "复盘"
+      ],
+      "example": "我用一天时间只改这一个动作，看看咨询量会不会变化。",
+      "keywords": [
+        "任务挑战",
+        "挑战",
+        "过程记录",
+        "结果揭晓",
+        "复盘"
+      ]
+    },
+    {
+      "id": "script-story-client",
+      "category": "combined",
+      "moduleIds": [
+        "script",
+        "conversion-topics"
+      ],
+      "title": "讲故事-客户案例脚本",
+      "methods": [
+        "客户处境",
+        "错误选择",
+        "解决过程",
+        "结果变化"
+      ],
+      "scenarios": [
+        "服务成交",
+        "课程成交",
+        "咨询转化",
+        "信任证明"
+      ],
+      "requiredInputs": [
+        "客户背景",
+        "问题",
+        "解决过程",
+        "可说结果"
+      ],
+      "outputTemplate": [
+        "故事钩子",
+        "处境",
+        "冲突",
+        "解决",
+        "启发和CTA"
+      ],
+      "example": "她一开始不是不愿意花钱，而是不知道怎么判断哪个方案靠谱。",
+      "keywords": [
+        "讲故事",
+        "客户案例",
+        "处境",
+        "解决过程",
+        "结果变化"
+      ]
+    },
+    {
+      "id": "script-story-founder",
+      "category": "personal_ip",
+      "moduleIds": [
+        "script",
+        "viral-topics",
+        "ip-positioning"
+      ],
+      "title": "讲故事-个人转折脚本",
+      "methods": [
+        "低谷",
+        "冲突",
+        "关键动作",
+        "转折结果",
+        "价值观"
+      ],
+      "scenarios": [
+        "创始人IP",
+        "老师教练",
+        "专家成长",
+        "品牌故事"
+      ],
+      "requiredInputs": [
+        "个人经历",
+        "转折事件",
+        "关键认知",
+        "用户启发"
+      ],
+      "outputTemplate": [
+        "转折钩子",
+        "低谷处境",
+        "关键动作",
+        "认知总结",
+        "用户迁移"
+      ],
+      "example": "我以前也以为内容越多越好，直到发现真正有效的是先定位一个人群。",
+      "keywords": [
+        "个人故事",
+        "转折",
+        "低谷",
+        "创始人",
+        "价值观"
+      ]
+    },
+    {
+      "id": "script-viewpoint-stance",
+      "category": "personal_ip",
+      "moduleIds": [
+        "script",
+        "viral-topics"
+      ],
+      "title": "聊观点-立场表达脚本",
+      "methods": [
+        "支持谁",
+        "反对什么",
+        "为什么",
+        "给出判断"
+      ],
+      "scenarios": [
+        "观点视频",
+        "专家IP",
+        "老板IP",
+        "行业评论"
+      ],
+      "requiredInputs": [
+        "立场",
+        "反对对象",
+        "理由",
+        "用户受益"
+      ],
+      "outputTemplate": [
+        "立场钩子",
+        "反对对象",
+        "理由展开",
+        "判断标准",
+        "互动问题"
+      ],
+      "example": "我不建议新手一开始就追热点，因为你缺的不是热度，是可被记住的标签。",
+      "keywords": [
+        "聊观点",
+        "立场",
+        "反对",
+        "判断标准",
+        "观点"
+      ]
+    },
+    {
+      "id": "script-viewpoint-controversy",
+      "category": "personal_ip",
+      "moduleIds": [
+        "script",
+        "viral-topics"
+      ],
+      "title": "聊观点-争议讨论脚本",
+      "methods": [
+        "争议命题",
+        "双方观点",
+        "明确判断",
+        "评论互动"
+      ],
+      "scenarios": [
+        "评论互动",
+        "观点涨粉",
+        "行业争议",
+        "认知冲突"
+      ],
+      "requiredInputs": [
+        "争议点",
+        "两种观点",
+        "你的判断",
+        "互动问题"
+      ],
+      "outputTemplate": [
+        "争议钩子",
+        "观点A",
+        "观点B",
+        "你的判断",
+        "评论引导"
+      ],
+      "example": "做个人IP到底要不要立人设？我的判断是：可以包装，但不能虚构。",
+      "keywords": [
+        "争议",
+        "讨论",
+        "评论互动",
+        "观点",
+        "反常识"
+      ]
+    },
+    {
+      "id": "conversion-consultation",
+      "category": "combined",
+      "moduleIds": [
+        "conversion-topics",
+        "script",
+        "ip-positioning"
+      ],
+      "title": "咨询成交路径",
+      "methods": [
+        "问题诊断",
+        "风险提醒",
+        "初步建议",
+        "私信/表单承接"
+      ],
+      "scenarios": [
+        "律师咨询",
+        "财税咨询",
+        "企业服务",
+        "高客单顾问"
+      ],
+      "requiredInputs": [
+        "用户问题",
+        "风险",
+        "诊断标准",
+        "咨询入口"
+      ],
+      "outputTemplate": [
+        "诊断型选题",
+        "风险点",
+        "建议边界",
+        "咨询CTA"
+      ],
+      "example": "如果你遇到这类情况，先别急着签合同，先检查这3个风险点。",
+      "keywords": [
+        "咨询",
+        "诊断",
+        "表单",
+        "私信",
+        "高客单",
+        "顾问"
+      ]
+    },
+    {
+      "id": "conversion-private-domain",
+      "category": "combined",
+      "moduleIds": [
+        "conversion-topics",
+        "script"
+      ],
+      "title": "私域成交路径",
+      "methods": [
+        "内容种草",
+        "评论关键词",
+        "私信承接",
+        "社群/朋友圈转化"
+      ],
+      "scenarios": [
+        "课程",
+        "训练营",
+        "咨询",
+        "复购服务"
+      ],
+      "requiredInputs": [
+        "私域入口",
+        "诱因",
+        "承接话术",
+        "后续交付"
+      ],
+      "outputTemplate": [
+        "引流选题",
+        "关键词CTA",
+        "私信话术",
+        "私域培育"
+      ],
+      "example": "视频里不要硬卖课，先给一个可领取的判断清单，再私信承接。",
+      "keywords": [
+        "私域",
+        "评论关键词",
+        "私信",
+        "社群",
+        "朋友圈",
+        "课程"
+      ]
+    },
+    {
+      "id": "conversion-store-visit",
+      "category": "combined",
+      "moduleIds": [
+        "conversion-topics",
+        "commerce",
+        "script"
+      ],
+      "title": "到店成交路径",
+      "methods": [
+        "同城场景",
+        "到店理由",
+        "门店信任",
+        "预约/团购承接"
+      ],
+      "scenarios": [
+        "美业",
+        "餐饮",
+        "宠物",
+        "家装",
+        "摄影",
+        "亲子"
+      ],
+      "requiredInputs": [
+        "城市/商圈",
+        "到店服务",
+        "到店理由",
+        "预约入口"
+      ],
+      "outputTemplate": [
+        "同城钩子",
+        "到店理由",
+        "门店证明",
+        "预约/团购CTA"
+      ],
+      "example": "同城用户不缺内容，缺一个今天就值得过去的理由。",
+      "keywords": [
+        "到店",
+        "同城",
+        "预约",
+        "团购",
+        "门店",
+        "本地"
+      ]
+    },
+    {
+      "id": "conversion-online-course",
+      "category": "combined",
+      "moduleIds": [
+        "conversion-topics",
+        "commerce",
+        "script"
+      ],
+      "title": "线上课程成交路径",
+      "methods": [
+        "学习痛点",
+        "课程结果",
+        "学员案例",
+        "低风险报名"
+      ],
+      "scenarios": [
+        "知识付费",
+        "训练营",
+        "陪跑",
+        "技能课程"
+      ],
+      "requiredInputs": [
+        "课程主题",
+        "学员痛点",
+        "课程证据",
+        "报名入口"
+      ],
+      "outputTemplate": [
+        "学习痛点",
+        "课程价值",
+        "案例证明",
+        "报名CTA"
+      ],
+      "example": "课程不是卖知识点，而是卖用户从不会到会的路径。",
+      "keywords": [
+        "线上课程",
+        "训练营",
+        "学员",
+        "报名",
+        "知识付费"
+      ]
+    },
+    {
+      "id": "conversion-objection-handling",
+      "category": "combined",
+      "moduleIds": [
+        "conversion-topics",
+        "script",
+        "commerce"
+      ],
+      "title": "异议化解成交",
+      "methods": [
+        "怕贵",
+        "怕没用",
+        "怕麻烦",
+        "怕被骗",
+        "怕售后差"
+      ],
+      "scenarios": [
+        "高客单",
+        "服务成交",
+        "产品带货",
+        "课程成交"
+      ],
+      "requiredInputs": [
+        "主要异议",
+        "证明材料",
+        "判断标准",
+        "承接入口"
+      ],
+      "outputTemplate": [
+        "异议钩子",
+        "顾虑拆解",
+        "证据证明",
+        "选择标准",
+        "CTA"
+      ],
+      "example": "你不是觉得贵，你是怕花了钱看不到结果。",
+      "keywords": [
+        "异议",
+        "怕贵",
+        "怕没用",
+        "怕麻烦",
+        "怕被骗",
+        "顾虑"
+      ]
+    },
+    {
+      "id": "conversion-trust-ladder",
+      "category": "combined",
+      "moduleIds": [
+        "conversion-topics",
+        "ip-positioning",
+        "script"
+      ],
+      "title": "信任阶梯成交",
+      "methods": [
+        "认识",
+        "理解",
+        "相信",
+        "咨询",
+        "成交"
+      ],
+      "scenarios": [
+        "私域培育",
+        "高客单服务",
+        "专家IP",
+        "课程转化"
+      ],
+      "requiredInputs": [
+        "用户信任阶段",
+        "内容任务",
+        "证明材料",
+        "下一步动作"
+      ],
+      "outputTemplate": [
+        "阶段判断",
+        "内容目标",
+        "信任动作",
+        "转化动作"
+      ],
+      "example": "用户刚认识你时不要直接卖，先用判断标准让他觉得你懂。",
+      "keywords": [
+        "信任阶梯",
+        "认识",
+        "相信",
+        "咨询",
+        "成交",
+        "培育"
+      ]
+    },
+    {
+      "id": "pain-anxiety",
+      "category": "combined",
+      "moduleIds": [
+        "pain-topics",
+        "script",
+        "viral-topics"
+      ],
+      "title": "焦虑痛点方法卡",
+      "methods": [
+        "怕错过",
+        "怕变差",
+        "怕来不及",
+        "怕被超过"
+      ],
+      "scenarios": [
+        "教育",
+        "美业",
+        "健康",
+        "职业发展",
+        "经营增长"
+      ],
+      "requiredInputs": [
+        "焦虑来源",
+        "触发场景",
+        "后果",
+        "缓解动作"
+      ],
+      "outputTemplate": [
+        "焦虑钩子",
+        "场景放大",
+        "后果提醒",
+        "解决动作"
+      ],
+      "example": "最可怕的不是不会做，而是你一直用错方法还不知道。",
+      "keywords": [
+        "焦虑",
+        "怕错过",
+        "怕变差",
+        "来不及",
+        "痛点"
+      ]
+    },
+    {
+      "id": "pain-cost",
+      "category": "combined",
+      "moduleIds": [
+        "pain-topics",
+        "conversion-topics",
+        "script"
+      ],
+      "title": "成本痛点方法卡",
+      "methods": [
+        "花冤枉钱",
+        "浪费时间",
+        "反复试错",
+        "隐藏成本"
+      ],
+      "scenarios": [
+        "选购决策",
+        "课程服务",
+        "家装",
+        "企业服务"
+      ],
+      "requiredInputs": [
+        "错误成本",
+        "隐藏成本",
+        "正确路径",
+        "证明材料"
+      ],
+      "outputTemplate": [
+        "成本钩子",
+        "错误成本",
+        "正确判断",
+        "低风险行动"
+      ],
+      "example": "你以为省了预算，其实把后面三个月的试错成本买回来了。",
+      "keywords": [
+        "成本痛点",
+        "花冤枉钱",
+        "试错",
+        "隐藏成本",
+        "预算"
+      ]
+    },
+    {
+      "id": "pain-risk",
+      "category": "combined",
+      "moduleIds": [
+        "pain-topics",
+        "script",
+        "conversion-topics"
+      ],
+      "title": "风险痛点方法卡",
+      "methods": [
+        "怕被坑",
+        "怕没效果",
+        "怕售后差",
+        "怕不合规"
+      ],
+      "scenarios": [
+        "医疗健康",
+        "法律财税",
+        "家装",
+        "高客单服务",
+        "带货"
+      ],
+      "requiredInputs": [
+        "风险类型",
+        "判断标准",
+        "避坑动作",
+        "合规边界"
+      ],
+      "outputTemplate": [
+        "风险钩子",
+        "风险解释",
+        "判断标准",
+        "避坑建议",
+        "风险提醒"
+      ],
+      "example": "别先问价格，先问这三个问题，能避开大多数坑。",
+      "keywords": [
+        "风险",
+        "被坑",
+        "没效果",
+        "售后",
+        "合规",
+        "避坑"
+      ]
+    },
+    {
+      "id": "pain-decision",
+      "category": "combined",
+      "moduleIds": [
+        "pain-topics",
+        "script",
+        "commerce"
+      ],
+      "title": "决策痛点方法卡",
+      "methods": [
+        "不会选",
+        "不知道怎么判断",
+        "信息太乱",
+        "选择困难"
+      ],
+      "scenarios": [
+        "产品选购",
+        "服务选择",
+        "课程选择",
+        "顾问咨询"
+      ],
+      "requiredInputs": [
+        "选择对象",
+        "判断维度",
+        "错误选择",
+        "推荐标准"
+      ],
+      "outputTemplate": [
+        "选择困难钩子",
+        "错误判断",
+        "正确维度",
+        "行动建议"
+      ],
+      "example": "不会选不是你的问题，是商家给你的判断维度太乱。",
+      "keywords": [
+        "决策",
+        "不会选",
+        "判断标准",
+        "选择困难",
+        "信息太乱"
+      ]
+    },
+    {
+      "id": "commerce-seed-interest",
+      "category": "commerce_video",
+      "moduleIds": [
+        "commerce",
+        "script"
+      ],
+      "title": "带货种草脚本",
+      "methods": [
+        "场景需求",
+        "兴趣激发",
+        "产品引入",
+        "轻CTA"
+      ],
+      "scenarios": [
+        "新品种草",
+        "低客单产品",
+        "生活好物",
+        "TikTok Shop"
+      ],
+      "requiredInputs": [
+        "产品",
+        "使用场景",
+        "用户兴趣",
+        "购买入口"
+      ],
+      "outputTemplate": [
+        "场景钩子",
+        "需求激发",
+        "产品出现",
+        "轻下单指令"
+      ],
+      "example": "先让用户想到自己的场景，再让产品成为顺手解决方案。",
+      "keywords": [
+        "种草",
+        "场景需求",
+        "兴趣",
+        "产品引入",
+        "轻CTA"
+      ]
+    },
+    {
+      "id": "commerce-review-compare",
+      "category": "commerce_video",
+      "moduleIds": [
+        "commerce",
+        "script",
+        "viral-analysis"
+      ],
+      "title": "带货测评对比",
+      "methods": [
+        "横向对比",
+        "纵向测试",
+        "极限测试",
+        "替用户质检"
+      ],
+      "scenarios": [
+        "清洁产品",
+        "美妆",
+        "母婴",
+        "家居",
+        "数码"
+      ],
+      "requiredInputs": [
+        "产品",
+        "对比对象",
+        "测试维度",
+        "购买建议"
+      ],
+      "outputTemplate": [
+        "测评钩子",
+        "测试过程",
+        "对比结论",
+        "适用人群",
+        "商品CTA"
+      ],
+      "example": "不要只说好用，把用户最担心的场景直接测给他看。",
+      "keywords": [
+        "测评",
+        "对比",
+        "极限测试",
+        "质检",
+        "适用人群"
+      ]
+    },
+    {
+      "id": "commerce-visual-proof",
+      "category": "commerce_video",
+      "moduleIds": [
+        "commerce",
+        "script"
+      ],
+      "title": "商品视觉化证明",
+      "methods": [
+        "前后对比",
+        "细节特写",
+        "过程镜头",
+        "使用结果",
+        "用户反馈"
+      ],
+      "scenarios": [
+        "产品带货",
+        "团购券",
+        "服务套餐",
+        "本地到店"
+      ],
+      "requiredInputs": [
+        "可视化卖点",
+        "证明镜头",
+        "用户顾虑",
+        "下单入口"
+      ],
+      "outputTemplate": [
+        "视觉钩子",
+        "证明镜头",
+        "结果展示",
+        "购买理由",
+        "CTA"
+      ],
+      "example": "能拍出来的卖点，比说十遍都更有信任感。",
+      "keywords": [
+        "视觉化",
+        "前后对比",
+        "细节",
+        "过程镜头",
+        "证明"
+      ]
+    },
+    {
+      "id": "commerce-live-preview",
+      "category": "commerce_video",
+      "moduleIds": [
+        "commerce",
+        "script"
+      ],
+      "title": "直播预热带货",
+      "methods": [
+        "直播看点",
+        "福利机制",
+        "限时提醒",
+        "进入理由"
+      ],
+      "scenarios": [
+        "直播间",
+        "团购",
+        "TikTok Shop",
+        "本地直播"
+      ],
+      "requiredInputs": [
+        "直播时间",
+        "主推产品",
+        "福利",
+        "用户进入理由"
+      ],
+      "outputTemplate": [
+        "预热钩子",
+        "直播看点",
+        "福利说明",
+        "进入CTA"
+      ],
+      "example": "今晚不是普通直播，是把用户最关心的价格和问题一次讲清楚。",
+      "keywords": [
+        "直播预热",
+        "直播",
+        "福利",
+        "限时",
+        "进入直播间"
+      ]
+    },
+    {
+      "id": "commerce-small-cart",
+      "category": "commerce_video",
+      "moduleIds": [
+        "commerce",
+        "script"
+      ],
+      "title": "商品卡/小黄车承接",
+      "methods": [
+        "兴趣触发",
+        "需求确认",
+        "商品卡提示",
+        "下单理由"
+      ],
+      "scenarios": [
+        "商品卡",
+        "小黄车",
+        "TikTok Shop",
+        "短视频带货"
+      ],
+      "requiredInputs": [
+        "商品入口",
+        "下单理由",
+        "顾虑化解",
+        "价格/权益"
+      ],
+      "outputTemplate": [
+        "需求钩子",
+        "卖点证明",
+        "顾虑化解",
+        "商品卡CTA"
+      ],
+      "example": "不要突然说点小黄车，要先把需求和下单理由讲透。",
+      "keywords": [
+        "商品卡",
+        "小黄车",
+        "下单",
+        "商品入口",
+        "TikTok Shop"
+      ]
+    },
+    {
+      "id": "commerce-local-coupon",
+      "category": "commerce_video",
+      "moduleIds": [
+        "commerce",
+        "conversion-topics"
+      ],
+      "title": "本地团购券承接",
+      "methods": [
+        "同城场景",
+        "到店理由",
+        "套餐价值",
+        "预约提醒"
+      ],
+      "scenarios": [
+        "餐饮团购",
+        "美业团购",
+        "亲子娱乐",
+        "摄影",
+        "本地生活"
+      ],
+      "requiredInputs": [
+        "团购券内容",
+        "适用人群",
+        "到店理由",
+        "使用限制"
+      ],
+      "outputTemplate": [
+        "同城钩子",
+        "套餐价值",
+        "到店理由",
+        "使用提醒",
+        "团购CTA"
+      ],
+      "example": "团购券不是便宜就够了，要告诉用户什么时候来最值。",
+      "keywords": [
+        "团购券",
+        "本地团购",
+        "到店",
+        "套餐",
+        "同城"
+      ]
+    },
+    {
+      "id": "commerce-tiktok-shop",
+      "category": "commerce_video",
+      "moduleIds": [
+        "commerce",
+        "script",
+        "rewrite"
+      ],
+      "title": "TikTok Shop带货表达",
+      "methods": [
+        "场景先行",
+        "强视觉证明",
+        "短句口播",
+        "商品入口",
+        "跨境用户顾虑"
+      ],
+      "scenarios": [
+        "TikTok Shop",
+        "跨境带货",
+        "英语脚本",
+        "东南亚市场"
+      ],
+      "requiredInputs": [
+        "产品",
+        "目标市场",
+        "使用场景",
+        "证明镜头",
+        "下单入口"
+      ],
+      "outputTemplate": [
+        "场景钩子",
+        "产品证明",
+        "短句卖点",
+        "风险提醒",
+        "Shop CTA"
+      ],
+      "example": "TikTok带货要先让画面证明，再用短句补充购买理由。",
+      "keywords": [
+        "TikTok",
+        "TikTok Shop",
+        "跨境",
+        "短句",
+        "Shop CTA"
+      ]
+    },
+    {
+      "id": "industry-beauty-ip",
+      "category": "personal_ip",
+      "moduleIds": [
+        "ip-positioning",
+        "pain-topics",
+        "script",
+        "commerce"
+      ],
+      "title": "美业IP行业模板",
+      "methods": [
+        "护理误区",
+        "前后对比",
+        "门店过程",
+        "客户评价",
+        "团购/到店"
+      ],
+      "scenarios": [
+        "皮肤管理",
+        "美甲美睫",
+        "美容院",
+        "医美需合规"
+      ],
+      "requiredInputs": [
+        "服务项目",
+        "目标客群",
+        "可展示效果",
+        "合规边界",
+        "到店入口"
+      ],
+      "outputTemplate": [
+        "美业定位",
+        "痛点选题",
+        "过程脚本",
+        "信任证明",
+        "到店CTA"
+      ],
+      "example": "美业内容必须避免夸大效果，用过程、评价和前后对比建立信任。",
+      "keywords": [
+        "美业",
+        "护理",
+        "前后对比",
+        "到店",
+        "团购",
+        "合规"
+      ]
+    },
+    {
+      "id": "industry-lawyer-ip",
+      "category": "personal_ip",
+      "moduleIds": [
+        "ip-positioning",
+        "viral-topics",
+        "script"
+      ],
+      "title": "律师IP行业模板",
+      "methods": [
+        "风险提醒",
+        "案例类型",
+        "判断标准",
+        "合规表达",
+        "咨询承接"
+      ],
+      "scenarios": [
+        "婚姻家事",
+        "劳动纠纷",
+        "企业法务",
+        "合同风险"
+      ],
+      "requiredInputs": [
+        "服务领域",
+        "目标客户",
+        "常见风险",
+        "资质边界",
+        "咨询入口"
+      ],
+      "outputTemplate": [
+        "律师定位",
+        "风险选题",
+        "案例拆解",
+        "合规提醒",
+        "咨询CTA"
+      ],
+      "example": "律师内容适合讲风险和判断标准，不适合承诺结果。",
+      "keywords": [
+        "律师",
+        "法律",
+        "风险",
+        "合同",
+        "咨询",
+        "合规"
+      ]
+    },
+    {
+      "id": "industry-health-ip",
+      "category": "personal_ip",
+      "moduleIds": [
+        "ip-positioning",
+        "pain-topics",
+        "script"
+      ],
+      "title": "健康医疗IP行业模板",
+      "methods": [
+        "健康误区",
+        "风险提醒",
+        "生活建议",
+        "合规边界",
+        "人工核验"
+      ],
+      "scenarios": [
+        "医生",
+        "健康管理",
+        "中老年",
+        "家庭用户"
+      ],
+      "requiredInputs": [
+        "专业身份",
+        "健康主题",
+        "禁说承诺",
+        "可给建议",
+        "咨询入口"
+      ],
+      "outputTemplate": [
+        "健康定位",
+        "误区科普",
+        "风险提醒",
+        "生活建议",
+        "合规CTA"
+      ],
+      "example": "健康内容必须避免疗效承诺，重点做科普、风险识别和就医提醒。",
+      "keywords": [
+        "健康",
+        "医生",
+        "医疗",
+        "中老年",
+        "疗效",
+        "合规"
+      ]
+    },
+    {
+      "id": "industry-home-renovation-ip",
+      "category": "personal_ip",
+      "moduleIds": [
+        "ip-positioning",
+        "pain-topics",
+        "script",
+        "conversion-topics"
+      ],
+      "title": "家装IP行业模板",
+      "methods": [
+        "避坑清单",
+        "预算拆解",
+        "前后对比",
+        "过程监督",
+        "报价咨询"
+      ],
+      "scenarios": [
+        "旧房改造",
+        "装修顾问",
+        "收纳家居",
+        "高客单服务"
+      ],
+      "requiredInputs": [
+        "服务类型",
+        "预算区间",
+        "目标家庭",
+        "案例证明",
+        "咨询入口"
+      ],
+      "outputTemplate": [
+        "家装定位",
+        "避坑选题",
+        "预算脚本",
+        "案例证明",
+        "咨询CTA"
+      ],
+      "example": "家装用户最怕花冤枉钱，要用预算和风险清单建立信任。",
+      "keywords": [
+        "家装",
+        "装修",
+        "预算",
+        "避坑",
+        "前后对比",
+        "旧房"
+      ]
+    },
+    {
+      "id": "industry-pet-ip",
+      "category": "personal_ip",
+      "moduleIds": [
+        "ip-positioning",
+        "pain-topics",
+        "script"
+      ],
+      "title": "宠物IP行业模板",
+      "methods": [
+        "新手误区",
+        "风险科普",
+        "到店检查",
+        "家庭场景",
+        "预约咨询"
+      ],
+      "scenarios": [
+        "宠物医院",
+        "宠物用品",
+        "养宠知识",
+        "本地服务"
+      ],
+      "requiredInputs": [
+        "宠物类型",
+        "新手问题",
+        "风险提醒",
+        "到店/商品入口"
+      ],
+      "outputTemplate": [
+        "宠物定位",
+        "新手痛点",
+        "风险科普",
+        "过程脚本",
+        "预约CTA"
+      ],
+      "example": "第一次养猫狗的用户需要判断标准，不是复杂专业术语。",
+      "keywords": [
+        "宠物",
+        "养猫",
+        "养狗",
+        "宠物医院",
+        "新手",
+        "预约"
+      ]
+    },
+    {
+      "id": "industry-education-course",
+      "category": "personal_ip",
+      "moduleIds": [
+        "ip-positioning",
+        "conversion-topics",
+        "script",
+        "commerce"
+      ],
+      "title": "教育课程行业模板",
+      "methods": [
+        "学习痛点",
+        "能力路径",
+        "学员案例",
+        "课程目录",
+        "报名承接"
+      ],
+      "scenarios": [
+        "知识付费",
+        "训练营",
+        "技能培训",
+        "老师IP"
+      ],
+      "requiredInputs": [
+        "课程主题",
+        "学员阶段",
+        "学习结果",
+        "案例反馈",
+        "报名入口"
+      ],
+      "outputTemplate": [
+        "课程定位",
+        "学习痛点",
+        "教学脚本",
+        "案例证明",
+        "报名CTA"
+      ],
+      "example": "卖课不是堆知识点，而是让用户看到从不会到会的路径。",
+      "keywords": [
+        "教育",
+        "课程",
+        "训练营",
+        "学员",
+        "报名",
+        "知识付费"
+      ]
+    },
+    {
+      "id": "industry-enterprise-service",
+      "category": "personal_ip",
+      "moduleIds": [
+        "ip-positioning",
+        "conversion-topics",
+        "script"
+      ],
+      "title": "企业服务IP模板",
+      "methods": [
+        "老板痛点",
+        "经营问题",
+        "案例复盘",
+        "ROI边界",
+        "表单咨询"
+      ],
+      "scenarios": [
+        "代运营",
+        "财税",
+        "咨询",
+        "SaaS",
+        "品牌营销"
+      ],
+      "requiredInputs": [
+        "服务对象",
+        "经营痛点",
+        "案例证明",
+        "交付边界",
+        "表单入口"
+      ],
+      "outputTemplate": [
+        "企业服务定位",
+        "老板痛点",
+        "案例脚本",
+        "顾虑化解",
+        "表单CTA"
+      ],
+      "example": "企业服务内容要讲经营问题和判断标准，不要只展示服务清单。",
+      "keywords": [
+        "企业服务",
+        "老板",
+        "代运营",
+        "财税",
+        "SaaS",
+        "表单"
+      ]
+    },
+    {
+      "id": "industry-cross-border-tiktok",
+      "category": "combined",
+      "moduleIds": [
+        "ip-positioning",
+        "commerce",
+        "script"
+      ],
+      "title": "跨境TikTok行业模板",
+      "methods": [
+        "TikTok Shop",
+        "产品视觉化",
+        "跨境用户",
+        "店铺案例",
+        "表单承接"
+      ],
+      "scenarios": [
+        "跨境电商",
+        "TikTok运营服务",
+        "TikTok带货",
+        "东南亚市场"
+      ],
+      "requiredInputs": [
+        "产品/服务",
+        "目标市场",
+        "店铺证明",
+        "运营案例",
+        "承接入口"
+      ],
+      "outputTemplate": [
+        "跨境定位",
+        "市场痛点",
+        "TikTok脚本",
+        "案例证明",
+        "表单CTA"
+      ],
+      "example": "跨境内容要同时讲产品视觉化和店铺增长逻辑。",
+      "keywords": [
+        "跨境",
+        "TikTok",
+        "TikTok Shop",
+        "店铺",
+        "东南亚",
+        "表单"
+      ]
+    },
+    {
+      "id": "originality-risk-control",
+      "category": "system",
+      "moduleIds": [
+        "rewrite",
+        "viral-analysis",
+        "polish",
+        "script"
+      ],
+      "title": "原创化风险控制",
+      "methods": [
+        "保留机制",
+        "替换表达",
+        "替换场景",
+        "替换案例",
+        "降低相似度"
+      ],
+      "scenarios": [
+        "对标文案",
+        "二创",
+        "洗稿",
+        "爆款拆解"
+      ],
+      "requiredInputs": [
+        "参考文案",
+        "保留机制",
+        "必须改写点",
+        "目标行业"
+      ],
+      "outputTemplate": [
+        "可保留机制",
+        "必须替换内容",
+        "原创角度",
+        "相似度风险"
+      ],
+      "example": "只学钩子和结构，不复制原句、人物设定、具体故事和独特表达。",
+      "keywords": [
+        "原创",
+        "相似度",
+        "二创",
+        "洗稿",
+        "对标",
+        "风险"
+      ]
+    },
+    {
+      "id": "data-review-loop",
+      "category": "system",
+      "moduleIds": [
+        "ip-positioning",
+        "viral-topics",
+        "conversion-topics",
+        "commerce"
+      ],
+      "title": "数据复盘闭环",
+      "methods": [
+        "播放",
+        "完播",
+        "互动",
+        "收藏",
+        "关注",
+        "咨询",
+        "成交"
+      ],
+      "scenarios": [
+        "账号复盘",
+        "选题优化",
+        "带货复盘",
+        "内容迭代"
+      ],
+      "requiredInputs": [
+        "发布数据",
+        "转化数据",
+        "内容类型",
+        "目标动作"
+      ],
+      "outputTemplate": [
+        "数据判断",
+        "问题定位",
+        "下一轮选题",
+        "优化动作"
+      ],
+      "example": "播放高咨询低，通常不是选题没流量，而是信任和CTA不够。",
+      "keywords": [
+        "复盘",
+        "播放",
+        "完播",
+        "互动",
+        "咨询",
+        "成交",
+        "CTR",
+        "CVR"
+      ]
+    },
+    {
+      "id": "publishing-rhythm",
+      "category": "system",
+      "moduleIds": [
+        "ip-positioning",
+        "viral-topics",
+        "script",
+        "commerce"
+      ],
+      "title": "发布节奏规划",
+      "methods": [
+        "冷启动",
+        "测试选题",
+        "放大爆款",
+        "承接成交",
+        "复盘迭代"
+      ],
+      "scenarios": [
+        "30天内容计划",
+        "账号冷启动",
+        "带货节奏",
+        "IP陪跑"
+      ],
+      "requiredInputs": [
+        "账号阶段",
+        "内容储备",
+        "转化目标",
+        "复盘周期"
+      ],
+      "outputTemplate": [
+        "发布节奏",
+        "测试比例",
+        "成交比例",
+        "复盘动作"
+      ],
+      "example": "冷启动不要一上来全做成交，先用痛点和知识找到人群反馈。",
+      "keywords": [
+        "发布节奏",
+        "冷启动",
+        "30天",
+        "复盘",
+        "放大爆款"
+      ]
     }
   ]
 }

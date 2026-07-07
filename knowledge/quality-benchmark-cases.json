@@ -513,6 +513,696 @@
       ],
       "expectedKnowledge": ["口播", "脚本", "结构"],
       "minimumScore": 76
+    },
+    {
+      "id": "ip-persona-reminder",
+      "moduleId": "ip-positioning",
+      "taskType": "personal_ip",
+      "name": "专家IP提醒者人设",
+      "formData": { "industry": "专业服务", "role": "专家/顾问", "offer": "咨询服务", "buyer": "创业/经营者", "proof": "从业经历", "conversion": "表单" },
+      "selections": [],
+      "expectedKnowledge": ["人设", "提醒者"],
+      "minimumScore": 82
+    },
+    {
+      "id": "ip-trust-assets-service",
+      "moduleId": "ip-positioning",
+      "taskType": "personal_ip",
+      "name": "高客单服务信任资产",
+      "formData": { "industry": "企业服务", "role": "专家/顾问", "offer": "高客单服务", "buyer": "老板", "proof": "案例、客户评价、过程", "conversion": "私信" },
+      "selections": [],
+      "expectedKnowledge": ["信任资产", "案例"],
+      "minimumScore": 82
+    },
+    {
+      "id": "ip-content-matrix-weekly",
+      "moduleId": "ip-positioning",
+      "taskType": "personal_ip",
+      "name": "个人IP内容矩阵规划",
+      "formData": { "industry": "知识课程", "role": "老师/教练", "offer": "训练营", "buyer": "新手用户", "proof": "学员案例", "conversion": "私域" },
+      "selections": [],
+      "expectedKnowledge": ["内容矩阵", "发布节奏"],
+      "minimumScore": 82
+    },
+    {
+      "id": "ip-commercial-path-consulting",
+      "moduleId": "ip-positioning",
+      "taskType": "personal_ip",
+      "name": "咨询服务商业路径",
+      "formData": { "industry": "企业咨询", "role": "专家/顾问", "offer": "咨询服务", "buyer": "创业/经营者", "proof": "项目案例", "conversion": "表单、预约/电话" },
+      "selections": [],
+      "expectedKnowledge": ["商业路径", "咨询"],
+      "minimumScore": 82
+    },
+    {
+      "id": "ip-local-store-owner",
+      "moduleId": "ip-positioning",
+      "taskType": "personal_ip",
+      "name": "本地实体老板账号定位",
+      "formData": { "industry": "本地实体", "role": "老板/创始人", "offer": "到店服务", "buyer": "本地到店客户", "proof": "门店现场、客户评价", "conversion": "到店、团购券" },
+      "selections": [],
+      "expectedKnowledge": ["本地实体", "老板IP"],
+      "minimumScore": 82
+    },
+    {
+      "id": "ip-consultant-risk-content",
+      "moduleId": "ip-positioning",
+      "taskType": "personal_ip",
+      "name": "专家顾问风险提醒内容",
+      "formData": { "industry": "财税顾问", "role": "专家/顾问", "offer": "企业财税咨询", "buyer": "创业/经营者", "proof": "资质证书、从业经历", "conversion": "表单" },
+      "selections": [],
+      "expectedKnowledge": ["专家顾问", "风险提示"],
+      "minimumScore": 82
+    },
+    {
+      "id": "ip-teacher-training-camp",
+      "moduleId": "ip-positioning",
+      "taskType": "personal_ip",
+      "name": "老师训练营账号定位",
+      "formData": { "industry": "教育培训", "role": "老师/教练", "offer": "训练营", "buyer": "职场人群", "proof": "学员案例", "conversion": "线上课程、社群/会员" },
+      "selections": [],
+      "expectedKnowledge": ["老师", "训练营"],
+      "minimumScore": 82
+    },
+    {
+      "id": "topic-founder-viewpoint",
+      "moduleId": "viral-topics",
+      "taskType": "personal_ip",
+      "name": "创始人行业观点选题",
+      "formData": { "prompt": "企业服务创始人，想讲行业判断和反常识观点。" },
+      "selections": [{ "step": "主脚本选择", "choice": "聊观点" }],
+      "expectedKnowledge": ["创始人", "反常识"],
+      "minimumScore": 80
+    },
+    {
+      "id": "topic-cost-budget",
+      "moduleId": "viral-topics",
+      "taskType": "personal_ip",
+      "name": "预算成本爆款选题",
+      "formData": { "prompt": "家装顾问，围绕预算、踩坑、隐藏成本做选题。" },
+      "selections": [{ "step": "爆款元素", "choice": "成本" }],
+      "expectedKnowledge": ["成本", "预算"],
+      "minimumScore": 80
+    },
+    {
+      "id": "topic-people-newbie",
+      "moduleId": "viral-topics",
+      "taskType": "personal_ip",
+      "name": "新手人群爆款选题",
+      "formData": { "prompt": "宠物医生，专门给第一次养猫狗的新手做内容。" },
+      "selections": [{ "step": "爆款元素", "choice": "人群" }],
+      "expectedKnowledge": ["人群", "新手"],
+      "minimumScore": 80
+    },
+    {
+      "id": "topic-curiosity-secret",
+      "moduleId": "viral-topics",
+      "taskType": "personal_ip",
+      "name": "行业内幕猎奇选题",
+      "formData": { "prompt": "美业老板讲外行不知道的护理误区。" },
+      "selections": [{ "step": "爆款元素", "choice": "猎奇" }],
+      "expectedKnowledge": ["猎奇", "内幕"],
+      "minimumScore": 80
+    },
+    {
+      "id": "topic-authority-premium",
+      "moduleId": "viral-topics",
+      "taskType": "personal_ip",
+      "name": "高端服务头牌选题",
+      "formData": { "prompt": "高端收纳整理师讲真正高标准服务的判断方法。" },
+      "selections": [{ "step": "爆款元素", "choice": "头牌" }],
+      "expectedKnowledge": ["头牌", "高端"],
+      "minimumScore": 80
+    },
+    {
+      "id": "topic-nostalgia-local",
+      "moduleId": "viral-topics",
+      "taskType": "personal_ip",
+      "name": "本地生活怀旧选题",
+      "formData": { "prompt": "本地餐饮老板讲老味道和现在消费变化。" },
+      "selections": [{ "step": "爆款元素", "choice": "怀旧" }],
+      "expectedKnowledge": ["怀旧", "新旧对比"],
+      "minimumScore": 80
+    },
+    {
+      "id": "topic-contrast-before-after",
+      "moduleId": "viral-topics",
+      "taskType": "personal_ip",
+      "name": "前后对比反差选题",
+      "formData": { "prompt": "美业护理账号，想用前后对比做反差选题。" },
+      "selections": [{ "step": "爆款元素", "choice": "反差" }],
+      "expectedKnowledge": ["反差", "前后"],
+      "minimumScore": 80
+    },
+    {
+      "id": "topic-worst-avoid",
+      "moduleId": "viral-topics",
+      "taskType": "personal_ip",
+      "name": "最差避雷选题",
+      "formData": { "prompt": "装修顾问讲最不推荐的新手装修选择。" },
+      "selections": [{ "step": "爆款元素", "choice": "最差" }],
+      "expectedKnowledge": ["最差", "避雷"],
+      "minimumScore": 80
+    },
+    {
+      "id": "topic-attraction-beauty",
+      "moduleId": "viral-topics",
+      "taskType": "personal_ip",
+      "name": "美业体面感选题",
+      "formData": { "prompt": "美业IP讲如何让用户看起来更体面、更有吸引力。" },
+      "selections": [{ "step": "爆款元素", "choice": "荷尔蒙" }],
+      "expectedKnowledge": ["荷尔蒙", "体面"],
+      "minimumScore": 80
+    },
+    {
+      "id": "script-recommend-course",
+      "moduleId": "script",
+      "taskType": "combined",
+      "name": "推荐型教知识脚本",
+      "formData": { "prompt": "个人IP新手，推荐先做定位表而不是直接拍视频。" },
+      "selections": [{ "step": "主脚本选择", "choice": "个人IP脚本" }, { "step": "继续选择", "choice": "教知识", "subChoice": "推荐型" }],
+      "expectedKnowledge": ["推荐型", "教知识"],
+      "minimumScore": 84
+    },
+    {
+      "id": "script-solve-service",
+      "moduleId": "script",
+      "taskType": "combined",
+      "name": "解题型教知识脚本",
+      "formData": { "prompt": "律师IP讲创业者签合同前怎么判断风险。" },
+      "selections": [{ "step": "主脚本选择", "choice": "个人IP脚本" }, { "step": "继续选择", "choice": "教知识", "subChoice": "解题型" }],
+      "expectedKnowledge": ["解题型", "判断标准"],
+      "minimumScore": 84
+    },
+    {
+      "id": "script-case-student",
+      "moduleId": "script",
+      "taskType": "combined",
+      "name": "案例型教知识脚本",
+      "formData": { "prompt": "课程老师讲一个学员从不会到能独立操作的案例。" },
+      "selections": [{ "step": "主脚本选择", "choice": "个人IP脚本" }, { "step": "继续选择", "choice": "教知识", "subChoice": "案例型" }],
+      "expectedKnowledge": ["案例型", "方法总结"],
+      "minimumScore": 84
+    },
+    {
+      "id": "script-reveal-industry",
+      "moduleId": "script",
+      "taskType": "combined",
+      "name": "揭秘型教知识脚本",
+      "formData": { "prompt": "家装顾问揭秘低价装修报价里容易被忽略的项目。" },
+      "selections": [{ "step": "主脚本选择", "choice": "个人IP脚本" }, { "step": "继续选择", "choice": "教知识", "subChoice": "揭秘型" }],
+      "expectedKnowledge": ["揭秘型", "误区"],
+      "minimumScore": 84
+    },
+    {
+      "id": "script-process-store",
+      "moduleId": "script",
+      "taskType": "combined",
+      "name": "过程展示脚本",
+      "formData": { "prompt": "本地美业门店展示一次护理服务的真实过程。" },
+      "selections": [{ "step": "主脚本选择", "choice": "个人IP脚本" }, { "step": "继续选择", "choice": "晒过程", "subChoice": "过程展示" }],
+      "expectedKnowledge": ["晒过程", "过程展示"],
+      "minimumScore": 84
+    },
+    {
+      "id": "script-product-review-test",
+      "moduleId": "script",
+      "taskType": "combined",
+      "name": "测评产品脚本",
+      "formData": { "prompt": "带货账号测评厨房清洁喷雾，展示前后对比。" },
+      "selections": [{ "step": "主脚本选择", "choice": "带货脚本" }, { "step": "继续选择", "choice": "测评" }],
+      "expectedKnowledge": ["测评", "对比"],
+      "minimumScore": 84
+    },
+    {
+      "id": "script-challenge-experiment",
+      "moduleId": "script",
+      "taskType": "combined",
+      "name": "任务挑战过程脚本",
+      "formData": { "prompt": "账号运营顾问做一个7天只改标题的内容实验。" },
+      "selections": [{ "step": "主脚本选择", "choice": "个人IP脚本" }, { "step": "继续选择", "choice": "晒过程", "subChoice": "任务挑战" }],
+      "expectedKnowledge": ["任务挑战", "过程记录"],
+      "minimumScore": 84
+    },
+    {
+      "id": "script-client-story-service",
+      "moduleId": "script",
+      "taskType": "combined",
+      "name": "客户案例故事脚本",
+      "formData": { "prompt": "企业服务顾问讲一个客户从无效投放到稳定获客的案例。" },
+      "selections": [{ "step": "主脚本选择", "choice": "成交脚本" }, { "step": "继续选择", "choice": "案例成交" }],
+      "expectedKnowledge": ["客户案例", "结果变化"],
+      "minimumScore": 84
+    },
+    {
+      "id": "script-founder-turning-point",
+      "moduleId": "script",
+      "taskType": "combined",
+      "name": "创始人转折故事脚本",
+      "formData": { "prompt": "实体店老板讲自己从亏损到稳定获客的转折。" },
+      "selections": [{ "step": "主脚本选择", "choice": "个人IP脚本" }, { "step": "继续选择", "choice": "讲故事" }],
+      "expectedKnowledge": ["个人故事", "转折"],
+      "minimumScore": 84
+    },
+    {
+      "id": "script-stance-viewpoint",
+      "moduleId": "script",
+      "taskType": "combined",
+      "name": "立场表达观点脚本",
+      "formData": { "prompt": "企业顾问表达不建议新手老板一开始就投流的观点。" },
+      "selections": [{ "step": "主脚本选择", "choice": "个人IP脚本" }, { "step": "继续选择", "choice": "聊观点" }],
+      "expectedKnowledge": ["立场", "判断标准"],
+      "minimumScore": 84
+    },
+    {
+      "id": "script-controversy-comment",
+      "moduleId": "script",
+      "taskType": "combined",
+      "name": "争议讨论观点脚本",
+      "formData": { "prompt": "个人IP账号讨论到底要不要包装人设。" },
+      "selections": [{ "step": "主脚本选择", "choice": "个人IP脚本" }, { "step": "继续选择", "choice": "聊观点" }],
+      "expectedKnowledge": ["争议", "评论互动"],
+      "minimumScore": 84
+    },
+    {
+      "id": "conversion-consultation-path",
+      "moduleId": "conversion-topics",
+      "taskType": "combined",
+      "name": "咨询成交选题路径",
+      "formData": { "prompt": "财税顾问想通过表单获取企业主咨询线索。" },
+      "selections": [{ "step": "成交入口", "choice": "表单" }],
+      "expectedKnowledge": ["咨询", "诊断"],
+      "minimumScore": 82
+    },
+    {
+      "id": "conversion-private-domain-path",
+      "moduleId": "conversion-topics",
+      "taskType": "combined",
+      "name": "私域成交选题路径",
+      "formData": { "prompt": "课程老师想把短视频用户引导到私域社群。" },
+      "selections": [{ "step": "成交入口", "choice": "私域" }],
+      "expectedKnowledge": ["私域", "评论关键词"],
+      "minimumScore": 82
+    },
+    {
+      "id": "conversion-store-visit-path",
+      "moduleId": "conversion-topics",
+      "taskType": "combined",
+      "name": "到店成交选题路径",
+      "formData": { "prompt": "本地餐饮店想通过同城短视频卖团购套餐。" },
+      "selections": [{ "step": "成交入口", "choice": "到店" }],
+      "expectedKnowledge": ["到店", "同城"],
+      "minimumScore": 82
+    },
+    {
+      "id": "conversion-course-path",
+      "moduleId": "conversion-topics",
+      "taskType": "combined",
+      "name": "线上课程成交路径",
+      "formData": { "prompt": "技能老师想卖线上小课和训练营。" },
+      "selections": [{ "step": "成交入口", "choice": "线上课程" }],
+      "expectedKnowledge": ["线上课程", "报名"],
+      "minimumScore": 82
+    },
+    {
+      "id": "conversion-objection-price-path",
+      "moduleId": "conversion-topics",
+      "taskType": "combined",
+      "name": "价格异议成交选题",
+      "formData": { "prompt": "家装顾问想化解用户觉得报价贵的问题。" },
+      "selections": [{ "step": "成交理由", "choice": "异议化解" }],
+      "expectedKnowledge": ["异议", "怕贵"],
+      "minimumScore": 82
+    },
+    {
+      "id": "conversion-trust-ladder-path",
+      "moduleId": "conversion-topics",
+      "taskType": "combined",
+      "name": "信任阶梯选题规划",
+      "formData": { "prompt": "律师IP想从认识到咨询设计一组内容。" },
+      "selections": [{ "step": "成交阶段", "choice": "咨询" }],
+      "expectedKnowledge": ["信任阶梯", "咨询"],
+      "minimumScore": 82
+    },
+    {
+      "id": "pain-anxiety-case",
+      "moduleId": "pain-topics",
+      "taskType": "combined",
+      "name": "焦虑痛点挖掘",
+      "formData": { "industryBackground": "职业规划顾问", "targetCustomer": "担心转行太晚的职场人群" },
+      "selections": [],
+      "expectedKnowledge": ["焦虑", "来不及"],
+      "minimumScore": 82
+    },
+    {
+      "id": "pain-cost-case",
+      "moduleId": "pain-topics",
+      "taskType": "combined",
+      "name": "成本痛点挖掘",
+      "formData": { "industryBackground": "家装顾问", "targetCustomer": "预算有限怕花冤枉钱的家庭用户" },
+      "selections": [],
+      "expectedKnowledge": ["成本痛点", "花冤枉钱"],
+      "minimumScore": 82
+    },
+    {
+      "id": "pain-risk-case",
+      "moduleId": "pain-topics",
+      "taskType": "combined",
+      "name": "风险痛点挖掘",
+      "formData": { "industryBackground": "法律咨询", "targetCustomer": "怕签错合同的创业者" },
+      "selections": [],
+      "expectedKnowledge": ["风险", "避坑"],
+      "minimumScore": 82
+    },
+    {
+      "id": "pain-decision-case",
+      "moduleId": "pain-topics",
+      "taskType": "combined",
+      "name": "决策痛点挖掘",
+      "formData": { "industryBackground": "母婴产品带货", "targetCustomer": "不知道怎么选安全产品的宝妈" },
+      "selections": [],
+      "expectedKnowledge": ["决策", "判断标准"],
+      "minimumScore": 82
+    },
+    {
+      "id": "commerce-seed-interest-case",
+      "moduleId": "commerce",
+      "taskType": "commerce_video",
+      "name": "种草型带货方案",
+      "formData": { "product": "家居香薰", "audience": "品质需求人群", "scene": "尝鲜种草", "sellingPoint": "特色", "proof": "使用场景和用户评价" },
+      "selections": [{ "step": "带货链路", "choice": "产品需求" }],
+      "expectedKnowledge": ["种草", "场景需求"],
+      "minimumScore": 83
+    },
+    {
+      "id": "commerce-review-compare-case",
+      "moduleId": "commerce",
+      "taskType": "commerce_video",
+      "name": "测评对比带货方案",
+      "formData": { "product": "清洁喷雾", "audience": "家庭用户", "scene": "解决痛点", "sellingPoint": "效果", "proof": "横向对比、前后对比" },
+      "selections": [{ "step": "带货链路", "choice": "商品视觉化" }],
+      "expectedKnowledge": ["测评", "对比"],
+      "minimumScore": 83
+    },
+    {
+      "id": "commerce-visual-proof-case",
+      "moduleId": "commerce",
+      "taskType": "commerce_video",
+      "name": "视觉化证明带货方案",
+      "formData": { "product": "收纳盒", "audience": "宝妈/家庭用户", "scene": "解决痛点", "sellingPoint": "质量", "proof": "前后对比、细节特写" },
+      "selections": [{ "step": "带货链路", "choice": "商品视觉化" }],
+      "expectedKnowledge": ["视觉化", "前后对比"],
+      "minimumScore": 83
+    },
+    {
+      "id": "commerce-live-preview-case",
+      "moduleId": "commerce",
+      "taskType": "commerce_video",
+      "name": "直播预热带货方案",
+      "formData": { "product": "本地餐饮套餐券", "audience": "本地客户", "scene": "直播冲动购买", "sellingPoint": "性价比", "proof": "门店现场和用户评价" },
+      "selections": [{ "step": "带货链路", "choice": "直播预热" }],
+      "expectedKnowledge": ["直播预热", "福利"],
+      "minimumScore": 83
+    },
+    {
+      "id": "commerce-small-cart-case",
+      "moduleId": "commerce",
+      "taskType": "commerce_video",
+      "name": "商品卡承接带货方案",
+      "formData": { "product": "厨房工具", "audience": "家庭用户", "scene": "解决痛点", "sellingPoint": "便利性", "proof": "使用过程" },
+      "selections": [{ "step": "成交入口", "choice": "商品卡" }],
+      "expectedKnowledge": ["商品卡", "下单"],
+      "minimumScore": 83
+    },
+    {
+      "id": "commerce-local-coupon-case",
+      "moduleId": "commerce",
+      "taskType": "commerce_video",
+      "name": "本地团购券带货方案",
+      "formData": { "product": "亲子乐园团购券", "audience": "宝妈/家庭用户", "scene": "节日送礼", "sellingPoint": "性价比", "proof": "现场环境、用户评价" },
+      "selections": [{ "step": "成交入口", "choice": "到店" }],
+      "expectedKnowledge": ["团购券", "同城"],
+      "minimumScore": 83
+    },
+    {
+      "id": "commerce-tiktok-expression-case",
+      "moduleId": "commerce",
+      "taskType": "commerce_video",
+      "name": "TikTok Shop表达带货方案",
+      "formData": { "product": "便携榨汁杯", "audience": "跨境消费者", "scene": "尝鲜种草", "sellingPoint": "便利性", "proof": "使用场景、测评" },
+      "selections": [{ "step": "成交入口", "choice": "TikTok Shop" }],
+      "expectedKnowledge": ["TikTok", "短句"],
+      "minimumScore": 83
+    },
+    {
+      "id": "industry-beauty-template-case",
+      "moduleId": "ip-positioning",
+      "taskType": "personal_ip",
+      "name": "美业行业模板验证",
+      "formData": { "industry": "美业", "role": "老板/创始人", "offer": "皮肤管理", "buyer": "本地年轻女性", "proof": "前后对比、客户评价", "conversion": "团购券、到店" },
+      "selections": [],
+      "expectedKnowledge": ["美业", "前后对比"],
+      "minimumScore": 82
+    },
+    {
+      "id": "industry-lawyer-template-case",
+      "moduleId": "ip-positioning",
+      "taskType": "personal_ip",
+      "name": "律师行业模板验证",
+      "formData": { "industry": "专业服务", "role": "医生/律师等专业人士", "offer": "合同风险咨询", "buyer": "创业/经营者", "proof": "资质证书、案例类型", "conversion": "表单" },
+      "selections": [],
+      "expectedKnowledge": ["律师", "合规"],
+      "minimumScore": 82
+    },
+    {
+      "id": "industry-health-template-case",
+      "moduleId": "ip-positioning",
+      "taskType": "personal_ip",
+      "name": "健康医疗行业模板验证",
+      "formData": { "industry": "健康管理", "role": "医生/律师等专业人士", "offer": "健康咨询", "buyer": "中老年人群", "proof": "资质证书", "conversion": "预约/电话" },
+      "selections": [],
+      "expectedKnowledge": ["健康", "合规"],
+      "minimumScore": 82
+    },
+    {
+      "id": "industry-home-template-case",
+      "moduleId": "ip-positioning",
+      "taskType": "personal_ip",
+      "name": "家装行业模板验证",
+      "formData": { "industry": "家居装修", "role": "专家/顾问", "offer": "旧房改造咨询", "buyer": "家庭用户", "proof": "前后对比、案例", "conversion": "表单" },
+      "selections": [],
+      "expectedKnowledge": ["家装", "预算"],
+      "minimumScore": 82
+    },
+    {
+      "id": "industry-pet-template-case",
+      "moduleId": "ip-positioning",
+      "taskType": "personal_ip",
+      "name": "宠物行业模板验证",
+      "formData": { "industry": "宠物", "role": "医生/律师等专业人士", "offer": "宠物医院到店检查", "buyer": "第一次养宠家庭", "proof": "门店现场、从业经历", "conversion": "预约/电话" },
+      "selections": [],
+      "expectedKnowledge": ["宠物", "新手"],
+      "minimumScore": 82
+    },
+    {
+      "id": "industry-education-template-case",
+      "moduleId": "ip-positioning",
+      "taskType": "personal_ip",
+      "name": "教育课程行业模板验证",
+      "formData": { "industry": "教育培训", "role": "老师/教练", "offer": "线上训练营", "buyer": "职场人群", "proof": "学员案例", "conversion": "线上课程" },
+      "selections": [],
+      "expectedKnowledge": ["教育", "学员"],
+      "minimumScore": 82
+    },
+    {
+      "id": "industry-enterprise-template-case",
+      "moduleId": "ip-positioning",
+      "taskType": "personal_ip",
+      "name": "企业服务行业模板验证",
+      "formData": { "industry": "企业服务", "role": "专家/顾问", "offer": "短视频代运营服务", "buyer": "创业/经营者", "proof": "案例、过程", "conversion": "表单" },
+      "selections": [],
+      "expectedKnowledge": ["企业服务", "表单"],
+      "minimumScore": 82
+    },
+    {
+      "id": "industry-cross-border-template-case",
+      "moduleId": "ip-positioning",
+      "taskType": "personal_ip",
+      "name": "跨境TikTok行业模板验证",
+      "formData": { "industry": "跨境电商", "role": "老板/创始人", "offer": "TikTok Shop运营服务", "buyer": "创业/经营者", "proof": "店铺案例", "conversion": "表单" },
+      "selections": [],
+      "expectedKnowledge": ["跨境", "TikTok"],
+      "minimumScore": 82
+    },
+    {
+      "id": "system-originality-risk-case",
+      "moduleId": "rewrite",
+      "taskType": "combined",
+      "name": "对标文案原创化风险控制",
+      "formData": { "prompt": "参考一个爆款美业文案，只保留结构，不复制原句。" },
+      "selections": [{ "step": "二创方向", "choice": "本土化表达" }],
+      "expectedKnowledge": ["原创", "相似度"],
+      "minimumScore": 76
+    },
+    {
+      "id": "system-data-review-case",
+      "moduleId": "viral-analysis",
+      "taskType": "combined",
+      "name": "数据复盘闭环拆解",
+      "formData": { "prompt": "播放高但咨询低的视频，想分析问题并给下一轮选题。" },
+      "selections": [{ "step": "拆解维度", "choice": "成交链路拆解" }],
+      "expectedKnowledge": ["复盘", "咨询"],
+      "minimumScore": 76
+    },
+    {
+      "id": "system-publishing-rhythm-case",
+      "moduleId": "viral-topics",
+      "taskType": "personal_ip",
+      "name": "冷启动发布节奏选题",
+      "formData": { "prompt": "新账号冷启动，想规划30天选题和成交内容比例。" },
+      "selections": [{ "step": "主脚本选择", "choice": "教知识" }],
+      "expectedKnowledge": ["发布节奏", "冷启动"],
+      "minimumScore": 80
+    },
+    {
+      "id": "local-restaurant-coupon",
+      "moduleId": "commerce",
+      "taskType": "commerce_video",
+      "name": "本地餐饮团购券",
+      "formData": { "product": "双人餐团购券", "audience": "本地到店客户", "scene": "节日送礼", "sellingPoint": "性价比", "proof": "门店现场和菜品特写" },
+      "selections": [{ "step": "成交入口", "choice": "到店" }],
+      "expectedKnowledge": ["团购券", "到店"],
+      "minimumScore": 83
+    },
+    {
+      "id": "local-photography-visit",
+      "moduleId": "conversion-topics",
+      "taskType": "combined",
+      "name": "本地摄影预约到店",
+      "formData": { "prompt": "摄影工作室想让宝妈预约亲子摄影套餐。" },
+      "selections": [{ "step": "成交入口", "choice": "预约/电话" }],
+      "expectedKnowledge": ["到店", "预约"],
+      "minimumScore": 82
+    },
+    {
+      "id": "mother-baby-product-card",
+      "moduleId": "commerce",
+      "taskType": "commerce_video",
+      "name": "母婴产品商品卡",
+      "formData": { "product": "儿童餐具", "audience": "宝妈/家庭用户", "scene": "解决痛点", "sellingPoint": "质量", "proof": "安全材质、测评" },
+      "selections": [{ "step": "成交入口", "choice": "商品卡" }],
+      "expectedKnowledge": ["商品卡", "测评"],
+      "minimumScore": 83
+    },
+    {
+      "id": "jewelry-face-value",
+      "moduleId": "viral-topics",
+      "taskType": "personal_ip",
+      "name": "饰品颜值选题",
+      "formData": { "prompt": "饰品店老板想做体面感和吸引力选题。" },
+      "selections": [{ "step": "爆款元素", "choice": "荷尔蒙" }],
+      "expectedKnowledge": ["吸引力", "体面"],
+      "minimumScore": 80
+    },
+    {
+      "id": "fitness-coach-challenge",
+      "moduleId": "script",
+      "taskType": "combined",
+      "name": "健身教练挑战脚本",
+      "formData": { "prompt": "健身教练做7天体态改善挑战，但不能夸大效果。" },
+      "selections": [{ "step": "继续选择", "choice": "晒过程", "subChoice": "任务挑战" }],
+      "expectedKnowledge": ["任务挑战", "风险提醒"],
+      "minimumScore": 84
+    },
+    {
+      "id": "financial-consultant-compliance",
+      "moduleId": "ip-positioning",
+      "taskType": "personal_ip",
+      "name": "财务顾问合规IP",
+      "formData": { "industry": "企业服务", "role": "专家/顾问", "offer": "财务咨询", "buyer": "创业/经营者", "proof": "资质证书、案例类型", "conversion": "表单" },
+      "selections": [],
+      "expectedKnowledge": ["专家顾问", "合规"],
+      "minimumScore": 82
+    },
+    {
+      "id": "psychology-consultation-risk",
+      "moduleId": "script",
+      "taskType": "combined",
+      "name": "心理咨询风险提醒脚本",
+      "formData": { "prompt": "心理咨询账号讲亲密关系沟通误区，不能做医疗承诺。" },
+      "selections": [{ "step": "继续选择", "choice": "教知识", "subChoice": "解题型" }],
+      "expectedKnowledge": ["风险", "判断标准"],
+      "minimumScore": 84
+    },
+    {
+      "id": "saas-demo-commerce",
+      "moduleId": "commerce",
+      "taskType": "commerce_video",
+      "name": "SaaS服务带货式介绍",
+      "formData": { "product": "客户管理SaaS", "audience": "创业/经营者", "scene": "解决痛点", "sellingPoint": "便利性", "proof": "操作演示、客户案例" },
+      "selections": [{ "step": "带货链路", "choice": "商品视觉化" }],
+      "expectedKnowledge": ["企业服务", "视觉化"],
+      "minimumScore": 83
+    },
+    {
+      "id": "senior-health-pain",
+      "moduleId": "pain-topics",
+      "taskType": "combined",
+      "name": "中老年健康风险痛点",
+      "formData": { "industryBackground": "健康管理服务，不能夸大疗效。", "targetCustomer": "中老年人群和子女。" },
+      "selections": [],
+      "expectedKnowledge": ["健康", "风险"],
+      "minimumScore": 82
+    },
+    {
+      "id": "real-estate-advisor-objection",
+      "moduleId": "conversion-topics",
+      "taskType": "combined",
+      "name": "房产顾问异议化解",
+      "formData": { "prompt": "房产顾问想化解用户怕被坑、怕买贵的顾虑。" },
+      "selections": [{ "step": "成交理由", "choice": "异议化解" }],
+      "expectedKnowledge": ["顾虑", "被坑"],
+      "minimumScore": 82
+    },
+    {
+      "id": "beauty-live-preview",
+      "moduleId": "script",
+      "taskType": "combined",
+      "name": "美业直播预热脚本",
+      "formData": { "prompt": "本地美业门店今晚直播讲团购券和护理套餐。" },
+      "selections": [{ "step": "继续选择", "choice": "直播预热" }],
+      "expectedKnowledge": ["直播预热", "团购"],
+      "minimumScore": 84
+    },
+    {
+      "id": "course-private-domain-keyword",
+      "moduleId": "conversion-topics",
+      "taskType": "combined",
+      "name": "课程私域关键词承接",
+      "formData": { "prompt": "整理师IP想用评论关键词领取清单，再引导到课程。" },
+      "selections": [{ "step": "成交入口", "choice": "私域" }],
+      "expectedKnowledge": ["评论关键词", "课程"],
+      "minimumScore": 82
+    },
+    {
+      "id": "tiktok-cleaning-short-sentence",
+      "moduleId": "rewrite",
+      "taskType": "combined",
+      "name": "TikTok清洁产品短句改写",
+      "formData": { "prompt": "把清洁产品中文脚本改成TikTok Shop短句表达。" },
+      "selections": [{ "step": "二创方向", "choice": "换平台" }],
+      "expectedKnowledge": ["TikTok", "短句"],
+      "minimumScore": 78
+    },
+    {
+      "id": "ip-cold-start-rhythm",
+      "moduleId": "ip-positioning",
+      "taskType": "personal_ip",
+      "name": "个人IP冷启动节奏",
+      "formData": { "industry": "企业服务", "role": "专家/顾问", "offer": "咨询服务", "buyer": "老板", "proof": "从业经历", "conversion": "表单" },
+      "selections": [],
+      "expectedKnowledge": ["冷启动", "内容矩阵"],
+      "minimumScore": 82
     }
   ]
 }

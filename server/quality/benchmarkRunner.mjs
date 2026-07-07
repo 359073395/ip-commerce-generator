@@ -153,6 +153,8 @@ function countExpectedKnowledgeHits(expectedTerms, selectedKnowledge) {
     item.source,
     ...(item.matchedTerms || []),
     ...(item.methods || []),
+    ...(item.keywords || []),
+    ...(item.scenarios || []),
     item.category,
   ].filter(Boolean).join(' ')).join('\n').toLowerCase();
   return expectedTerms.filter((term) => haystack.includes(String(term).toLowerCase())).length;
