@@ -15,10 +15,14 @@ NODE_MAJOR="${NODE_MAJOR:-20}"
 
 DEFAULT_FALLBACK_MODELS="${OPENAI_FALLBACK_MODELS:-gpt-5.4,gemini-3-flash,gpt-5.4-mini}"
 DEFAULT_TIMEOUT_MS="${OPENAI_TIMEOUT_MS:-45000}"
+DEFAULT_FALLBACK_TIMEOUT_MS="${OPENAI_FALLBACK_TIMEOUT_MS:-30000}"
 DEFAULT_MAX_TOKENS="${OPENAI_MAX_TOKENS:-1200}"
 DEFAULT_TEMPERATURE="${OPENAI_TEMPERATURE:-0.4}"
 DEFAULT_REASONING_EFFORT="${OPENAI_REASONING_EFFORT:-low}"
 DEFAULT_KNOWLEDGE_BUDGET_CHARS="${KNOWLEDGE_BUDGET_CHARS:-1200}"
+DEFAULT_AGENT_REVIEW_ENABLED="${AGENT_REVIEW_ENABLED:-true}"
+DEFAULT_AGENT_REVIEW_MAX_TOKENS="${AGENT_REVIEW_MAX_TOKENS:-1200}"
+DEFAULT_AGENT_REVIEW_TIMEOUT_MS="${AGENT_REVIEW_TIMEOUT_MS:-20000}"
 DEFAULT_ENABLE_NGINX_BASIC_AUTH="${ENABLE_NGINX_BASIC_AUTH:-no}"
 DEFAULT_BASIC_AUTH_USER="${BASIC_AUTH_USER:-admin}"
 GENERATED_BASIC_AUTH_PASSWORD="${GENERATED_BASIC_AUTH_PASSWORD:-no}"
@@ -157,15 +161,22 @@ collect_env_settings() {
   APP_AUTH_ENABLED_WAS_SET="${APP_AUTH_ENABLED+x}"
   APP_AUTH_USER_WAS_SET="${APP_AUTH_USER+x}"
   APP_AUTH_PASSWORD_WAS_SET="${APP_AUTH_PASSWORD+x}"
+  AGENT_REVIEW_ENABLED_WAS_SET="${AGENT_REVIEW_ENABLED+x}"
+  AGENT_REVIEW_MAX_TOKENS_WAS_SET="${AGENT_REVIEW_MAX_TOKENS+x}"
+  AGENT_REVIEW_TIMEOUT_MS_WAS_SET="${AGENT_REVIEW_TIMEOUT_MS+x}"
   OPENAI_BASE_URL="${OPENAI_BASE_URL:-}"
   OPENAI_API_KEY="${OPENAI_API_KEY:-}"
   OPENAI_MODEL="${OPENAI_MODEL:-}"
   OPENAI_FALLBACK_MODELS="${OPENAI_FALLBACK_MODELS:-$DEFAULT_FALLBACK_MODELS}"
   OPENAI_TIMEOUT_MS="${OPENAI_TIMEOUT_MS:-$DEFAULT_TIMEOUT_MS}"
+  OPENAI_FALLBACK_TIMEOUT_MS="${OPENAI_FALLBACK_TIMEOUT_MS:-$DEFAULT_FALLBACK_TIMEOUT_MS}"
   OPENAI_MAX_TOKENS="${OPENAI_MAX_TOKENS:-$DEFAULT_MAX_TOKENS}"
   OPENAI_TEMPERATURE="${OPENAI_TEMPERATURE:-$DEFAULT_TEMPERATURE}"
   OPENAI_REASONING_EFFORT="${OPENAI_REASONING_EFFORT:-$DEFAULT_REASONING_EFFORT}"
   KNOWLEDGE_BUDGET_CHARS="${KNOWLEDGE_BUDGET_CHARS:-$DEFAULT_KNOWLEDGE_BUDGET_CHARS}"
+  AGENT_REVIEW_ENABLED="${AGENT_REVIEW_ENABLED:-$DEFAULT_AGENT_REVIEW_ENABLED}"
+  AGENT_REVIEW_MAX_TOKENS="${AGENT_REVIEW_MAX_TOKENS:-$DEFAULT_AGENT_REVIEW_MAX_TOKENS}"
+  AGENT_REVIEW_TIMEOUT_MS="${AGENT_REVIEW_TIMEOUT_MS:-$DEFAULT_AGENT_REVIEW_TIMEOUT_MS}"
   APP_AUTH_ENABLED="${APP_AUTH_ENABLED:-$DEFAULT_APP_AUTH_ENABLED}"
   APP_AUTH_USER="${APP_AUTH_USER:-$DEFAULT_APP_AUTH_USER}"
   APP_AUTH_PASSWORD="${APP_AUTH_PASSWORD:-}"
@@ -176,6 +187,12 @@ collect_env_settings() {
     y|yes|true|1|on) APP_AUTH_ENABLED="true" ;;
     n|no|false|0|off) APP_AUTH_ENABLED="false" ;;
     *) die "APP_AUTH_ENABLED must be true or false." ;;
+  esac
+
+  case "${AGENT_REVIEW_ENABLED,,}" in
+    y|yes|true|1|on) AGENT_REVIEW_ENABLED="true" ;;
+    n|no|false|0|off) AGENT_REVIEW_ENABLED="false" ;;
+    *) die "AGENT_REVIEW_ENABLED must be true or false." ;;
   esac
 
   case "${ENABLE_NGINX_BASIC_AUTH,,}" in
@@ -226,14 +243,38 @@ write_env_file() {
       existing_app_auth_enabled="$(read_env_value APP_AUTH_ENABLED)"
       [[ -z "$existing_app_auth_enabled" ]] || APP_AUTH_ENABLED="$existing_app_auth_enabled"
     fi
+    if [[ -z "$AGENT_REVIEW_ENABLED_WAS_SET" ]]; then
+      local existing_agent_review_enabled
+      existing_agent_review_enabled="$(read_env_value AGENT_REVIEW_ENABLED)"
+      [[ -z "$existing_agent_review_enabled" ]] || AGENT_REVIEW_ENABLED="$existing_agent_review_enabled"
+    fi
+    if [[ -z "$AGENT_REVIEW_MAX_TOKENS_WAS_SET" ]]; then
+      local existing_agent_review_max_tokens
+      existing_agent_review_max_tokens="$(read_env_value AGENT_REVIEW_MAX_TOKENS)"
+      [[ -z "$existing_agent_review_max_tokens" ]] || AGENT_REVIEW_MAX_TOKENS="$existing_agent_review_max_tokens"
+    fi
+    if [[ -z "$AGENT_REVIEW_TIMEOUT_MS_WAS_SET" ]]; then
+      local existing_agent_review_timeout_ms
+      existing_agent_review_timeout_ms="$(read_env_value AGENT_REVIEW_TIMEOUT_MS)"
+      [[ -z "$existing_agent_review_timeout_ms" ]] || AGENT_REVIEW_TIMEOUT_MS="$existing_agent_review_timeout_ms"
+    fi
   fi
 
   APP_AUTH_ENABLED="${APP_AUTH_ENABLED:-$DEFAULT_APP_AUTH_ENABLED}"
   APP_AUTH_USER="${APP_AUTH_USER:-$DEFAULT_APP_AUTH_USER}"
+  AGENT_REVIEW_ENABLED="${AGENT_REVIEW_ENABLED:-$DEFAULT_AGENT_REVIEW_ENABLED}"
+  AGENT_REVIEW_MAX_TOKENS="${AGENT_REVIEW_MAX_TOKENS:-$DEFAULT_AGENT_REVIEW_MAX_TOKENS}"
+  AGENT_REVIEW_TIMEOUT_MS="${AGENT_REVIEW_TIMEOUT_MS:-$DEFAULT_AGENT_REVIEW_TIMEOUT_MS}"
   case "${APP_AUTH_ENABLED,,}" in
     y|yes|true|1|on) APP_AUTH_ENABLED="true" ;;
     n|no|false|0|off) APP_AUTH_ENABLED="false" ;;
     *) die "APP_AUTH_ENABLED must be true or false." ;;
+  esac
+
+  case "${AGENT_REVIEW_ENABLED,,}" in
+    y|yes|true|1|on) AGENT_REVIEW_ENABLED="true" ;;
+    n|no|false|0|off) AGENT_REVIEW_ENABLED="false" ;;
+    *) die "AGENT_REVIEW_ENABLED must be true or false." ;;
   esac
 
   if [[ "$APP_AUTH_ENABLED" == "true" && -z "$APP_AUTH_PASSWORD" ]]; then
@@ -259,10 +300,14 @@ write_env_file() {
     printf 'PORT=%s\n' "$(quote_env_value "$PORT")"
     printf 'HOST=%s\n' "$(quote_env_value "$HOST")"
     printf 'OPENAI_TIMEOUT_MS=%s\n' "$(quote_env_value "$OPENAI_TIMEOUT_MS")"
+    printf 'OPENAI_FALLBACK_TIMEOUT_MS=%s\n' "$(quote_env_value "$OPENAI_FALLBACK_TIMEOUT_MS")"
     printf 'OPENAI_MAX_TOKENS=%s\n' "$(quote_env_value "$OPENAI_MAX_TOKENS")"
     printf 'OPENAI_TEMPERATURE=%s\n' "$(quote_env_value "$OPENAI_TEMPERATURE")"
     printf 'OPENAI_REASONING_EFFORT=%s\n' "$(quote_env_value "$OPENAI_REASONING_EFFORT")"
     printf 'KNOWLEDGE_BUDGET_CHARS=%s\n' "$(quote_env_value "$KNOWLEDGE_BUDGET_CHARS")"
+    printf 'AGENT_REVIEW_ENABLED=%s\n' "$(quote_env_value "$AGENT_REVIEW_ENABLED")"
+    printf 'AGENT_REVIEW_MAX_TOKENS=%s\n' "$(quote_env_value "$AGENT_REVIEW_MAX_TOKENS")"
+    printf 'AGENT_REVIEW_TIMEOUT_MS=%s\n' "$(quote_env_value "$AGENT_REVIEW_TIMEOUT_MS")"
   } > .env
   chmod 600 .env
 }

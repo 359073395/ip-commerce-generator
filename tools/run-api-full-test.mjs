@@ -1,8 +1,13 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import dotenv from 'dotenv';
 
-const endpoint = 'http://127.0.0.1:8790/api/generate';
+dotenv.config();
+
+const endpoint = process.env.API_TEST_ENDPOINT || 'http://127.0.0.1:8790/api/generate';
 const timeoutMs = Number(process.env.API_TEST_TIMEOUT_MS || 90000);
+const includeDirtyCases = ['1', 'true', 'yes'].includes(String(process.env.API_TEST_INCLUDE_DIRTY || '').toLowerCase());
+const authHeader = buildAuthHeader();
 const now = new Date();
 const stamp = now.toISOString().replace(/[:.]/g, '-');
 const outputDir = path.resolve('tools', 'api-test-results');
@@ -26,12 +31,14 @@ const cases = [
       details: sharedBusiness,
     },
     selections: [],
+    expectedTerms: ['收纳', '整理', '杭州', '课程', '私信', '家庭'],
   },
   {
     id: 'viral-topics',
     name: '爆款选题',
     formData: { prompt: `${sharedBusiness} 需要生成适合短视频起号的爆款选题。` },
     selections: [{ step: '第二步：主脚本选择', choice: '教知识', subChoice: '案例型' }],
+    expectedTerms: ['收纳', '整理', '杭州', '课程', '私信', '家庭'],
   },
   {
     id: 'conversion-topics',
@@ -41,6 +48,7 @@ const cases = [
       { step: '第二步：主脚本选择', choice: '晒过程', subChoice: '过程展示' },
       { step: '第三步：进店/成交理由选择', choices: ['效果好', '案例多', '服务好'] },
     ],
+    expectedTerms: ['收纳', '整理', '杭州', '课程', '私信', '家庭'],
   },
   {
     id: 'pain-topics',
@@ -50,6 +58,7 @@ const cases = [
       targetCustomer: '新中产家庭、忙碌职场女性、家里很乱但不知道怎么开始整理的人，以及想提升居住品质的人。',
     },
     selections: [],
+    expectedTerms: ['收纳', '整理', '杭州', '整理师', '家庭'],
   },
   {
     id: 'script',
@@ -59,6 +68,7 @@ const cases = [
       { step: '第一步：主脚本选择', choice: '个人IP脚本' },
       { step: '第二步：继续选择', choice: '讲故事', subChoice: '客户案例' },
     ],
+    expectedTerms: ['收纳', '整理', '杭州', '私信', '家庭'],
   },
   {
     id: 'rewrite',
@@ -67,6 +77,7 @@ const cases = [
       prompt: `原文案：你家不是东西太多，而是每个东西都没有固定位置。一个家真正变清爽，不是靠扔东西，而是靠动线和收纳系统。请改成更适合${sharedBusiness}的口播文案。`,
     },
     selections: [{ step: '第一步：二创方向', choice: '换人群' }],
+    expectedTerms: ['收纳', '整理', '杭州', '口播', '家庭'],
   },
   {
     id: 'viral-analysis',
@@ -75,6 +86,7 @@ const cases = [
       prompt: `参考视频内容：一个收纳师展示客户家从凌乱到整洁的前后对比，开头说“你以为家乱是因为懒，其实是因为动线错了”。请拆解并迁移到${sharedBusiness}。`,
     },
     selections: [{ step: '第一步：拆解维度', choice: '成交链路拆解' }],
+    expectedTerms: ['收纳', '整理', '杭州', '动线', '成交'],
   },
   {
     id: 'polish',
@@ -83,6 +95,7 @@ const cases = [
       prompt: `原文案：很多人以为收纳就是买盒子，其实越买越乱。真正有效的收纳，是先判断生活动线，再给每个物品安排位置。请按${sharedBusiness}重写。`,
     },
     selections: [{ step: '第一步：洗稿方向', choice: '痛点重写' }],
+    expectedTerms: ['收纳', '整理', '杭州', '动线', '文案'],
   },
   {
     id: 'commerce',
@@ -98,6 +111,40 @@ const cases = [
       { step: '带货链路', choice: '产品需求' },
       { step: '成交入口', choice: '商品卡' },
     ],
+    expectedTerms: ['收纳', '整理', '课程', '399', '商品卡'],
+  },
+];
+
+const dirtyCases = [
+  {
+    id: 'viral-topics',
+    name: '脏数据-只填行业做爆款选题',
+    formData: { prompt: '美业，想做个人IP，先给我选题。' },
+    selections: [{ step: '第二步：主脚本选择', choice: '教知识', subChoice: '误区型' }],
+    expectedTerms: ['美业', '个人IP', '选题', '误区'],
+  },
+  {
+    id: 'script',
+    name: '脏数据-缺少定位直接写脚本',
+    formData: { prompt: '我是做本地团购的，想让用户来店里，帮我写一个脚本。' },
+    selections: [
+      { step: '第一步：主脚本选择', choice: '个人IP脚本' },
+      { step: '第二步：继续选择', choice: '提痛点', subChoice: '焦虑型' },
+    ],
+    expectedTerms: ['本地', '团购', '到店', '脚本', '痛点'],
+  },
+  {
+    id: 'commerce',
+    name: '脏数据-产品信息很少的带货',
+    formData: {
+      product: '一个线上课，还有团购券，也可能卖自己的产品',
+      audience: '不知道，反正想要成交',
+    },
+    selections: [
+      { step: '带货链路', choice: '产品需求' },
+      { step: '成交入口', choice: '私信' },
+    ],
+    expectedTerms: ['线上课', '团购券', '产品', '成交', '私信'],
   },
 ];
 
@@ -105,7 +152,7 @@ function hasAny(text, terms) {
   return terms.some((term) => text.includes(term));
 }
 
-function evaluateResult(moduleName, result) {
+function evaluateResult(moduleName, result, expectedTerms = []) {
   const sections = Array.isArray(result?.sections) ? result.sections : [];
   const tables = Array.isArray(result?.tables) ? result.tables : [];
   const scripts = Array.isArray(result?.scripts) ? result.scripts : [];
@@ -118,7 +165,10 @@ function evaluateResult(moduleName, result) {
     hasTables: tables.length >= 1 && tables.some((table) => Array.isArray(table.rows) && table.rows.length >= 1),
     hasActionPlan: nextActions.length >= 1,
     hasRiskNotes: riskNotes.length >= 1,
-    usesBusinessInput: hasAny(text, ['收纳', '整理', '杭州', '课程', '私信', '家庭']),
+    hasAgentReview: !String(process.env.AGENT_REVIEW_ENABLED || 'true').match(/^(false|0|no)$/i)
+      ? hasAny(text, ['Agent自检'])
+      : true,
+    usesBusinessInput: expectedTerms.length ? hasAny(text, expectedTerms) : true,
     hasKnowledgeShape: hasAny(text, ['定位', '目标用户', '内容矩阵', '痛点', '成交', '脚本', 'CTA', '信任', '复盘', '爆款', '拍摄', '承接']),
     scriptUseful: moduleName.includes('脚本') || moduleName.includes('带货') ? scripts.length >= 1 : true,
   };
@@ -134,6 +184,18 @@ async function fetchWithTimeout(url, options) {
   } finally {
     clearTimeout(timer);
   }
+}
+
+function buildAuthHeader() {
+  const explicit = process.env.API_TEST_BASIC_AUTH || '';
+  const fallback = process.env.APP_AUTH_ENABLED?.match(/^(true|1|yes)$/i)
+    ? `${process.env.APP_AUTH_USER || 'admin'}:${process.env.APP_AUTH_PASSWORD || ''}`
+    : '';
+  const value = explicit || fallback;
+  if (!value || !value.includes(':')) return {};
+  return {
+    Authorization: `Basic ${Buffer.from(value).toString('base64')}`,
+  };
 }
 
 function buildSummary(results) {
@@ -240,7 +302,7 @@ await fs.mkdir(outputDir, { recursive: true });
 const results = [];
 let ipPositioningContext = null;
 
-for (const item of cases) {
+for (const item of includeDirtyCases ? [...cases, ...dirtyCases] : cases) {
   console.log(`START ${item.name}`);
   const startedAt = Date.now();
   const body = {
@@ -252,7 +314,7 @@ for (const item of cases) {
   try {
     const response = await fetchWithTimeout(endpoint, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...authHeader },
       body: JSON.stringify(body),
     });
     const text = await response.text();
@@ -270,7 +332,7 @@ for (const item of cases) {
       continue;
     }
     if (item.id === 'ip-positioning') ipPositioningContext = payload.result;
-    const evaluation = evaluateResult(item.name, payload.result);
+    const evaluation = evaluateResult(item.name, payload.result, item.expectedTerms);
     results.push({ id: item.id, name: item.name, ok: true, elapsedMs, evaluation, request: body, result: payload.result });
     console.log(`${evaluation.passed ? 'PASS' : 'REVIEW'} ${item.name} ${elapsedMs}ms`);
     await persist(results);

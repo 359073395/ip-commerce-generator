@@ -1,6 +1,6 @@
 import { env } from '../config/env.mjs';
 
-export async function callOpenAICompatible(messages) {
+export async function callOpenAICompatible(messages, options = {}) {
   if (!env.openaiBaseUrl || !env.openaiApiKey || !env.openaiModel) {
     const error = new Error('API 未配置，请先设置 OPENAI_BASE_URL、OPENAI_API_KEY、OPENAI_MODEL。');
     error.code = 'API_NOT_CONFIGURED';
@@ -10,13 +10,13 @@ export async function callOpenAICompatible(messages) {
   const payload = {
     model: env.openaiModel,
     messages,
-    temperature: Number(process.env.OPENAI_TEMPERATURE || 0.4),
-    max_tokens: Number(process.env.OPENAI_MAX_TOKENS || 1200),
-    reasoning_effort: process.env.OPENAI_REASONING_EFFORT || 'low',
+    temperature: Number(options.temperature ?? process.env.OPENAI_TEMPERATURE ?? 0.4),
+    max_tokens: Number(options.maxTokens ?? process.env.OPENAI_MAX_TOKENS ?? 1200),
+    reasoning_effort: options.reasoningEffort ?? process.env.OPENAI_REASONING_EFFORT ?? 'low',
     response_format: { type: 'json_object' },
   };
 
-  const data = await requestWithModelFallback(payload);
+  const data = await requestWithModelFallback(payload, options);
   const content = data.choices?.[0]?.message?.content;
   if (!content) {
     throw new Error('模型接口没有返回内容。');
@@ -37,13 +37,17 @@ export async function callOpenAICompatible(messages) {
   }
 }
 
-async function requestWithModelFallback(payload) {
-  const models = [payload.model, ...env.openaiFallbackModels].filter((model, index, list) => model && list.indexOf(model) === index);
+async function requestWithModelFallback(payload, options = {}) {
+  const models = (options.disableFallback ? [payload.model] : [payload.model, ...env.openaiFallbackModels])
+    .filter((model, index, list) => model && list.indexOf(model) === index);
   let lastError;
 
   for (const model of models) {
     try {
-      const response = await requestWithCompatibility({ ...payload, model });
+      const timeoutMs = model === payload.model
+        ? options.timeoutMs ?? env.openaiTimeoutMs
+        : options.fallbackTimeoutMs ?? env.openaiFallbackTimeoutMs;
+      const response = await requestWithCompatibility({ ...payload, model }, { ...options, timeoutMs });
       return await response.json();
     } catch (error) {
       lastError = error;
@@ -56,8 +60,8 @@ async function requestWithModelFallback(payload) {
   throw lastError;
 }
 
-async function requestWithCompatibility(payload) {
-  let response = await requestChatCompletion(payload);
+async function requestWithCompatibility(payload, options = {}) {
+  let response = await requestChatCompletion(payload, options);
   if (!response.ok) {
     const text = await response.text();
     if (response.status === 400 && /response_format|json_object|max_tokens|reasoning_effort/i.test(text)) {
@@ -66,7 +70,7 @@ async function requestWithCompatibility(payload) {
         response_format: undefined,
         max_tokens: undefined,
         reasoning_effort: undefined,
-      });
+      }, options);
     } else {
       throw new Error(`模型接口请求失败：${response.status} ${text.slice(0, 500)}`);
     }
@@ -80,10 +84,10 @@ async function requestWithCompatibility(payload) {
   return response;
 }
 
-async function requestChatCompletion(payload) {
+async function requestChatCompletion(payload, options = {}) {
   const body = Object.fromEntries(Object.entries(payload).filter(([, value]) => value !== undefined));
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), Number(process.env.OPENAI_TIMEOUT_MS || 25000));
+  const timeout = setTimeout(() => controller.abort(), Number(options.timeoutMs ?? process.env.OPENAI_TIMEOUT_MS ?? 25000));
 
   try {
     return await fetch(`${env.openaiBaseUrl}/chat/completions`, {

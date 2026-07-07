@@ -10,6 +10,8 @@
 - 知识库资料已经项目化，部署到 VPS 时读取 `knowledge/` 目录。
 - 模块顺序：`IP定位`、`爆款选题`、`成交选题`、`痛点选题`、`脚本创作`、`文案二创`、`爆款拆解`、`文案洗稿`、`带货`。
 - 每个模块默认输出完整骨架，不输出最小版本。
+- 每个模块内置 Agent 配置：角色、目标、工具、规则和输出格式。
+- 默认开启 Agent 自检：先生成初稿，再按知识库规则评审修正一遍。
 - 后续模块会继承 `IP定位` 生成结果作为上下文。
 
 ## 本地运行
@@ -39,10 +41,14 @@ APP_AUTH_PASSWORD=change-this-password
 PORT=8790
 HOST=0.0.0.0
 OPENAI_TIMEOUT_MS=45000
+OPENAI_FALLBACK_TIMEOUT_MS=30000
 OPENAI_MAX_TOKENS=1200
 OPENAI_TEMPERATURE=0.4
 OPENAI_REASONING_EFFORT=low
 KNOWLEDGE_BUDGET_CHARS=1200
+AGENT_REVIEW_ENABLED=true
+AGENT_REVIEW_MAX_TOKENS=1200
+AGENT_REVIEW_TIMEOUT_MS=20000
 ```
 
 ## 生产运行
@@ -88,6 +94,7 @@ sudo -E bash scripts/deploy-vps.sh
 - 生成 `.env`；如果已经存在，会保留 API 配置并更新部署默认项；需要完全重写时使用 `FORCE_ENV=1`。
 - 默认开启应用自带网页密码，密码保存在 `.env`，不依赖 Nginx。
 - 写入质量优先的模型配置：`gpt-5.5` 主模型，`gpt-5.4,gemini-3-flash,gpt-5.4-mini` 备用模型，主模型超时 `45000ms`。
+- 写入 Agent 自检配置：`AGENT_REVIEW_ENABLED=true`，生成质量优先；自检默认最多等待 `20000ms`，如果想提升速度可改为 `false` 后重启服务。
 - 校验 `knowledge/manifest.json` 中的知识库文件。
 - 创建并启动 systemd 服务 `ip-commerce-generator`。
 - 默认使用端口模式：Node 服务监听 `0.0.0.0:8790`，方便用宝塔、1Panel、Nginx、Caddy、x-ui 等工具反代。

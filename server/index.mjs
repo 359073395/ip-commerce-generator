@@ -6,6 +6,7 @@ import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { detectOpenAIModels, env, getApiStatus, setApiConfig } from './config/env.mjs';
 import { buildPrompt } from './prompt-engine/buildPrompt.mjs';
+import { buildReviewPrompt } from './prompt-engine/reviewPrompt.mjs';
 import { moduleDefinitions } from './prompt-engine/modules.mjs';
 import { callOpenAICompatible } from './providers/openaiCompatible.mjs';
 import { loadManifest, verifyKnowledgeFiles } from './knowledge/loadKnowledge.mjs';
@@ -113,11 +114,19 @@ app.post('/api/config', async (req, res) => {
 
 app.post('/api/generate', async (req, res) => {
   try {
-    const { system, user, definition } = await buildPrompt(req.body || {});
-    const result = await callOpenAICompatible([
+    const requestBody = req.body || {};
+    const { system, user, definition, agent, knowledge } = await buildPrompt(requestBody);
+    const draftResult = await callOpenAICompatible([
       { role: 'system', content: system },
       { role: 'user', content: user },
     ]);
+    const result = await reviewAndImproveResult({
+      definition,
+      agent,
+      knowledge,
+      requestBody,
+      draftResult,
+    });
     res.json({ ok: true, module: definition, result });
   } catch (error) {
     const status = error.code === 'API_NOT_CONFIGURED' ? 400 : 500;
@@ -128,6 +137,58 @@ app.post('/api/generate', async (req, res) => {
     });
   }
 });
+
+async function reviewAndImproveResult({ definition, agent, knowledge, requestBody, draftResult }) {
+  if (!env.agentReviewEnabled) {
+    return appendRiskNote(draftResult, 'Agent自检未开启。');
+  }
+
+  try {
+    const reviewPrompt = buildReviewPrompt({
+      definition,
+      agentProfile: agent,
+      formData: requestBody.formData || {},
+      selections: requestBody.selections || [],
+      context: requestBody.context || {},
+      knowledge,
+      draftResult,
+    });
+    const reviewedResult = await callOpenAICompatible([
+      { role: 'system', content: reviewPrompt.system },
+      { role: 'user', content: reviewPrompt.user },
+    ], {
+      temperature: 0.2,
+      maxTokens: env.agentReviewMaxTokens,
+      reasoningEffort: 'low',
+      timeoutMs: env.agentReviewTimeoutMs,
+      disableFallback: true,
+    });
+    return appendRiskNote(reviewedResult, 'Agent自检已完成。');
+  } catch (error) {
+    console.warn(`Agent review failed for ${definition.id}: ${error.message}`);
+    return appendRiskNote(draftResult, `Agent自检修正未完成，已返回初稿：${error.message}`);
+  }
+}
+
+function appendRiskNote(result, note) {
+  const normalized = normalizeResult(result);
+  if (!normalized.riskNotes.includes(note)) {
+    normalized.riskNotes.push(note);
+  }
+  return normalized;
+}
+
+function normalizeResult(result) {
+  return {
+    module: result?.module || '模型结果',
+    summary: result?.summary || '已生成结果，请结合下方结构查看。',
+    sections: Array.isArray(result?.sections) ? result.sections : [],
+    tables: Array.isArray(result?.tables) ? result.tables : [],
+    scripts: Array.isArray(result?.scripts) ? result.scripts : [],
+    nextActions: Array.isArray(result?.nextActions) ? result.nextActions : [],
+    riskNotes: Array.isArray(result?.riskNotes) ? [...result.riskNotes] : [],
+  };
+}
 
 if (env.nodeEnv === 'production') {
   const distDir = path.resolve(__dirname, '..', 'dist');

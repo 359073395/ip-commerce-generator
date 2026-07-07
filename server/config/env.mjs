@@ -17,10 +17,15 @@ export const env = {
   appAuthEnabled: parseBoolean(process.env.APP_AUTH_ENABLED || 'false'),
   appAuthUser: process.env.APP_AUTH_USER || 'admin',
   appAuthPassword: process.env.APP_AUTH_PASSWORD || '',
+  agentReviewEnabled: parseBoolean(process.env.AGENT_REVIEW_ENABLED || 'true'),
+  agentReviewMaxTokens: Number(process.env.AGENT_REVIEW_MAX_TOKENS || process.env.OPENAI_MAX_TOKENS || 1200),
+  agentReviewTimeoutMs: Number(process.env.AGENT_REVIEW_TIMEOUT_MS || 20000),
   openaiBaseUrl: (process.env.OPENAI_BASE_URL || '').replace(/\/$/, ''),
   openaiApiKey: process.env.OPENAI_API_KEY || '',
   openaiModel: process.env.OPENAI_MODEL || '',
   openaiFallbackModels: parseModelList(process.env.OPENAI_FALLBACK_MODELS || process.env.OPENAI_FALLBACK_MODEL || ''),
+  openaiTimeoutMs: Number(process.env.OPENAI_TIMEOUT_MS || 45000),
+  openaiFallbackTimeoutMs: Number(process.env.OPENAI_FALLBACK_TIMEOUT_MS || 30000),
 };
 
 export function getApiStatus() {

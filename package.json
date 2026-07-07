@@ -10,6 +10,7 @@
     "build": "vite build",
     "start": "NODE_ENV=production node server/index.mjs",
     "verify:knowledge": "node --input-type=module -e \"import('./server/knowledge/loadKnowledge.mjs').then(async ({ verifyKnowledgeFiles }) => { const result = await verifyKnowledgeFiles(); console.log(JSON.stringify(result, null, 2)); process.exit(result.ok ? 0 : 1); })\"",
+    "test:agent-contract": "node tools/run-agent-contract-test.mjs",
     "check": "npm run build"
   },
   "dependencies": {
