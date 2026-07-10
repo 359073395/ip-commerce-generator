@@ -86,6 +86,31 @@ const benchmarkMethodCases = [
     moduleId: 'conversion-topics',
     expectedBlockId: 'ip-benchmark-lawyer-professional-judgment',
   },
+  {
+    query: '风险共担 前期不收费 要不回来分文不取',
+    moduleId: 'conversion-topics',
+    expectedBlockId: 'ip-deep-risk-shared-plain-offer',
+  },
+  {
+    query: '是不是吾天律师 私信 电话咨询 高隐私',
+    moduleId: 'conversion-topics',
+    expectedBlockId: 'ip-deep-silent-high-intent-conversion',
+  },
+  {
+    query: '方言 江湖气 本地自己人 情绪强',
+    moduleId: 'ip-positioning',
+    expectedBlockId: 'ip-deep-local-real-person-emotion',
+  },
+  {
+    query: '低粉爆款 评论准 开头狠 结构改编',
+    moduleId: 'viral-topics',
+    expectedBlockId: 'ip-deep-low-follower-viral-remix',
+  },
+  {
+    query: '工厂老板 展厅 空间资产 B端询盘',
+    moduleId: 'ip-positioning',
+    expectedBlockId: 'ip-deep-factory-space-proof-tour',
+  },
 ];
 
 const benchmarkMethodHits = [];

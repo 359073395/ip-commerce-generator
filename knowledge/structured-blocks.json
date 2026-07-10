@@ -1,6 +1,6 @@
 {
-  "version": "2026-07-10-video-deep-methods-v1",
-  "description": "Structured method and example blocks for IP commerce generation retrieval. Added benchmark account method cards from account homepage analysis. Added video-level benchmark method cards.",
+  "version": "2026-07-10-selected-deep-dive-v1",
+  "description": "Structured method and example blocks for IP commerce generation retrieval. Added benchmark account method cards from account homepage analysis. Added video-level benchmark method cards. Added selected deep-dive method cards.",
   "blocks": [
     {
       "id": "ip-positioning-core",
@@ -4776,6 +4776,448 @@
         "建材",
         "避坑",
         "提问模板"
+      ]
+    },
+    {
+      "id": "ip-deep-consultation-trigger-proof-chain",
+      "category": "personal_ip",
+      "moduleIds": [
+        "conversion-topics",
+        "script",
+        "ip-positioning"
+      ],
+      "title": "深挖方法：高咨询内容的证据链开头",
+      "methods": [
+        "结果前置",
+        "金额/强对手",
+        "客户困境",
+        "过程难度",
+        "专业结果",
+        "咨询承接"
+      ],
+      "scenarios": [
+        "工程律师IP",
+        "高客单咨询",
+        "专业服务IP",
+        "B端服务"
+      ],
+      "requiredInputs": [
+        "结果或阶段性进展",
+        "金额/规模",
+        "强对手或复杂程度",
+        "客户真实困境",
+        "团队动作",
+        "电话/私信入口"
+      ],
+      "outputTemplate": [
+        "第一句结果",
+        "金额或强对手",
+        "客户被压垮的处境",
+        "团队怎么介入",
+        "结果/进展",
+        "电话咨询CTA"
+      ],
+      "example": "工程律师内容不是先讲法条，而是先讲工程款到账、国央企强对手、老板快撑不住、团队风险共担。",
+      "keywords": [
+        "咨询起量",
+        "证据链",
+        "金额前置",
+        "强对手",
+        "客户困境",
+        "电话咨询",
+        "工程款"
+      ]
+    },
+    {
+      "id": "ip-deep-risk-shared-plain-offer",
+      "category": "personal_ip",
+      "moduleIds": [
+        "conversion-topics",
+        "script",
+        "pain-topics"
+      ],
+      "title": "深挖方法：风险共担的大白话成交表达",
+      "methods": [
+        "不用专业名词",
+        "承认顾虑",
+        "风险共担",
+        "前期不收费",
+        "结果导向收费",
+        "电话承接"
+      ],
+      "scenarios": [
+        "律师服务",
+        "咨询服务",
+        "高客单服务",
+        "难成交服务"
+      ],
+      "requiredInputs": [
+        "客户不成交顾虑",
+        "收费方式",
+        "可承诺边界",
+        "服务结果",
+        "承接方式"
+      ],
+      "outputTemplate": [
+        "说出顾虑",
+        "解释为什么难",
+        "大白话讲产品",
+        "降低行动风险",
+        "电话/私信CTA"
+      ],
+      "example": "不要只说全风险代理，要说“你不是不想打，是现在被工程款卡住，前期不收费，要不回来分文不取”。",
+      "keywords": [
+        "风险共担",
+        "前期不收费",
+        "分文不取",
+        "异议化解",
+        "全风险代理",
+        "成交话术"
+      ]
+    },
+    {
+      "id": "ip-deep-silent-high-intent-conversion",
+      "category": "personal_ip",
+      "moduleIds": [
+        "conversion-topics",
+        "ip-positioning",
+        "viral-analysis"
+      ],
+      "title": "深挖方法：少评论高私信的沉默转化判断",
+      "methods": [
+        "高隐私行业",
+        "评论少不等于无效",
+        "私信/电话优先",
+        "身份识别词",
+        "感同身受词"
+      ],
+      "scenarios": [
+        "工程律师IP",
+        "法律服务",
+        "债务回款",
+        "高隐私咨询",
+        "B端纠纷"
+      ],
+      "requiredInputs": [
+        "行业隐私程度",
+        "私信第一句话",
+        "电话咨询数量",
+        "评论高意向词",
+        "账号识别词"
+      ],
+      "outputTemplate": [
+        "判断评论公开风险",
+        "列高意向信号",
+        "设置固定识别词",
+        "优化主页和CTA",
+        "按私信电话复盘"
+      ],
+      "example": "工程老板不愿公开暴露身份，所以要重点看“是不是吾天律师”、要联系方式、电话咨询和感同身受。",
+      "keywords": [
+        "沉默转化",
+        "私信",
+        "电话咨询",
+        "是不是吾天律师",
+        "高隐私",
+        "高意向信号"
+      ]
+    },
+    {
+      "id": "ip-deep-local-real-person-emotion",
+      "category": "personal_ip",
+      "moduleIds": [
+        "ip-positioning",
+        "script",
+        "viral-topics"
+      ],
+      "title": "深挖方法：本地真实人设的情绪粗粝感",
+      "methods": [
+        "方言亲切",
+        "本地自己人",
+        "情绪强",
+        "不完美真实",
+        "江湖气",
+        "替用户对抗强权"
+      ],
+      "scenarios": [
+        "本地服务IP",
+        "工程律师IP",
+        "实体老板IP",
+        "区域专家IP"
+      ],
+      "requiredInputs": [
+        "本地身份",
+        "受众关系感",
+        "可使用口吻",
+        "情绪边界",
+        "能展示的真实场景"
+      ],
+      "outputTemplate": [
+        "本地身份开场",
+        "替用户说心里话",
+        "情绪表达",
+        "真实场景证据",
+        "专业结果收束"
+      ],
+      "example": "方言、喝酒后的粗粝感、团建、对话和参观不是随意生活化，而是在证明“我是你们这边的人”。",
+      "keywords": [
+        "方言",
+        "本地化",
+        "真实人设",
+        "江湖气",
+        "情绪强",
+        "自己人",
+        "工程老板"
+      ]
+    },
+    {
+      "id": "ip-deep-first-person-busy-beat",
+      "category": "personal_ip",
+      "moduleIds": [
+        "script",
+        "viral-analysis",
+        "conversion-topics"
+      ],
+      "title": "深挖方法：第一视角忙碌证明的镜头节奏",
+      "methods": [
+        "第一视角",
+        "连续服务动作",
+        "客单价信号",
+        "顾客反应",
+        "团队状态",
+        "预约/招聘承接"
+      ],
+      "scenarios": [
+        "美甲美睫",
+        "美容院",
+        "本地门店",
+        "服务业招聘",
+        "同城到店"
+      ],
+      "requiredInputs": [
+        "一天服务流程",
+        "忙碌证据",
+        "高客单项目",
+        "顾客反馈",
+        "门店/团队镜头",
+        "预约入口"
+      ],
+      "outputTemplate": [
+        "开门/预约爆满",
+        "连续服务动作",
+        "高客单项目特写",
+        "顾客反馈",
+        "团队日常",
+        "预约/招聘CTA"
+      ],
+      "example": "美甲店第一视角不是流水账，而是把忙、贵、顾客喜欢、团队真实拍成信任资产。",
+      "keywords": [
+        "第一视角",
+        "忙碌证明",
+        "业绩大爆炸",
+        "千元美甲",
+        "预约",
+        "招聘",
+        "同城到店"
+      ]
+    },
+    {
+      "id": "ip-deep-street-transformation-loop",
+      "category": "personal_ip",
+      "moduleIds": [
+        "viral-analysis",
+        "script",
+        "viral-topics"
+      ],
+      "title": "深挖方法：街头改造的连续栏目飞轮",
+      "methods": [
+        "抓路人",
+        "第N天栏目",
+        "前后对比",
+        "当事人反应",
+        "少废话授权",
+        "课程承接"
+      ],
+      "scenarios": [
+        "变美IP",
+        "审美服务",
+        "线下课程",
+        "技术型服务"
+      ],
+      "requiredInputs": [
+        "改造对象",
+        "改造前痛点",
+        "改造结果",
+        "当事人反应",
+        "栏目编号",
+        "服务/课程入口"
+      ],
+      "outputTemplate": [
+        "第N天开场",
+        "对象痛点",
+        "少废话进入改造",
+        "过程压缩",
+        "结果对比",
+        "课程/服务CTA"
+      ],
+      "example": "街头抓路人改眉毛的重点不是街头，而是连续栏目让陌生人的变化持续证明技术。",
+      "keywords": [
+        "抓路人",
+        "街头改造",
+        "前后对比",
+        "第N天",
+        "少废话",
+        "变美",
+        "课程承接"
+      ]
+    },
+    {
+      "id": "ip-deep-question-as-tool",
+      "category": "combined",
+      "moduleIds": [
+        "script",
+        "pain-topics",
+        "commerce",
+        "viral-analysis"
+      ],
+      "title": "深挖方法：把专业判断变成用户可复制的一句话",
+      "methods": [
+        "你就这么问",
+        "替用户问导购",
+        "降低决策难度",
+        "识别商家话术",
+        "收藏型工具"
+      ],
+      "scenarios": [
+        "装修建材",
+        "高决策消费",
+        "测评账号",
+        "本地服务",
+        "带货测评"
+      ],
+      "requiredInputs": [
+        "购买场景",
+        "用户不会问的问题",
+        "商家容易模糊的点",
+        "正确提问句式",
+        "判断答案标准"
+      ],
+      "outputTemplate": [
+        "别这样问",
+        "你就这么问",
+        "对方答A说明什么",
+        "对方答B要小心",
+        "收藏/咨询CTA"
+      ],
+      "example": "冰箱、智能锁、瓷砖这类内容，把专家经验变成用户下次进店能直接照着问的一句话。",
+      "keywords": [
+        "你就这么问",
+        "导购",
+        "提问模板",
+        "装修避坑",
+        "建材",
+        "收藏",
+        "测评"
+      ]
+    },
+    {
+      "id": "ip-deep-factory-space-proof-tour",
+      "category": "personal_ip",
+      "moduleIds": [
+        "ip-positioning",
+        "script",
+        "conversion-topics"
+      ],
+      "title": "深挖方法：工厂老板的空间资产巡游",
+      "methods": [
+        "空间规模前置",
+        "展厅/工厂巡游",
+        "投入金额",
+        "产品线证明",
+        "老板故事",
+        "询盘承接"
+      ],
+      "scenarios": [
+        "工厂老板IP",
+        "家居定制",
+        "电气设备",
+        "B端供应链",
+        "外贸工厂"
+      ],
+      "requiredInputs": [
+        "展厅/工厂面积",
+        "投入金额",
+        "设备/库存",
+        "产品线",
+        "老板故事",
+        "询盘入口"
+      ],
+      "outputTemplate": [
+        "规模金额第一句",
+        "空间巡游",
+        "产品线镜头",
+        "老板投入原因",
+        "客户能得到什么",
+        "询盘/直播CTA"
+      ],
+      "example": "七位数展厅、5000㎡实景展厅、2亿工厂，本质是把供应链能力拍成用户看得见的信任。",
+      "keywords": [
+        "工厂老板",
+        "展厅",
+        "七位数",
+        "5000㎡",
+        "2亿工厂",
+        "空间资产",
+        "B端询盘"
+      ]
+    },
+    {
+      "id": "ip-deep-low-follower-viral-remix",
+      "category": "personal_ip",
+      "moduleIds": [
+        "viral-topics",
+        "rewrite",
+        "script"
+      ],
+      "title": "深挖方法：低粉爆款结构改编",
+      "methods": [
+        "低粉高赞",
+        "评论准",
+        "开头狠",
+        "结构保留",
+        "行业词替换",
+        "口吻重写"
+      ],
+      "scenarios": [
+        "冷启动账号",
+        "个人IP选题",
+        "跨行业借鉴",
+        "爆款改编"
+      ],
+      "requiredInputs": [
+        "对标视频链接",
+        "原开头结构",
+        "评论区反馈",
+        "自己的行业事实",
+        "自己的案例和承接"
+      ],
+      "outputTemplate": [
+        "记录原钩子结构",
+        "判断评论是否精准",
+        "保留注意力顺序",
+        "替换行业事实",
+        "改成自己口吻",
+        "接入CTA"
+      ],
+      "example": "最值得借鉴的是低粉爆款：不是复制原句，而是保留已经验证的注意力顺序，再换成自己的行业事实和案例。",
+      "keywords": [
+        "低粉爆款",
+        "评论准",
+        "开头狠",
+        "结构改编",
+        "行业词替换",
+        "跨行业借鉴",
+        "冷启动"
       ]
     }
   ]
