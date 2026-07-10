@@ -1,5 +1,5 @@
 {
-  "version": "2026-07-10-wutian-silent-conversion-v1",
+  "version": "2026-07-10-personal-ip-universal-method-v1",
   "description": "Offline benchmark cases for prompt quality, retrieval quality, and dirty-data stability.",
   "cases": [
     {
@@ -2332,6 +2332,56 @@
         "费用太高",
         "风险共担CTA",
         "主页美化"
+      ],
+      "minimumScore": 88
+    },
+    {
+      "id": "ip-universal-mother-method-validation",
+      "moduleId": "viral-analysis",
+      "taskType": "personal_ip",
+      "name": "个人IP母方法对标验证与增量沉淀",
+      "formData": {
+        "industry": "个人IP通用方法库",
+        "role": "创始人/专家/老师/本地老板/专业服务者",
+        "offer": "咨询、课程、到店服务、专业服务、项目合作",
+        "buyer": "对应行业的高意向用户",
+        "proof": "自有成功账号、对标账号、爆款视频、私信电话转化、评论和成交反馈",
+        "contentCondition": "先从自有成功账号提炼母方法，再用其他账号印证或补充；先总结方法和思路，不急着写具体操作SOP；每个方法必须包含底层逻辑、适用场景、判断标准、使用原则和待补SOP。",
+        "conversion": "根据行业不同承接到私信、电话、表单、到店、课程、私域或成交页面。",
+        "details": "个人IP的底层逻辑相通：受众洞察、真实人设、高价值信号、爆款结构、场景化信任、成交承接和异议化解。其他账号分析不是重新开始，而是验证母方法、记录行业变体、发现新增方法。低粉爆款等具体怎么找、去哪找、怎么筛，先标记为待补SOP，等用户补充经验后再写成执行流程。"
+      },
+      "selections": [
+        {
+          "step": "分析类型",
+          "choice": "对标账号拆解"
+        },
+        {
+          "step": "沉淀层级",
+          "choice": "方法和思路优先"
+        },
+        {
+          "step": "SOP状态",
+          "choice": "待用户补充"
+        }
+      ],
+      "expectedKnowledge": [
+        "个人IP母方法",
+        "自有成功账号",
+        "对标账号印证",
+        "增量方法沉淀",
+        "方法和SOP分层",
+        "底层逻辑",
+        "适用场景",
+        "判断标准",
+        "行业变体",
+        "低粉爆款",
+        "受众洞察",
+        "真实人设",
+        "高价值信号",
+        "爆款结构",
+        "场景化信任",
+        "异议化解",
+        "待补SOP"
       ],
       "minimumScore": 88
     }
