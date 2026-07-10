@@ -9,6 +9,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, '..', '..');
 const envFilePath = path.join(rootDir, '.env');
+const defaultOpenAIModel = 'gpt-5.6-sol';
 
 export const env = {
   nodeEnv: process.env.NODE_ENV || 'development',
@@ -22,7 +23,7 @@ export const env = {
   agentReviewTimeoutMs: Number(process.env.AGENT_REVIEW_TIMEOUT_MS || 20000),
   openaiBaseUrl: (process.env.OPENAI_BASE_URL || '').replace(/\/$/, ''),
   openaiApiKey: process.env.OPENAI_API_KEY || '',
-  openaiModel: process.env.OPENAI_MODEL || '',
+  openaiModel: process.env.OPENAI_MODEL || defaultOpenAIModel,
   openaiFallbackModels: parseModelList(process.env.OPENAI_FALLBACK_MODELS || process.env.OPENAI_FALLBACK_MODEL || ''),
   openaiTimeoutMs: Number(process.env.OPENAI_TIMEOUT_MS || 45000),
   openaiFallbackTimeoutMs: Number(process.env.OPENAI_FALLBACK_TIMEOUT_MS || 30000),

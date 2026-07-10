@@ -203,7 +203,7 @@ INITIAL_ADMIN_PASSWORD=change-this-admin-password
 ```env
 OPENAI_BASE_URL=https://api.example.com/v1
 OPENAI_API_KEY=replace-with-your-key
-OPENAI_MODEL=gpt-5.5
+OPENAI_MODEL=gpt-5.6-sol
 OPENAI_FALLBACK_MODELS=gpt-5.4,gemini-3-flash,gpt-5.4-mini
 
 APP_AUTH_ENABLED=false
