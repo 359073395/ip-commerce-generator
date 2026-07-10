@@ -15,6 +15,11 @@ const ipKeywords = [
 
 const vagueKeywords = ['随便', '都行', '帮我搞', '你看着办', '爆款', '涨粉', '赚钱', '变现'];
 const injectionKeywords = ['忽略以上', '忽略前面', '系统提示词', 'system prompt', 'developer message', '越狱', 'jailbreak'];
+const operationKeywords = [
+  '运营规划', '账号规划', '账号阶段', '选题排序', '选题编排', '发布节奏', '发布计划',
+  '7天', '14天', '30天', '爆款后', '接转化', '转化接力', '内容比例', '选题比例',
+  '复盘', '数据调整', '下一步怎么做内容', '整体规划',
+];
 
 export function planAgentTask({ goal, projectProfile = {}, project = null } = {}) {
   const normalized = normalizeGoal(goal);
@@ -108,11 +113,13 @@ function recommendModules(text, classification) {
     }
   };
 
-  const explicitDownstream = hasAny(text, ['拆解', '分析', '复盘', '参考', '对标', '二创', '改写', '仿写', '洗稿', '润色', '脚本', '口播', '拍摄', '分镜', '视频文案', '选题', '题目', '痛点']);
+  const operationIntent = hasAny(text, operationKeywords);
+  const explicitDownstream = hasAny(text, ['拆解', '分析', '复盘', '参考', '对标', '二创', '改写', '仿写', '洗稿', '润色', '脚本', '口播', '拍摄', '分镜', '视频文案', '选题', '题目', '痛点', ...operationKeywords]);
   if (classification.taskType === 'combined' && !explicitDownstream) add('ip-positioning', '任务同时包含个人IP和商业转化，先定定位。');
   if (classification.taskType === 'commerce_video' && !explicitDownstream) add('commerce', '任务更偏带货视频或产品成交。');
   if (classification.taskType === 'personal_ip' && !explicitDownstream) add('ip-positioning', '任务更偏个人IP定位和账号身份。');
 
+  if (operationIntent) add('operation-plan', '用户需要账号阶段、选题排序、发布节奏或复盘调整。');
   if (hasAny(text, ['拆解', '分析', '复盘', '参考', '对标'])) add('viral-analysis', '用户目标是拆解或复盘内容结构。');
   if (hasAny(text, ['二创', '改写', '仿写', '换一种', '搬运改', '重写'])) add('rewrite', '用户目标是基于已有内容做二创。');
   if (hasAny(text, ['洗稿', '润色', '优化文案', '改文案'])) add('polish', '用户目标是优化已有表达。');
@@ -123,6 +130,7 @@ function recommendModules(text, classification) {
 
   if (classification.taskType === 'combined') {
     add('ip-positioning', '任务同时包含个人IP和商业转化，先定定位。');
+    if (operationIntent) add('operation-plan', '定位后进入账号级运营规划。');
     add('conversion-topics', '定位后进入成交型选题。');
     add('script', '最后生成可拍摄脚本。');
   }
@@ -212,6 +220,13 @@ function buildSuggestedFormData({ normalized, extractedFacts, recommended }) {
     return {
       industryBackground: [extractedFacts.industry, extractedFacts.persona, extractedFacts.offer].filter(Boolean).join(' / ') || basePrompt,
       targetCustomer: extractedFacts.audience || '',
+    };
+  }
+  if (moduleId === 'operation-plan') {
+    return {
+      prompt: basePrompt,
+      recentData: '',
+      assets: extractedFacts.proof || '',
     };
   }
   return { prompt: basePrompt };

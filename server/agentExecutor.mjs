@@ -6,13 +6,14 @@ import { getModuleDefinition } from './prompt-engine/modules.mjs';
 const agentQualityGateThreshold = Number(process.env.AGENT_QUALITY_GATE_THRESHOLD || process.env.QUALITY_REPAIR_THRESHOLD || 70);
 
 const defaultFlows = {
-  personal_ip: ['ip-positioning', 'viral-topics', 'script'],
+  personal_ip: ['ip-positioning', 'operation-plan', 'viral-topics', 'script'],
   commerce_video: ['commerce', 'script'],
-  combined: ['ip-positioning', 'conversion-topics', 'script'],
+  combined: ['ip-positioning', 'operation-plan', 'conversion-topics', 'script'],
   unknown: ['ip-positioning'],
 };
 
 const explicitIntentMap = [
+  ['operation-plan', ['运营规划', '账号规划', '账号阶段', '选题排序', '选题编排', '发布节奏', '发布计划', '7天', '14天', '30天', '爆款后', '接转化', '转化接力', '内容比例', '选题比例', '复盘', '数据调整']],
   ['pain-topics', ['痛点', '焦虑', '需求', '用户问题']],
   ['conversion-topics', ['成交选题', '成交', '转化', '咨询', '私域', '预约']],
   ['viral-topics', ['爆款选题', '选题', '标题', '涨粉', '爆款']],
@@ -200,6 +201,13 @@ function formDataForModule(moduleId, { goal, profile, prompt }) {
       sellingPoint: '',
     };
   }
+  if (moduleId === 'operation-plan') {
+    return {
+      prompt,
+      recentData: '',
+      assets: profile.proof || '',
+    };
+  }
   return { prompt };
 }
 
@@ -231,6 +239,15 @@ function selectionsForModule(moduleId, goal) {
   if (moduleId === 'viral-topics') {
     return [{ step: '第二步：主脚本选择', choice: '教知识', subChoice: '解题型' }];
   }
+  if (moduleId === 'operation-plan') {
+    const stage = hasAny(goal, ['爆款后', '爆了']) ? '爆款后' : '不确定/让系统判断';
+    const cycle = hasAny(goal, ['30天']) ? '30天' : hasAny(goal, ['7天']) ? '7天' : '14天';
+    return [
+      { step: '第一步：账号阶段选择', choice: stage, subChoice: '' },
+      { step: '第二步：运营目标选择', choices: hasAny(goal, ['咨询', '私信', '电话', '预约']) ? ['私信咨询', '电话/预约'] : ['涨粉起量', '建立信任'] },
+      { step: '第三步：规划周期选择', choice: cycle, subChoice: '' },
+    ];
+  }
   if (moduleId === 'commerce') {
     return [
       { step: '带货链路', choice: '产品需求', subChoice: '' },
@@ -252,6 +269,7 @@ function stepPurpose(moduleId, taskType) {
     'ip-positioning': '先把账号身份、商业路径、目标用户和承接方式定清楚。',
     'viral-topics': '基于定位生成爆款选题入口，补齐内容矩阵。',
     'conversion-topics': '把定位转成成交型选题和承接理由。',
+    'operation-plan': '判断账号阶段，安排选题排序、发布节奏、爆款后接力和复盘规则。',
     'pain-topics': '挖掘目标用户痛点、场景和情绪钩子。',
     script: '把前面结果写成可拍摄短视频脚本。',
     commerce: '拆解产品需求、成交理由和带货视频表达。',

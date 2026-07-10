@@ -45,8 +45,8 @@ try {
     status: 'ready',
     taskType: 'combined',
     recommendedModules: [{ id: 'ip-positioning' }, { id: 'conversion-topics' }],
-  }, combinedGoal, 3);
-  assert.deepEqual(directSteps.map((item) => item.moduleId), ['ip-positioning', 'conversion-topics', 'script']);
+  }, combinedGoal, 4);
+  assert.deepEqual(directSteps.map((item) => item.moduleId), ['ip-positioning', 'operation-plan', 'conversion-topics', 'script']);
 
   const firstRequest = buildStepRequest({
     step: directSteps[0],
@@ -58,7 +58,7 @@ try {
   assert.equal(firstRequest.formData.industry, '本地美业');
   assert.equal(firstRequest.context.agentPreviousSteps.length, 0);
 
-  const secondRequest = buildStepRequest({
+  const operationRequest = buildStepRequest({
     step: directSteps[1],
     goal: combinedGoal,
     project: projectWithProfile,
@@ -70,15 +70,17 @@ try {
       result: { summary: '定位为本地美业老板IP' },
     }],
   });
-  assert.equal(secondRequest.context.agentPreviousSteps[0].summary, '定位为本地美业老板IP');
-  assert.ok(secondRequest.formData.prompt.includes('承接前面步骤'));
+  assert.equal(operationRequest.moduleId, 'operation-plan');
+  assert.equal(operationRequest.context.agentPreviousSteps[0].summary, '定位为本地美业老板IP');
+  assert.ok(operationRequest.formData.prompt.includes('承接前面步骤'));
+  assert.ok(operationRequest.selections.some((item) => item.step.includes('规划周期')), 'operation plan should carry planning cycle selection');
 
   let generatedCount = 0;
   const execution = await runAgentExecution({
     user: creatorA,
     project: projectWithProfile,
     goal: combinedGoal,
-    maxSteps: 3,
+    maxSteps: 4,
     generateStep: async ({ requestBody }) => {
       generatedCount += 1;
       return {
@@ -97,16 +99,16 @@ try {
   });
 
   assert.equal(execution.status, 'completed');
-  assert.equal(execution.steps.length, 3);
-  assert.deepEqual(execution.steps.map((item) => item.moduleId), ['ip-positioning', 'conversion-topics', 'script']);
-  assert.equal(generatedCount, 3);
+  assert.equal(execution.steps.length, 4);
+  assert.deepEqual(execution.steps.map((item) => item.moduleId), ['ip-positioning', 'operation-plan', 'conversion-topics', 'script']);
+  assert.equal(generatedCount, 4);
   assert.equal(execution.steps[0].recordId, 'record-1');
   assert.ok(execution.steps[1].request.context.agentPreviousSteps[0].summary, 'later steps should receive previous summaries');
   assert.ok(execution.run.id, 'completed execution should be persisted');
 
   const runsA = await listAgentRunsForUser(creatorA.id, { projectId: projectWithProfile.id, limit: 10 });
   assert.equal(runsA.length, 1);
-  assert.equal(runsA[0].steps.length, 3);
+  assert.equal(runsA[0].steps.length, 4);
   const crossUserRead = await getAgentRunForUser(creatorB.id, execution.run.id);
   assert.equal(crossUserRead, null, 'agent run reads must be user-scoped');
 

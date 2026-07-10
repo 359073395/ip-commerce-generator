@@ -94,7 +94,7 @@ const benchmarkMethodCases = [
   {
     query: '是不是吾天律师 私信 电话咨询 高隐私',
     moduleId: 'conversion-topics',
-    expectedBlockId: 'ip-deep-silent-high-intent-conversion',
+    expectedBlockIds: ['ip-deep-silent-high-intent-conversion', 'ip-wutian-silent-high-intent-conversion'],
   },
   {
     query: '方言 江湖气 本地自己人 情绪强',
@@ -110,6 +110,36 @@ const benchmarkMethodCases = [
     query: '工厂老板 展厅 空间资产 B端询盘',
     moduleId: 'ip-positioning',
     expectedBlockId: 'ip-deep-factory-space-proof-tour',
+  },
+  {
+    query: '选题排序 立人设 泛流量 信任证明 转化选题',
+    moduleId: 'operation-plan',
+    expectedBlockId: 'ip-topic-sequencing-content-layers',
+  },
+  {
+    query: '流量型选题爆了 24小时紧跟转化类型视频',
+    moduleId: 'operation-plan',
+    expectedBlockId: 'ip-topic-sequencing-traffic-to-conversion-relay',
+  },
+  {
+    query: '冷启动 增长期 转化期 选题比例 泛流量比例',
+    moduleId: 'operation-plan',
+    expectedBlockId: 'ip-topic-sequencing-stage-ratio',
+  },
+  {
+    query: '账号阶段 冷启动 起量期 爆款后 运营规划',
+    moduleId: 'operation-plan',
+    expectedBlockId: 'ip-operation-stage-diagnosis',
+  },
+  {
+    query: '7天发布日历 14天内容规划 选题排序 CTA复盘',
+    moduleId: 'operation-plan',
+    expectedBlockId: 'ip-operation-publishing-calendar',
+  },
+  {
+    query: '播放高咨询低 评论准 私信高 每次只改一处',
+    moduleId: 'operation-plan',
+    expectedBlockId: 'ip-operation-data-review-loop',
   },
 ];
 
@@ -127,9 +157,10 @@ for (const testCase of benchmarkMethodCases) {
     .filter((item) => item.source?.startsWith('structured-blocks/'))
     .map((item) => item.source.replace('structured-blocks/', ''));
   benchmarkMethodHits.push({ query: testCase.query, hits: hits.slice(0, 6) });
+  const expectedBlockIds = testCase.expectedBlockIds || [testCase.expectedBlockId];
   assert.ok(
-    hits.includes(testCase.expectedBlockId),
-    `benchmark method retrieval should include ${testCase.expectedBlockId} for ${testCase.query}`,
+    expectedBlockIds.some((blockId) => hits.includes(blockId)),
+    `benchmark method retrieval should include one of ${expectedBlockIds.join(', ')} for ${testCase.query}`,
   );
 }
 

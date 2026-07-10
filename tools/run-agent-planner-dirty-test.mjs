@@ -48,6 +48,24 @@ const cases = [
     },
   },
   {
+    name: 'operation planning request recommends operation plan',
+    goal: '帮我做账号运营规划，冷启动，14天发布节奏，流量型选题爆了以后怎么接转化',
+    projectProfile: {
+      industry: '工程纠纷律师',
+      persona: '律师专家IP',
+      offer: '全风险代理咨询服务',
+      audience: '实际施工人、材料商、包工头',
+      proof: '大金额胜诉案例和回款证据',
+      conversion: '私信和电话咨询',
+    },
+    assert(plan) {
+      assert.equal(plan.status, 'ready');
+      assert.equal(plan.recommendedModuleId, 'operation-plan');
+      assert.ok(plan.recommendedModules.some((item) => item.id === 'operation-plan'));
+      assert.ok(plan.suggestedFormData.prompt.includes('14天发布节奏'));
+    },
+  },
+  {
     name: 'commerce task recommends commerce module',
     goal: '我要给TikTok Shop上的清洁产品做带货视频，目标是提高商品卡点击和下单',
     assert(plan) {

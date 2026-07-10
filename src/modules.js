@@ -1,6 +1,7 @@
 import {
   BadgeCheck,
   BarChart3,
+  CalendarDays,
   ClipboardPen,
   Flame,
   LayoutTemplate,
@@ -178,6 +179,46 @@ export const modules = [
     ],
     formGroups: [originalInput('请输入您的行业和人设信息，越详细越好，例如：美妆博主，专注敏感肌护理，有5年经验...')],
     generateLabel: '生成高变现选题',
+  },
+  {
+    id: 'operation-plan',
+    name: '运营规划',
+    icon: CalendarDays,
+    description: '根据账号阶段、商业目标和近期数据，生成选题排序、发布节奏、爆款后接力和复盘动作。',
+    frontendMode: 'original',
+    inherited: commonInherited,
+    optionGroups: [
+      {
+        title: '账号阶段',
+        stepTitle: '第一步：账号阶段选择',
+        options: ['不确定/让系统判断', '冷启动期', '起量期', '建信任期', '转化期', '稳定期', '爆款后'],
+        variant: 'primary',
+      },
+      {
+        title: '运营目标',
+        stepTitle: '第二步：运营目标选择',
+        options: ['涨粉起量', '建立信任', '私信咨询', '电话/预约', '到店成交', '课程成交', '产品成交', 'B端询盘'],
+        multiSelect: true,
+      },
+      {
+        title: '规划周期',
+        stepTitle: '第三步：规划周期选择',
+        options: ['7天', '14天', '30天'],
+      },
+    ],
+    formGroups: [
+      {
+        title: '运营信息',
+        original: true,
+        required: true,
+        fields: [
+          ['prompt', '账号现状和业务目标', '写清楚行业、人设、卖什么、目标用户、承接方式。比如：工程纠纷律师IP，目标实际施工人和材料商，电话咨询，想做14天起量转化计划。'],
+          ['recentData', '近期数据/爆款信号', '可选：粉丝量、近7天播放、咨询数量、爆过的视频、评论区高频问题。', null, { required: false }],
+          ['assets', '可用信任资产', '可选：案例、评价、合同/判决书打码、门店/工厂/现场、团队过程。', null, { required: false }],
+        ],
+      },
+    ],
+    generateLabel: '生成运营规划',
   },
   {
     id: 'pain-topics',

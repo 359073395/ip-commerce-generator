@@ -21,6 +21,13 @@ export const moduleDefinitions = [
     output: ['成交型选题', '成交理由', '信任证明', 'CTA', '承接路径', '发布阶段'],
   },
   {
+    id: 'operation-plan',
+    label: '运营规划',
+    taskType: 'combined',
+    knowledge: ['账号阶段判断', '选题编排', '内容类型比例', '发布节奏', '爆款后转化接力', '数据复盘'],
+    output: ['账号阶段判断', '选题类型分层', '内容比例', '7/14/30天发布计划', '爆款后接力方案', '数据复盘指标', '下一轮调整规则'],
+  },
+  {
     id: 'pain-topics',
     label: '痛点选题',
     taskType: 'combined',

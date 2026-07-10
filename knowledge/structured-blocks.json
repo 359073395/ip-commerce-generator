@@ -1,6 +1,6 @@
 {
-  "version": "2026-07-10-selected-deep-dive-v1",
-  "description": "Structured method and example blocks for IP commerce generation retrieval. Added benchmark account method cards from account homepage analysis. Added video-level benchmark method cards. Added selected deep-dive method cards.",
+  "version": "2026-07-10-operation-planning-engine-v1",
+  "description": "Structured method and example blocks for IP commerce generation retrieval. Added benchmark account method cards from account homepage analysis. Added video-level benchmark method cards. Added selected deep-dive method cards. Added topic sequencing method cards.",
   "blocks": [
     {
       "id": "ip-positioning-core",
@@ -5218,6 +5218,442 @@
         "行业词替换",
         "跨行业借鉴",
         "冷启动"
+      ]
+    },
+    {
+      "id": "ip-topic-sequencing-content-layers",
+      "category": "personal_ip",
+      "moduleIds": [
+        "viral-topics",
+        "conversion-topics",
+        "ip-positioning",
+        "script",
+        "operation-plan"
+      ],
+      "title": "选题编排：个人IP内容类型分层",
+      "methods": [
+        "立人设选题",
+        "泛流量选题",
+        "精准痛点选题",
+        "信任证明选题",
+        "转化成交选题",
+        "复购/转介绍选题"
+      ],
+      "scenarios": [
+        "个人IP冷启动",
+        "专业服务IP",
+        "本地服务IP",
+        "高客单咨询",
+        "IP带产品"
+      ],
+      "requiredInputs": [
+        "账号阶段",
+        "商业目标",
+        "目标用户成熟度",
+        "当前爆款/流量信号",
+        "信任资产",
+        "转化入口"
+      ],
+      "outputTemplate": [
+        "先判断账号阶段",
+        "分配选题类型比例",
+        "先发泛流量/立人设",
+        "用信任题承接关注",
+        "用转化题承接咨询",
+        "按数据调整下一轮"
+      ],
+      "example": "个人IP不能只发成交选题。冷启动要用泛流量和立人设打开推荐，再用案例、风险、专业判断建立信任，最后用成交选题承接私信/电话/到店。",
+      "keywords": [
+        "选题排序",
+        "选题编排",
+        "立人设",
+        "泛流量",
+        "精准痛点",
+        "信任证明",
+        "转化选题",
+        "内容矩阵"
+      ]
+    },
+    {
+      "id": "ip-topic-sequencing-traffic-to-conversion-relay",
+      "category": "personal_ip",
+      "moduleIds": [
+        "viral-topics",
+        "conversion-topics",
+        "script",
+        "viral-analysis",
+        "operation-plan"
+      ],
+      "title": "选题编排：流量爆后紧跟转化接力",
+      "methods": [
+        "爆款追投",
+        "流量后承接",
+        "同主题转化题",
+        "评论区高意向词复用",
+        "主页置顶联动",
+        "私信/电话承接"
+      ],
+      "scenarios": [
+        "爆款后追转化",
+        "本地服务获客",
+        "高客单咨询",
+        "工程律师IP",
+        "美业到店",
+        "课程咨询"
+      ],
+      "requiredInputs": [
+        "刚爆的视频主题",
+        "爆款评论区关键词",
+        "新增粉丝画像",
+        "要转化的服务/产品",
+        "可展示证据",
+        "CTA入口"
+      ],
+      "outputTemplate": [
+        "识别爆款主题",
+        "拆评论高意向词",
+        "24-72小时内发转化题",
+        "同人群同痛点但加证据",
+        "主页/置顶/评论引导",
+        "复盘私信和电话"
+      ],
+      "example": "泛流量视频爆了，不要立刻换赛道。要紧跟同主题转化内容：比如工程行业观点爆了，下一条发案件证据和风险共担；美业忙碌视频爆了，下一条发预约/到店/案例；装修避坑爆了，下一条发咨询或报价判断。",
+      "keywords": [
+        "爆款后承接",
+        "流量型选题",
+        "转化类型视频",
+        "24小时追投",
+        "72小时接力",
+        "评论区关键词",
+        "私信电话",
+        "到店预约"
+      ]
+    },
+    {
+      "id": "ip-topic-sequencing-stage-ratio",
+      "category": "personal_ip",
+      "moduleIds": [
+        "ip-positioning",
+        "viral-topics",
+        "conversion-topics",
+        "operation-plan"
+      ],
+      "title": "选题编排：账号阶段与选题比例",
+      "methods": [
+        "冷启动比例",
+        "增长期比例",
+        "转化期比例",
+        "稳定期比例",
+        "数据驱动调整"
+      ],
+      "scenarios": [
+        "新账号起号",
+        "已有爆款账号",
+        "咨询转化账号",
+        "本地门店账号",
+        "专家顾问IP"
+      ],
+      "requiredInputs": [
+        "账号粉丝阶段",
+        "近7天播放",
+        "咨询数量",
+        "成交目标",
+        "内容库存",
+        "账号信任资产"
+      ],
+      "outputTemplate": [
+        "冷启动：泛流量/立人设占高",
+        "起量后：信任证明增加",
+        "爆款后：转化题接力",
+        "稳定期：流量/信任/转化循环",
+        "每周按数据复盘"
+      ],
+      "example": "冷启动可用 40% 泛流量、30% 立人设、20% 信任证明、10% 转化；爆款后 24-72 小时内提高转化题比例；咨询稳定后保持流量题带新用户、信任题养熟、转化题收口。",
+      "keywords": [
+        "账号阶段",
+        "选题比例",
+        "冷启动",
+        "增长期",
+        "转化期",
+        "稳定期",
+        "泛流量比例",
+        "成交选题比例"
+      ]
+    },
+    {
+      "id": "ip-operation-stage-diagnosis",
+      "category": "personal_ip",
+      "moduleIds": [
+        "operation-plan",
+        "viral-topics",
+        "conversion-topics"
+      ],
+      "title": "运营规划：账号阶段诊断法",
+      "methods": [
+        "阶段先行",
+        "冷启动",
+        "起量期",
+        "建信任期",
+        "转化期",
+        "稳定循环",
+        "爆款后窗口"
+      ],
+      "scenarios": [
+        "个人IP运营规划",
+        "专家顾问IP",
+        "本地服务IP",
+        "高客单咨询",
+        "工程律师IP",
+        "新号起号"
+      ],
+      "requiredInputs": [
+        "账号粉丝量",
+        "近7天播放",
+        "咨询/私信数量",
+        "近期爆款",
+        "商业目标",
+        "信任资产",
+        "转化入口"
+      ],
+      "outputTemplate": [
+        "判断当前阶段",
+        "解释阶段证据",
+        "列出阶段核心矛盾",
+        "分配选题比例",
+        "给出本周第一优先动作",
+        "标注待确认数据"
+      ],
+      "example": "如果播放低、粉丝少、咨询少，先按冷启动处理；如果刚出现高播放但咨询少，进入爆款后窗口，要立刻用同主题信任证明和转化选题接力。",
+      "keywords": [
+        "账号阶段",
+        "阶段诊断",
+        "冷启动",
+        "起量期",
+        "建信任期",
+        "转化期",
+        "稳定期",
+        "爆款后",
+        "运营规划"
+      ]
+    },
+    {
+      "id": "ip-operation-publishing-calendar",
+      "category": "personal_ip",
+      "moduleIds": [
+        "operation-plan",
+        "viral-topics",
+        "conversion-topics",
+        "script"
+      ],
+      "title": "运营规划：7/14/30天发布日历",
+      "methods": [
+        "发布节奏",
+        "内容日历",
+        "先流量后信任",
+        "信任后转化",
+        "同主题连续追投",
+        "隔日复盘"
+      ],
+      "scenarios": [
+        "7天运营计划",
+        "14天运营计划",
+        "30天内容规划",
+        "个人IP矩阵",
+        "本地获客账号"
+      ],
+      "requiredInputs": [
+        "规划周期",
+        "每天可发布条数",
+        "账号阶段",
+        "核心服务/产品",
+        "可展示案例",
+        "近期数据"
+      ],
+      "outputTemplate": [
+        "按天列发布主题",
+        "每条标注选题类型",
+        "写明发布目的",
+        "指定使用证据",
+        "指定CTA",
+        "安排复盘节点"
+      ],
+      "example": "7天计划不要全是成交内容：第1天立人设，第2天泛流量，第3天痛点，第4天案例信任，第5天成交，第6天跟进评论，第7天复盘追投。",
+      "keywords": [
+        "7天计划",
+        "14天计划",
+        "30天计划",
+        "发布日历",
+        "发布节奏",
+        "内容日历",
+        "选题排序",
+        "连续发布"
+      ]
+    },
+    {
+      "id": "ip-operation-data-review-loop",
+      "category": "personal_ip",
+      "moduleIds": [
+        "operation-plan",
+        "viral-analysis",
+        "viral-topics",
+        "conversion-topics"
+      ],
+      "title": "运营规划：数据复盘与下一轮调整",
+      "methods": [
+        "数据分型",
+        "播放高咨询低",
+        "播放低咨询高",
+        "收藏高",
+        "评论准",
+        "完播低",
+        "私信高",
+        "每次只改一处"
+      ],
+      "scenarios": [
+        "账号复盘",
+        "内容实验",
+        "脏数据测试",
+        "低播放高转化",
+        "爆款低转化",
+        "运营迭代"
+      ],
+      "requiredInputs": [
+        "播放量",
+        "完播率",
+        "点赞/收藏/评论",
+        "新增粉丝",
+        "私信/电话/表单",
+        "成交或预约",
+        "评论关键词"
+      ],
+      "outputTemplate": [
+        "判断数据类型",
+        "保留有效内容",
+        "指出问题假设",
+        "只改一个变量",
+        "生成下一轮选题",
+        "设置复盘指标"
+      ],
+      "example": "播放高但咨询少，说明钩子和流量人群有效但成交证据不足；下一条不换人群，补案例、过程、报价判断或风险共担。评论准但播放低，保留转化选题并重写开头。",
+      "keywords": [
+        "数据复盘",
+        "播放高咨询低",
+        "播放低咨询高",
+        "评论准",
+        "收藏高",
+        "完播低",
+        "私信高",
+        "每次改一处",
+        "脏数据测试"
+      ]
+    },
+    {
+      "id": "ip-operation-burst-response",
+      "category": "personal_ip",
+      "moduleIds": [
+        "operation-plan",
+        "viral-topics",
+        "conversion-topics",
+        "script"
+      ],
+      "title": "运营规划：爆款后24-72小时接力SOP",
+      "methods": [
+        "爆款窗口",
+        "评论挖题",
+        "同主题接力",
+        "信任证明补位",
+        "转化题追投",
+        "置顶联动",
+        "私信承接"
+      ],
+      "scenarios": [
+        "视频突然爆了",
+        "泛流量爆款",
+        "行业观点爆款",
+        "本地服务爆款",
+        "高客单咨询爆款"
+      ],
+      "requiredInputs": [
+        "爆款主题",
+        "爆款开头",
+        "评论高频词",
+        "新增粉丝画像",
+        "可展示信任证据",
+        "转化入口"
+      ],
+      "outputTemplate": [
+        "第0步保护爆款",
+        "24小时内发同主题信任题",
+        "48小时内发转化题",
+        "72小时内发评论回应题",
+        "主页置顶/评论引导",
+        "复盘咨询质量"
+      ],
+      "example": "工程律师观点爆了，下一条不要换成泛知识，要发同类工程老板痛点，加大金额案件、国央企身份、胜诉/回款证据，再用电话咨询承接。",
+      "keywords": [
+        "爆款后",
+        "24小时",
+        "72小时",
+        "接力SOP",
+        "同主题追投",
+        "评论挖题",
+        "信任证明",
+        "转化追投"
+      ]
+    },
+    {
+      "id": "ip-operation-topic-inventory",
+      "category": "personal_ip",
+      "moduleIds": [
+        "operation-plan",
+        "viral-topics",
+        "script",
+        "rewrite"
+      ],
+      "title": "运营规划：选题库存与内容资产池",
+      "methods": [
+        "选题库存",
+        "素材资产池",
+        "低粉爆款库",
+        "案例库",
+        "评论库",
+        "信任证据库",
+        "跨行业借鉴"
+      ],
+      "scenarios": [
+        "长期运营",
+        "团队协作",
+        "批量脚本",
+        "个人IP方法库",
+        "对标账号学习"
+      ],
+      "requiredInputs": [
+        "对标账号/视频",
+        "自有案例",
+        "客户原话",
+        "常见异议",
+        "证明材料",
+        "可拍场景",
+        "禁忌边界"
+      ],
+      "outputTemplate": [
+        "建立选题池分类",
+        "每类给采集标准",
+        "标注可用于哪个阶段",
+        "标注可复用结构",
+        "标注可展示证据",
+        "生成下周优先级"
+      ],
+      "example": "选题库存不是标题列表，而是按用途分层：流量库负责进人，信任库负责养熟，转化库负责收口，评论库负责下一轮精准选题。",
+      "keywords": [
+        "选题库存",
+        "内容资产池",
+        "低粉爆款库",
+        "案例库",
+        "评论库",
+        "信任证据库",
+        "跨行业借鉴",
+        "长期运营"
       ]
     }
   ]
