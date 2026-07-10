@@ -141,6 +141,56 @@ const benchmarkMethodCases = [
     moduleId: 'operation-plan',
     expectedBlockId: 'ip-operation-data-review-loop',
   },
+  {
+    query: '账号名字 地区 身份 专注 工程律师 自己人',
+    moduleId: 'ip-positioning',
+    expectedBlockId: 'ip-asset-account-name-positioning',
+  },
+  {
+    query: '个人简介 帮谁 解决什么 凭什么信 怎么咨询 私信电话',
+    moduleId: 'ip-positioning',
+    expectedBlockId: 'ip-asset-profile-bio-conversion',
+  },
+  {
+    query: '首页三条置顶 定位 信任证明 成交入口 账号主页',
+    moduleId: 'operation-plan',
+    expectedBlockId: 'ip-asset-pinned-video-funnel',
+  },
+  {
+    query: '合同 判决书 打码 金额 胜诉 文件证明 隐私处理',
+    moduleId: 'script',
+    expectedBlockId: 'ip-script-document-redaction-proof',
+  },
+  {
+    query: '低粉爆款 评论准 开头狠 筛选SOP 同行爆款 改编',
+    moduleId: 'viral-analysis',
+    expectedBlockId: 'ip-research-low-follower-viral-screening-sop',
+  },
+  {
+    query: '工程律师 工程款 实际施工人 分包老板 全风险代理 电话咨询',
+    moduleId: 'conversion-topics',
+    expectedBlockId: 'ip-industry-engineering-lawyer-method',
+  },
+  {
+    query: '前期不收费 要不回来分文不取 风险共担 垫资打官司',
+    moduleId: 'conversion-topics',
+    expectedBlockId: 'ip-conversion-risk-sharing-offer-stack',
+  },
+  {
+    query: '怕得罪人 撕破脸 关系 国央企 工程老板 顾虑化解',
+    moduleId: 'conversion-topics',
+    expectedBlockId: 'ip-conversion-relationship-offense-objection',
+  },
+  {
+    query: '爆款后7天 同主题追投 信任补位 转化收口 电话私信',
+    moduleId: 'operation-plan',
+    expectedBlockId: 'ip-operation-after-viral-seven-day-plan',
+  },
+  {
+    query: '播放高不成交 评论不准 私信少 脏数据 诊断',
+    moduleId: 'operation-plan',
+    expectedBlockId: 'ip-operation-bad-data-diagnosis',
+  },
 ];
 
 const benchmarkMethodHits = [];

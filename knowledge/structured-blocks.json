@@ -1,5 +1,5 @@
 {
-  "version": "2026-07-10-operation-planning-engine-v1",
+  "version": "2026-07-11-method-library-completion-v1",
   "description": "Structured method and example blocks for IP commerce generation retrieval. Added benchmark account method cards from account homepage analysis. Added video-level benchmark method cards. Added selected deep-dive method cards. Added topic sequencing method cards.",
   "blocks": [
     {
@@ -5654,6 +5654,1866 @@
         "信任证据库",
         "跨行业借鉴",
         "长期运营"
+      ]
+    },
+    {
+      "id": "ip-asset-account-name-positioning",
+      "category": "personal_ip",
+      "moduleIds": [
+        "ip-positioning",
+        "operation-plan",
+        "viral-topics"
+      ],
+      "title": "账号资产：账号名字的定位公式",
+      "methods": [
+        "地区/赛道锚点",
+        "身份锚点",
+        "问题锚点",
+        "结果锚点",
+        "信任锚点"
+      ],
+      "scenarios": [
+        "专家顾问IP",
+        "本地服务IP",
+        "律师IP",
+        "医生IP",
+        "实体老板IP",
+        "课程老师IP"
+      ],
+      "requiredInputs": [
+        "服务地区",
+        "专业身份",
+        "核心人群",
+        "核心问题",
+        "成交结果",
+        "合规边界"
+      ],
+      "outputTemplate": [
+        "地区+身份+问题",
+        "身份+结果+专注领域",
+        "人群+问题+解决者",
+        "名字风险检查",
+        "3个可选账号名"
+      ],
+      "example": "账号名要让用户一眼知道你帮谁解决什么问题，例如“河南工程款律师”“杭州高端收纳规划师”，不要只写抽象品牌名。",
+      "keywords": [
+        "账号名字",
+        "起号名字",
+        "IP定位",
+        "地区",
+        "身份",
+        "专注",
+        "工程律师",
+        "本地化"
+      ]
+    },
+    {
+      "id": "ip-asset-profile-bio-conversion",
+      "category": "personal_ip",
+      "moduleIds": [
+        "ip-positioning",
+        "conversion-topics",
+        "operation-plan"
+      ],
+      "title": "账号资产：个人简介的成交承接结构",
+      "methods": [
+        "我是谁",
+        "帮谁",
+        "解决什么",
+        "凭什么信",
+        "怎么咨询",
+        "边界提示"
+      ],
+      "scenarios": [
+        "高客单咨询",
+        "本地到店",
+        "课程转化",
+        "律师/医生/财税等专业IP"
+      ],
+      "requiredInputs": [
+        "身份资质",
+        "目标用户",
+        "主痛点",
+        "证明材料",
+        "承接方式",
+        "禁忌承诺"
+      ],
+      "outputTemplate": [
+        "一句定位",
+        "核心人群",
+        "核心利益/结果",
+        "信任证明",
+        "行动入口",
+        "合规提醒"
+      ],
+      "example": "简介不是自我介绍，而是转化门牌：我是做什么的、适合谁、你为什么可以信我、下一步私信/电话/表单怎么走。",
+      "keywords": [
+        "个人简介",
+        "主页简介",
+        "承接方式",
+        "信任证明",
+        "电话咨询",
+        "私信",
+        "CTA",
+        "转化入口"
+      ]
+    },
+    {
+      "id": "ip-asset-pinned-video-funnel",
+      "category": "personal_ip",
+      "moduleIds": [
+        "operation-plan",
+        "ip-positioning",
+        "conversion-topics",
+        "script"
+      ],
+      "title": "账号资产：首页三条置顶漏斗",
+      "methods": [
+        "第一条定位",
+        "第二条信任证明",
+        "第三条成交入口",
+        "爆款后主页承接"
+      ],
+      "scenarios": [
+        "爆款后承接",
+        "新用户进主页",
+        "高客单咨询",
+        "本地服务获客"
+      ],
+      "requiredInputs": [
+        "账号定位",
+        "最强信任证据",
+        "核心产品/服务",
+        "承接入口",
+        "近期爆款主题"
+      ],
+      "outputTemplate": [
+        "置顶1：你是谁",
+        "置顶2：为什么信你",
+        "置顶3：怎么找你",
+        "每条第一句",
+        "每条CTA"
+      ],
+      "example": "爆款带来的用户会进主页判断你值不值得联系，所以置顶不能随意放，要把定位、案例证据和咨询入口排成漏斗。",
+      "keywords": [
+        "置顶视频",
+        "主页承接",
+        "三条置顶",
+        "爆款后",
+        "信任证明",
+        "成交入口",
+        "主页漏斗"
+      ]
+    },
+    {
+      "id": "ip-asset-visual-proof-system",
+      "category": "personal_ip",
+      "moduleIds": [
+        "ip-positioning",
+        "script",
+        "conversion-topics",
+        "viral-analysis"
+      ],
+      "title": "账号资产：画面中的信任证明系统",
+      "methods": [
+        "证明可视化",
+        "结果前置",
+        "过程镜头",
+        "文件打码",
+        "团队/现场",
+        "前后对比"
+      ],
+      "scenarios": [
+        "律师IP",
+        "医美/美业",
+        "家装",
+        "工厂老板",
+        "课程老师",
+        "B端服务"
+      ],
+      "requiredInputs": [
+        "可展示证据",
+        "隐私边界",
+        "可拍场景",
+        "结果材料",
+        "过程材料",
+        "授权情况"
+      ],
+      "outputTemplate": [
+        "第一屏证据",
+        "中段过程",
+        "结尾CTA证据",
+        "打码清单",
+        "不可展示替代方案"
+      ],
+      "example": "专业服务不要只靠口播，要把合同、判决书、案例金额、团队会议、门店/工厂/现场等拍成“用户看得见的信任”。",
+      "keywords": [
+        "画面",
+        "信任资产",
+        "证明材料",
+        "打码",
+        "判决书",
+        "合同",
+        "团队",
+        "现场",
+        "前后对比"
+      ]
+    },
+    {
+      "id": "ip-asset-local-dialect-closeness",
+      "category": "personal_ip",
+      "moduleIds": [
+        "ip-positioning",
+        "script",
+        "viral-topics"
+      ],
+      "title": "账号资产：方言与本地自己人关系",
+      "methods": [
+        "本地化亲切感",
+        "降低距离",
+        "圈层暗号",
+        "真实人设",
+        "地域信任"
+      ],
+      "scenarios": [
+        "本地服务IP",
+        "工程老板IP",
+        "区域律师",
+        "本地实体老板",
+        "同城到店"
+      ],
+      "requiredInputs": [
+        "服务区域",
+        "用户语言习惯",
+        "可接受表达尺度",
+        "专业合规边界",
+        "是否真人出镜"
+      ],
+      "outputTemplate": [
+        "方言使用场景",
+        "普通话+方言比例",
+        "本地称呼",
+        "禁用粗俗边界",
+        "本地化脚本句式"
+      ],
+      "example": "方言不是为了搞笑，而是让用户觉得“这是我们当地懂行的人”，尤其适合本地老板、工程老板、到店和区域专家。",
+      "keywords": [
+        "方言",
+        "本地化",
+        "自己人",
+        "亲切",
+        "同城",
+        "区域专家",
+        "工程老板",
+        "真实人设"
+      ]
+    },
+    {
+      "id": "ip-asset-persona-rough-realness",
+      "category": "personal_ip",
+      "moduleIds": [
+        "ip-positioning",
+        "script",
+        "polish",
+        "viral-analysis"
+      ],
+      "title": "账号资产：不完美真实感的人设外显",
+      "methods": [
+        "真实情绪",
+        "口头禅",
+        "微醺感",
+        "现场感",
+        "对话感",
+        "粗粝表达",
+        "专业底线"
+      ],
+      "scenarios": [
+        "老板IP",
+        "工程律师IP",
+        "本地服务",
+        "高情绪行业",
+        "强观点IP"
+      ],
+      "requiredInputs": [
+        "人物性格",
+        "表达尺度",
+        "用户接受度",
+        "行业合规边界",
+        "拍摄场景"
+      ],
+      "outputTemplate": [
+        "真实表达来源",
+        "可用口头禅",
+        "情绪强度",
+        "保留专业底线",
+        "剪辑前置矛盾点"
+      ],
+      "example": "真实感可以来自喝酒后更松弛的语气、团建、现场对话和情绪，但不能牺牲专业可信和平台合规。",
+      "keywords": [
+        "真实情绪",
+        "粗粝感",
+        "口头禅",
+        "喝酒",
+        "团建",
+        "对话",
+        "真人感",
+        "江湖气"
+      ]
+    },
+    {
+      "id": "ip-research-low-follower-viral-screening-sop",
+      "category": "system",
+      "moduleIds": [
+        "viral-analysis",
+        "viral-topics",
+        "rewrite",
+        "operation-plan"
+      ],
+      "title": "对标采集：低粉爆款筛选SOP",
+      "methods": [
+        "低粉高赞",
+        "评论精准",
+        "开头狠",
+        "可迁移",
+        "同行优先",
+        "跨行业补充"
+      ],
+      "scenarios": [
+        "冷启动选题",
+        "对标账号采集",
+        "爆款改编",
+        "运营规划"
+      ],
+      "requiredInputs": [
+        "对标账号主页",
+        "粉丝量",
+        "点赞/评论/收藏",
+        "开头前3秒",
+        "评论区高频词",
+        "目标行业"
+      ],
+      "outputTemplate": [
+        "记录基础数据",
+        "判断是否低粉爆款",
+        "标注爆款机制",
+        "标注可迁移行业",
+        "生成改编方向"
+      ],
+      "example": "优先找低粉爆款，因为它更像结构和钩子跑赢账号权重；再看评论是否精准，避免只学到泛娱乐流量。",
+      "keywords": [
+        "低粉爆款",
+        "对标账号",
+        "评论准",
+        "开头狠",
+        "冷启动",
+        "筛选SOP",
+        "爆款采集"
+      ]
+    },
+    {
+      "id": "ip-research-comment-intent-mining",
+      "category": "system",
+      "moduleIds": [
+        "viral-analysis",
+        "conversion-topics",
+        "operation-plan",
+        "pain-topics"
+      ],
+      "title": "对标采集：评论区高意向词挖掘",
+      "methods": [
+        "评论准",
+        "要联系方式",
+        "问价格",
+        "问地区",
+        "感同身受",
+        "反驳点",
+        "下一条选题"
+      ],
+      "scenarios": [
+        "评论区复盘",
+        "转化选题",
+        "痛点挖掘",
+        "爆款后追投"
+      ],
+      "requiredInputs": [
+        "评论文本",
+        "点赞高评论",
+        "高意向评论",
+        "反对意见",
+        "私信关键词",
+        "承接入口"
+      ],
+      "outputTemplate": [
+        "评论分类",
+        "高意向词",
+        "痛点词",
+        "异议词",
+        "下一条题目",
+        "承接话术"
+      ],
+      "example": "评论区里的“怎么联系”“我也是这种情况”“是不是某某律师”比普通点赞更值钱，应该直接反哺成交选题。",
+      "keywords": [
+        "评论区",
+        "高意向",
+        "要联系方式",
+        "问价格",
+        "感同身受",
+        "下一条选题",
+        "私信"
+      ]
+    },
+    {
+      "id": "ip-research-cross-industry-human-nature",
+      "category": "system",
+      "moduleIds": [
+        "viral-analysis",
+        "viral-topics",
+        "rewrite",
+        "script"
+      ],
+      "title": "对标采集：跨行业借鉴人性结构",
+      "methods": [
+        "受众洞察",
+        "人性不变",
+        "商业逻辑迁移",
+        "关系误区",
+        "翻身焦虑",
+        "利益分配"
+      ],
+      "scenarios": [
+        "工程老板",
+        "创业老板",
+        "课程IP",
+        "高客单服务",
+        "老板认知内容"
+      ],
+      "requiredInputs": [
+        "目标用户画像",
+        "跨行业爆款",
+        "共同人性",
+        "本行业事实",
+        "可替换案例"
+      ],
+      "outputTemplate": [
+        "提炼人性矛盾",
+        "找本行业对应场景",
+        "替换行业事实",
+        "保留注意力顺序",
+        "生成新选题"
+      ],
+      "example": "工程老板、创业老板、美业老板都可能有关系焦虑、翻身焦虑和利益分配焦虑，跨行业内容要迁移人性，不迁移表面行业词。",
+      "keywords": [
+        "跨行业借鉴",
+        "人性",
+        "商业逻辑",
+        "关系",
+        "翻身焦虑",
+        "老板认知",
+        "受众洞察"
+      ]
+    },
+    {
+      "id": "ip-research-hotspot-adaptation",
+      "category": "personal_ip",
+      "moduleIds": [
+        "viral-topics",
+        "operation-plan",
+        "script",
+        "rewrite"
+      ],
+      "title": "起号方法：热点改行业入口",
+      "methods": [
+        "热点借势",
+        "行业翻译",
+        "目标用户情绪",
+        "第一句复用机制",
+        "不硬蹭"
+      ],
+      "scenarios": [
+        "新账号起号",
+        "冷启动",
+        "热点爆发",
+        "本地服务",
+        "专业服务IP"
+      ],
+      "requiredInputs": [
+        "热点事件",
+        "用户关心点",
+        "行业对应冲突",
+        "可讲案例",
+        "合规边界"
+      ],
+      "outputTemplate": [
+        "热点核心情绪",
+        "本行业对应问题",
+        "目标用户钩子",
+        "专业判断",
+        "承接入口"
+      ],
+      "example": "热点不是搬新闻，而是把热点里的恐惧、关系、利益、反差翻译成目标用户正在经历的问题。",
+      "keywords": [
+        "热点",
+        "起号",
+        "蹭热点",
+        "行业翻译",
+        "冷启动",
+        "情绪",
+        "第一句"
+      ]
+    },
+    {
+      "id": "ip-rewrite-structure-not-expression",
+      "category": "system",
+      "moduleIds": [
+        "rewrite",
+        "viral-analysis",
+        "script",
+        "viral-topics"
+      ],
+      "title": "二创边界：学结构不照搬可识别表达",
+      "methods": [
+        "结构迁移",
+        "句式功能迁移",
+        "行业事实替换",
+        "口吻重写",
+        "证据替换",
+        "相似度风险"
+      ],
+      "scenarios": [
+        "爆款改编",
+        "同行参考",
+        "跨行业借鉴",
+        "脚本重写"
+      ],
+      "requiredInputs": [
+        "参考文案",
+        "可复用结构",
+        "自己的事实",
+        "自己的案例",
+        "目标口吻",
+        "禁用原句"
+      ],
+      "outputTemplate": [
+        "拆参考结构",
+        "标注注意力顺序",
+        "替换事实证据",
+        "重写口吻",
+        "输出风险提醒"
+      ],
+      "example": "可以学习“先结果、再冲突、再过程、再CTA”的顺序，但不要直接复制可识别的完整原句，要换成本账号事实和人物口吻。",
+      "keywords": [
+        "二创",
+        "结构迁移",
+        "句式功能",
+        "不照搬",
+        "原创化",
+        "爆款改编",
+        "相似度"
+      ]
+    },
+    {
+      "id": "ip-hook-result-first-proof",
+      "category": "personal_ip",
+      "moduleIds": [
+        "script",
+        "viral-topics",
+        "conversion-topics"
+      ],
+      "title": "钩子方法：结果第一句",
+      "methods": [
+        "结果前置",
+        "金额前置",
+        "到账前置",
+        "胜诉前置",
+        "反差前置"
+      ],
+      "scenarios": [
+        "工程律师",
+        "高客单服务",
+        "美业案例",
+        "家装案例",
+        "课程学员成果"
+      ],
+      "requiredInputs": [
+        "真实结果",
+        "金额/数量/变化",
+        "证明材料",
+        "隐私边界",
+        "用户痛点"
+      ],
+      "outputTemplate": [
+        "第一句结果",
+        "证明镜头",
+        "客户处境",
+        "解决过程",
+        "CTA"
+      ],
+      "example": "“拖了3年的工程款，今天终于到账了”这种第一句，把用户最关心的结果直接放在前面。",
+      "keywords": [
+        "第一句",
+        "结果前置",
+        "金额",
+        "到账",
+        "胜诉",
+        "大金额",
+        "黄金3秒"
+      ]
+    },
+    {
+      "id": "ip-hook-strong-opponent-weak-client",
+      "category": "personal_ip",
+      "moduleIds": [
+        "script",
+        "conversion-topics",
+        "pain-topics",
+        "viral-topics"
+      ],
+      "title": "钩子方法：强对方与弱客户冲突",
+      "methods": [
+        "强对手",
+        "客户困境",
+        "不对等关系",
+        "国央企/大机构",
+        "弱者压力",
+        "专业介入"
+      ],
+      "scenarios": [
+        "工程纠纷",
+        "法律服务",
+        "B端服务",
+        "债务回款",
+        "高压客户"
+      ],
+      "requiredInputs": [
+        "对方身份",
+        "客户身份",
+        "欠款/损失金额",
+        "客户困境",
+        "证据材料",
+        "解决路径"
+      ],
+      "outputTemplate": [
+        "强对方是谁",
+        "金额/风险",
+        "客户有多难",
+        "我们如何介入",
+        "结果/下一步"
+      ],
+      "example": "先讲“对方很强、金额很大、客户快撑不住”，用户才会感到这个专业服务有价值。",
+      "keywords": [
+        "强对方",
+        "弱客户",
+        "国央企",
+        "客户惨",
+        "工程老板",
+        "高压处境",
+        "冲突"
+      ]
+    },
+    {
+      "id": "ip-hook-relationship-myth-breaker",
+      "category": "personal_ip",
+      "moduleIds": [
+        "viral-topics",
+        "pain-topics",
+        "script",
+        "operation-plan"
+      ],
+      "title": "钩子方法：打破关系迷信",
+      "methods": [
+        "关系恐惧",
+        "现实利益",
+        "反常识",
+        "时代变化",
+        "替用户说心里话"
+      ],
+      "scenarios": [
+        "工程老板",
+        "传统老板",
+        "本地关系社会",
+        "B端纠纷",
+        "老板认知"
+      ],
+      "requiredInputs": [
+        "用户相信的旧逻辑",
+        "现实变化",
+        "损失场景",
+        "专业判断",
+        "可讲案例"
+      ],
+      "outputTemplate": [
+        "一句反常识",
+        "旧关系为什么失效",
+        "用户继续相信的代价",
+        "专业替代方案",
+        "承接问题"
+      ],
+      "example": "工程老板怕撕破脸，本质是怕关系断掉；内容要讲清楚现在对方优先保利益和位置，关系不再是回款保障。",
+      "keywords": [
+        "关系",
+        "撕破脸",
+        "反常识",
+        "利益",
+        "工程老板",
+        "老板认知",
+        "替用户说话"
+      ]
+    },
+    {
+      "id": "ip-script-dialogue-scene-proof",
+      "category": "personal_ip",
+      "moduleIds": [
+        "script",
+        "viral-analysis",
+        "conversion-topics"
+      ],
+      "title": "画面脚本：对话类场景证明",
+      "methods": [
+        "真实对话",
+        "助理/客户互动",
+        "问题抛接",
+        "冲突自然出现",
+        "成交理由植入"
+      ],
+      "scenarios": [
+        "律师团队",
+        "老板IP",
+        "课程老师",
+        "顾问服务",
+        "本地服务"
+      ],
+      "requiredInputs": [
+        "对话对象",
+        "对话冲突",
+        "要证明的点",
+        "可展示证据",
+        "CTA"
+      ],
+      "outputTemplate": [
+        "对话开场",
+        "对方抛问题",
+        "人物回应",
+        "证据插入",
+        "行动入口"
+      ],
+      "example": "对话类不是闲聊，而是用另一个人替观众问出顾虑，让IP自然展示判断、经验和案例。",
+      "keywords": [
+        "对话类",
+        "客户互动",
+        "助理",
+        "真实场景",
+        "顾虑",
+        "口播",
+        "证明"
+      ]
+    },
+    {
+      "id": "ip-script-tour-scene-proof",
+      "category": "personal_ip",
+      "moduleIds": [
+        "script",
+        "ip-positioning",
+        "viral-analysis",
+        "conversion-topics"
+      ],
+      "title": "画面脚本：参观类空间证明",
+      "methods": [
+        "空间巡游",
+        "现场证明",
+        "团队/设备",
+        "材料细节",
+        "规模信任",
+        "边走边讲"
+      ],
+      "scenarios": [
+        "律所",
+        "工厂",
+        "门店",
+        "培训场地",
+        "家装工地",
+        "美业门店"
+      ],
+      "requiredInputs": [
+        "可参观空间",
+        "空间里能证明什么",
+        "关键镜头",
+        "隐私边界",
+        "承接入口"
+      ],
+      "outputTemplate": [
+        "第一镜头空间信号",
+        "边走边讲核心观点",
+        "特写证明",
+        "用户能得到什么",
+        "CTA"
+      ],
+      "example": "参观类视频的价值是把抽象实力变成空间证据：团队、办案区、设备、展厅、工地和服务现场。",
+      "keywords": [
+        "参观类",
+        "空间证明",
+        "律所",
+        "工厂",
+        "门店",
+        "团队",
+        "现场",
+        "边走边讲"
+      ]
+    },
+    {
+      "id": "ip-script-team-dinner-social-proof",
+      "category": "personal_ip",
+      "moduleIds": [
+        "script",
+        "conversion-topics",
+        "viral-analysis"
+      ],
+      "title": "画面脚本：吃饭喝酒与人情世故证明",
+      "methods": [
+        "客户请吃饭",
+        "红包/感谢",
+        "圈层真实",
+        "人情世故",
+        "反转业务介绍",
+        "不过度炫耀"
+      ],
+      "scenarios": [
+        "工程律师",
+        "本地老板IP",
+        "高客单服务",
+        "B端服务",
+        "熟人介绍"
+      ],
+      "requiredInputs": [
+        "真实社交场景",
+        "客户感谢原因",
+        "结果证据",
+        "隐私边界",
+        "人物关系"
+      ],
+      "outputTemplate": [
+        "结果先说",
+        "客户为什么感谢",
+        "吃饭/红包/介绍业务场景",
+        "产品优势",
+        "CTA"
+      ],
+      "example": "工程老板请吃饭喝酒，不只是生活化素材，而是在证明结果、圈层、人情和后续介绍业务。",
+      "keywords": [
+        "吃饭",
+        "喝酒",
+        "红包",
+        "客户感谢",
+        "介绍业务",
+        "人情世故",
+        "工程老板"
+      ]
+    },
+    {
+      "id": "ip-script-document-redaction-proof",
+      "category": "personal_ip",
+      "moduleIds": [
+        "script",
+        "conversion-topics",
+        "ip-positioning"
+      ],
+      "title": "画面脚本：合同判决书打码证明",
+      "methods": [
+        "隐私打码",
+        "只露关键信号",
+        "金额/胜诉/时间",
+        "文件权威感",
+        "合规提醒"
+      ],
+      "scenarios": [
+        "律师IP",
+        "财税顾问",
+        "医美案例",
+        "高客单咨询",
+        "B端合同服务"
+      ],
+      "requiredInputs": [
+        "证明文件",
+        "可展示字段",
+        "必须打码字段",
+        "授权情况",
+        "合规边界"
+      ],
+      "outputTemplate": [
+        "可露信息",
+        "必须打码",
+        "镜头呈现方式",
+        "口播解释",
+        "风险提醒"
+      ],
+      "example": "工程案件可以让观众看到金额、胜诉、到账等信号，但姓名、案号、地址、商业秘密等必须打码。",
+      "keywords": [
+        "合同",
+        "判决书",
+        "打码",
+        "隐私",
+        "金额",
+        "胜诉",
+        "合规",
+        "文件证明"
+      ]
+    },
+    {
+      "id": "ip-conversion-high-ticket-phone-path",
+      "category": "personal_ip",
+      "moduleIds": [
+        "conversion-topics",
+        "operation-plan",
+        "script"
+      ],
+      "title": "成交承接：高客单优先电话沟通",
+      "methods": [
+        "高隐私",
+        "高金额",
+        "复杂决策",
+        "电话筛选",
+        "私信转电话",
+        "线下介绍"
+      ],
+      "scenarios": [
+        "工程律师",
+        "高客单咨询",
+        "B端服务",
+        "财税法务",
+        "企业服务"
+      ],
+      "requiredInputs": [
+        "客单价/案件金额",
+        "隐私程度",
+        "咨询流程",
+        "电话入口",
+        "筛选问题",
+        "不能线上说的边界"
+      ],
+      "outputTemplate": [
+        "私信入口",
+        "电话理由",
+        "筛选问题",
+        "电话前准备",
+        "不适合线上聊的说明"
+      ],
+      "example": "大金额工程案件不适合在评论区详细沟通，内容要自然把用户从私信引到电话。",
+      "keywords": [
+        "高客单",
+        "电话沟通",
+        "私信转电话",
+        "高隐私",
+        "大金额",
+        "工程案件",
+        "咨询流程"
+      ]
+    },
+    {
+      "id": "ip-conversion-risk-sharing-offer-stack",
+      "category": "personal_ip",
+      "moduleIds": [
+        "conversion-topics",
+        "script",
+        "pain-topics"
+      ],
+      "title": "成交承接：风险共担产品表达栈",
+      "methods": [
+        "前期不收费",
+        "要不回来分文不取",
+        "垫资",
+        "和客户一条船",
+        "赢了不等于拿到钱",
+        "降低顾虑"
+      ],
+      "scenarios": [
+        "全风险代理",
+        "法律服务",
+        "回款服务",
+        "高客单咨询",
+        "结果导向服务"
+      ],
+      "requiredInputs": [
+        "真实收费模式",
+        "适用条件",
+        "不适用条件",
+        "客户顾虑",
+        "成交边界",
+        "案例证明"
+      ],
+      "outputTemplate": [
+        "用户痛点",
+        "大白话产品",
+        "适用条件",
+        "不适用提醒",
+        "下一步咨询"
+      ],
+      "example": "不要只说专业名词“全风险代理”，要说“我们愿意跟工程老板风险共担，前期不收费，要不回来分文不取”。",
+      "keywords": [
+        "风险共担",
+        "全风险代理",
+        "前期不收费",
+        "分文不取",
+        "垫资",
+        "成交顾虑"
+      ]
+    },
+    {
+      "id": "ip-conversion-relationship-offense-objection",
+      "category": "personal_ip",
+      "moduleIds": [
+        "conversion-topics",
+        "pain-topics",
+        "script"
+      ],
+      "title": "成交承接：怕得罪关系的异议化解",
+      "methods": [
+        "怕撕破脸",
+        "怕断路",
+        "关系成本",
+        "现实判断",
+        "低冲突路径",
+        "专业替代"
+      ],
+      "scenarios": [
+        "工程老板",
+        "B端纠纷",
+        "本地关系客户",
+        "法律服务",
+        "债务回款"
+      ],
+      "requiredInputs": [
+        "客户怕得罪谁",
+        "拖欠时间",
+        "关系现状",
+        "继续拖的代价",
+        "可选处理路径"
+      ],
+      "outputTemplate": [
+        "承认顾虑",
+        "解释现实",
+        "算继续拖的代价",
+        "给低冲突方案",
+        "电话咨询CTA"
+      ],
+      "example": "客户不是不想维权，而是怕以后没路。内容要先承认这个顾虑，再讲现在继续拖才是真正断路。",
+      "keywords": [
+        "怕得罪人",
+        "撕破脸",
+        "关系",
+        "异议化解",
+        "工程老板",
+        "维权",
+        "电话咨询"
+      ]
+    },
+    {
+      "id": "ip-conversion-price-fear-resolution",
+      "category": "personal_ip",
+      "moduleIds": [
+        "conversion-topics",
+        "script",
+        "pain-topics",
+        "commerce"
+      ],
+      "title": "成交承接：费用太高顾虑化解",
+      "methods": [
+        "成本对比",
+        "损失放大",
+        "不行动成本",
+        "分阶段方案",
+        "风险共担",
+        "价值证明"
+      ],
+      "scenarios": [
+        "高客单服务",
+        "咨询服务",
+        "课程训练营",
+        "法律服务",
+        "本地服务"
+      ],
+      "requiredInputs": [
+        "价格/收费方式",
+        "用户损失",
+        "证明案例",
+        "替代方案成本",
+        "承接入口"
+      ],
+      "outputTemplate": [
+        "用户怕贵",
+        "不解决更贵",
+        "证明价值",
+        "可选方案",
+        "CTA"
+      ],
+      "example": "高客单不是直接降价，而是让用户看见不解决的损失、服务降低的风险、以及为什么值得先沟通。",
+      "keywords": [
+        "费用太高",
+        "怕贵",
+        "价格异议",
+        "不行动成本",
+        "高客单",
+        "价值证明"
+      ]
+    },
+    {
+      "id": "ip-conversion-silent-user-signals",
+      "category": "personal_ip",
+      "moduleIds": [
+        "conversion-topics",
+        "operation-plan",
+        "viral-analysis"
+      ],
+      "title": "成交承接：沉默高意向用户信号",
+      "methods": [
+        "少评论",
+        "私信高",
+        "电话高",
+        "主页访问",
+        "收藏转咨询",
+        "隐私行业"
+      ],
+      "scenarios": [
+        "律师",
+        "医美",
+        "财税",
+        "心理咨询",
+        "高隐私服务",
+        "B端纠纷"
+      ],
+      "requiredInputs": [
+        "评论数量",
+        "私信数量",
+        "电话数量",
+        "主页访问",
+        "收藏",
+        "行业隐私程度"
+      ],
+      "outputTemplate": [
+        "判断是否沉默高意向",
+        "保留转化内容",
+        "优化私信入口",
+        "增加信任证明",
+        "复盘电话质量"
+      ],
+      "example": "有些行业评论少不是内容差，而是用户不愿公开暴露身份，要看私信、电话、主页访问和收藏。",
+      "keywords": [
+        "沉默转化",
+        "少评论",
+        "私信高",
+        "电话高",
+        "高隐私",
+        "主页访问",
+        "收藏"
+      ]
+    },
+    {
+      "id": "ip-operation-first-week-takeoff-sop",
+      "category": "personal_ip",
+      "moduleIds": [
+        "operation-plan",
+        "viral-topics",
+        "script"
+      ],
+      "title": "运营SOP：新账号一周起量测试",
+      "methods": [
+        "一周起量",
+        "每天测试",
+        "热点+同行爆款",
+        "低粉爆款",
+        "每次只改一处",
+        "快速复盘"
+      ],
+      "scenarios": [
+        "冷启动",
+        "新账号",
+        "个人IP起号",
+        "本地服务",
+        "专家IP"
+      ],
+      "requiredInputs": [
+        "账号定位",
+        "对标账号",
+        "每天发布量",
+        "可拍素材",
+        "目标用户",
+        "承接入口"
+      ],
+      "outputTemplate": [
+        "7天测试计划",
+        "每天选题类型",
+        "每条测试变量",
+        "数据记录表",
+        "第8天调整"
+      ],
+      "example": "冷启动不要等完美定位，先用热点和同行低粉爆款结构测试人群、钩子和画面，7天后用数据定方向。",
+      "keywords": [
+        "一周起量",
+        "冷启动",
+        "7天测试",
+        "热点",
+        "低粉爆款",
+        "每次改一处",
+        "起号"
+      ]
+    },
+    {
+      "id": "ip-operation-topic-priority-ranking",
+      "category": "personal_ip",
+      "moduleIds": [
+        "operation-plan",
+        "viral-topics",
+        "conversion-topics"
+      ],
+      "title": "运营SOP：选题优先级排序法",
+      "methods": [
+        "商业价值",
+        "流量潜力",
+        "信任增量",
+        "拍摄成本",
+        "证据强度",
+        "阶段匹配"
+      ],
+      "scenarios": [
+        "运营规划",
+        "选题库排序",
+        "周计划",
+        "团队协作",
+        "爆款后追投"
+      ],
+      "requiredInputs": [
+        "选题列表",
+        "账号阶段",
+        "业务目标",
+        "信任资产",
+        "近期数据",
+        "拍摄成本"
+      ],
+      "outputTemplate": [
+        "评分表",
+        "本周优先级",
+        "先发/后发理由",
+        "备用选题",
+        "复盘指标"
+      ],
+      "example": "转化题流量弱但业务价值高，不能只按播放排序；要同时看流量潜力、信任增量和成交价值。",
+      "keywords": [
+        "选题排序",
+        "优先级",
+        "商业价值",
+        "流量潜力",
+        "信任增量",
+        "阶段匹配"
+      ]
+    },
+    {
+      "id": "ip-operation-weekly-review-meeting",
+      "category": "personal_ip",
+      "moduleIds": [
+        "operation-plan",
+        "viral-analysis",
+        "conversion-topics"
+      ],
+      "title": "运营SOP：每周复盘会议模板",
+      "methods": [
+        "数据复盘",
+        "爆款拆解",
+        "转化复盘",
+        "评论私信复盘",
+        "素材缺口",
+        "下一周动作"
+      ],
+      "scenarios": [
+        "团队运营",
+        "个人IP周复盘",
+        "代运营交付",
+        "稳定期账号"
+      ],
+      "requiredInputs": [
+        "本周发布列表",
+        "播放/完播/互动",
+        "私信/电话/成交",
+        "评论关键词",
+        "素材库存",
+        "下周目标"
+      ],
+      "outputTemplate": [
+        "本周有效内容",
+        "无效内容原因",
+        "高意向信号",
+        "下周选题比例",
+        "素材补拍清单",
+        "负责人"
+      ],
+      "example": "周复盘不要只看播放，要把爆款、私信、电话、成交和素材缺口放在一张表里决定下周内容。",
+      "keywords": [
+        "周复盘",
+        "数据复盘",
+        "私信",
+        "电话",
+        "成交",
+        "素材缺口",
+        "下周计划"
+      ]
+    },
+    {
+      "id": "ip-operation-series-column-design",
+      "category": "personal_ip",
+      "moduleIds": [
+        "operation-plan",
+        "viral-topics",
+        "script"
+      ],
+      "title": "运营SOP：系列栏目设计",
+      "methods": [
+        "栏目化",
+        "连续追更",
+        "固定句式",
+        "固定场景",
+        "用户预期",
+        "选题库存"
+      ],
+      "scenarios": [
+        "稳定更新",
+        "内容矩阵",
+        "专业IP",
+        "本地服务",
+        "课程老师"
+      ],
+      "requiredInputs": [
+        "账号定位",
+        "目标用户问题库",
+        "可重复场景",
+        "人物口吻",
+        "更新频率"
+      ],
+      "outputTemplate": [
+        "栏目名称",
+        "栏目定位",
+        "固定开头",
+        "固定结构",
+        "10条选题",
+        "复盘指标"
+      ],
+      "example": "栏目不是为了好看，而是让用户形成预期：每周看你拆一个工程款误区、一个案例、一个避坑清单。",
+      "keywords": [
+        "系列栏目",
+        "栏目化",
+        "连续追更",
+        "固定句式",
+        "内容矩阵",
+        "选题库存"
+      ]
+    },
+    {
+      "id": "ip-operation-after-viral-seven-day-plan",
+      "category": "personal_ip",
+      "moduleIds": [
+        "operation-plan",
+        "conversion-topics",
+        "viral-topics",
+        "script"
+      ],
+      "title": "运营SOP：爆款后7天转化计划",
+      "methods": [
+        "爆款保护",
+        "同主题追投",
+        "信任补位",
+        "转化收口",
+        "评论回应",
+        "主页置顶"
+      ],
+      "scenarios": [
+        "突然爆款",
+        "泛流量爆款",
+        "高意向评论",
+        "本地服务爆款",
+        "专业服务爆款"
+      ],
+      "requiredInputs": [
+        "爆款主题",
+        "爆款数据",
+        "评论高频词",
+        "可展示证据",
+        "转化入口",
+        "主页置顶现状"
+      ],
+      "outputTemplate": [
+        "第1天信任证明",
+        "第2天转化题",
+        "第3天评论回应",
+        "第4天案例",
+        "第5天异议化解",
+        "第6天直播/私信承接",
+        "第7天复盘"
+      ],
+      "example": "泛流量爆了以后，不要换题；7天内围绕同人群同痛点连续补信任、案例、异议和转化入口。",
+      "keywords": [
+        "爆款后7天",
+        "同主题追投",
+        "信任补位",
+        "转化收口",
+        "评论回应",
+        "主页置顶"
+      ]
+    },
+    {
+      "id": "ip-operation-bad-data-diagnosis",
+      "category": "system",
+      "moduleIds": [
+        "operation-plan",
+        "viral-analysis",
+        "viral-topics"
+      ],
+      "title": "运营SOP：脏数据诊断与修正",
+      "methods": [
+        "非目标流量",
+        "泛流量误判",
+        "标题党误伤",
+        "互动虚高",
+        "转化低",
+        "样本不足"
+      ],
+      "scenarios": [
+        "脏数据测试",
+        "爆款但不成交",
+        "低播放但高咨询",
+        "投流前评估",
+        "模型质量评估"
+      ],
+      "requiredInputs": [
+        "播放来源",
+        "评论质量",
+        "私信质量",
+        "完播",
+        "停留",
+        "成交反馈",
+        "目标人群"
+      ],
+      "outputTemplate": [
+        "判断数据是否干净",
+        "问题来源",
+        "保留变量",
+        "修改变量",
+        "下一条测试",
+        "停止条件"
+      ],
+      "example": "播放高但评论不准、私信不准，可能是泛流量脏数据；不要直接加大同类内容，要回到目标人群痛点。",
+      "keywords": [
+        "脏数据",
+        "非目标流量",
+        "评论不准",
+        "播放高不成交",
+        "低播放高咨询",
+        "数据诊断"
+      ]
+    },
+    {
+      "id": "ip-operation-material-shot-list",
+      "category": "personal_ip",
+      "moduleIds": [
+        "operation-plan",
+        "script",
+        "viral-analysis"
+      ],
+      "title": "运营SOP：素材补拍清单",
+      "methods": [
+        "证据素材",
+        "人物素材",
+        "场景素材",
+        "过程素材",
+        "情绪素材",
+        "CTA素材"
+      ],
+      "scenarios": [
+        "短视频批量生产",
+        "团队拍摄",
+        "个人IP素材库",
+        "代运营交付"
+      ],
+      "requiredInputs": [
+        "账号定位",
+        "常用选题类型",
+        "可拍场地",
+        "可拍人物",
+        "证明材料",
+        "承接入口"
+      ],
+      "outputTemplate": [
+        "必拍素材",
+        "可选素材",
+        "隐私打码素材",
+        "每类用途",
+        "缺口优先级"
+      ],
+      "example": "一个专业IP至少要有口播、现场、证据、团队/过程、客户反馈、CTA入口六类素材，否则模型再会写也难生成可拍方案。",
+      "keywords": [
+        "素材清单",
+        "补拍",
+        "证据素材",
+        "场景素材",
+        "过程素材",
+        "CTA素材",
+        "拍摄清单"
+      ]
+    },
+    {
+      "id": "ip-polish-spoken-grounded-language",
+      "category": "personal_ip",
+      "moduleIds": [
+        "polish",
+        "script",
+        "rewrite"
+      ],
+      "title": "洗稿优化：落地口语化表达",
+      "methods": [
+        "大白话",
+        "少抽象词",
+        "用户原话",
+        "行业黑话翻译",
+        "情绪保留",
+        "短句节奏"
+      ],
+      "scenarios": [
+        "口播优化",
+        "老板IP",
+        "本地服务",
+        "工程律师",
+        "课程老师"
+      ],
+      "requiredInputs": [
+        "原文案",
+        "目标用户语言",
+        "人物口吻",
+        "必须保留事实",
+        "不能碰边界"
+      ],
+      "outputTemplate": [
+        "抽象词替换",
+        "用户原话化",
+        "短句化",
+        "人物口吻",
+        "风险提醒"
+      ],
+      "example": "“提供专业法律服务”不如“你现在不是不想打官司，是手里没钱，上面还卡着你的工程款”。",
+      "keywords": [
+        "口语化",
+        "大白话",
+        "落地说话",
+        "用户原话",
+        "短句",
+        "洗稿",
+        "口播"
+      ]
+    },
+    {
+      "id": "ip-polish-conflict-frontload",
+      "category": "personal_ip",
+      "moduleIds": [
+        "polish",
+        "script",
+        "viral-topics"
+      ],
+      "title": "洗稿优化：矛盾与反人性观点前置",
+      "methods": [
+        "冲突前置",
+        "反常识",
+        "反人性观点",
+        "意外话",
+        "结果前置",
+        "删除铺垫"
+      ],
+      "scenarios": [
+        "脚本开头优化",
+        "爆款改写",
+        "观点口播",
+        "案例脚本"
+      ],
+      "requiredInputs": [
+        "原开头",
+        "核心冲突",
+        "结果证据",
+        "用户痛点",
+        "人物口吻"
+      ],
+      "outputTemplate": [
+        "删除铺垫",
+        "第一句冲突",
+        "第二句解释",
+        "第三句证据",
+        "后续结构"
+      ],
+      "example": "剪辑时把矛盾、反常识、大金额胜诉、让人意外的话提到第一句，别等用户划走后才进入重点。",
+      "keywords": [
+        "冲突前置",
+        "反常识",
+        "反人性",
+        "意外话",
+        "第一句",
+        "黄金3秒",
+        "洗稿"
+      ]
+    },
+    {
+      "id": "ip-industry-engineering-lawyer-method",
+      "category": "personal_ip",
+      "moduleIds": [
+        "ip-positioning",
+        "conversion-topics",
+        "script",
+        "operation-plan"
+      ],
+      "title": "行业方法：工程律师IP完整打法",
+      "methods": [
+        "工程老板自己人",
+        "金额胜诉前置",
+        "国央企强对手",
+        "风险共担",
+        "方言本地化",
+        "电话承接"
+      ],
+      "scenarios": [
+        "工程纠纷律师",
+        "工程款回款",
+        "实际施工人",
+        "材料商",
+        "包工头",
+        "施工企业老板"
+      ],
+      "requiredInputs": [
+        "目标客户身份",
+        "案件金额",
+        "对方身份",
+        "回款/胜诉证据",
+        "收费方式",
+        "本地语言",
+        "电话入口"
+      ],
+      "outputTemplate": [
+        "定位一句话",
+        "核心痛点",
+        "高价值信号",
+        "内容矩阵",
+        "成交承接",
+        "风险提醒"
+      ],
+      "example": "工程律师不是讲法条起号，而是用到账、胜诉、大金额、强对手、客户快撑不住和风险共担打穿咨询。",
+      "keywords": [
+        "工程律师",
+        "工程纠纷",
+        "工程款",
+        "实际施工人",
+        "材料商",
+        "包工头",
+        "全风险代理",
+        "电话咨询"
+      ]
+    },
+    {
+      "id": "ip-industry-local-service-method",
+      "category": "personal_ip",
+      "moduleIds": [
+        "ip-positioning",
+        "conversion-topics",
+        "viral-topics",
+        "operation-plan"
+      ],
+      "title": "行业方法：本地服务IP完整打法",
+      "methods": [
+        "同城信任",
+        "到店理由",
+        "前后对比",
+        "真实评价",
+        "老板人设",
+        "团购/预约承接"
+      ],
+      "scenarios": [
+        "美业",
+        "餐饮",
+        "摄影",
+        "宠物",
+        "家政",
+        "收纳整理",
+        "本地生活"
+      ],
+      "requiredInputs": [
+        "城市区域",
+        "门店/服务",
+        "目标客户",
+        "到店理由",
+        "评价/案例",
+        "团购或预约入口"
+      ],
+      "outputTemplate": [
+        "本地定位",
+        "到店痛点",
+        "前后对比素材",
+        "老板信任",
+        "同城CTA",
+        "复盘指标"
+      ],
+      "example": "本地服务要同时解决“为什么是你”和“为什么现在到店”，内容要多用前后对比、评价、现场和预约入口。",
+      "keywords": [
+        "本地服务",
+        "同城",
+        "到店",
+        "预约",
+        "团购券",
+        "老板IP",
+        "前后对比"
+      ]
+    },
+    {
+      "id": "ip-industry-course-teacher-method",
+      "category": "personal_ip",
+      "moduleIds": [
+        "ip-positioning",
+        "viral-topics",
+        "conversion-topics",
+        "script"
+      ],
+      "title": "行业方法：课程老师IP完整打法",
+      "methods": [
+        "学员结果",
+        "方法论",
+        "误区纠正",
+        "训练营承接",
+        "私域养熟",
+        "直播/社群转化"
+      ],
+      "scenarios": [
+        "知识课程",
+        "训练营",
+        "技能老师",
+        "自媒体教学",
+        "职业培训"
+      ],
+      "requiredInputs": [
+        "课程主题",
+        "学员画像",
+        "学员结果",
+        "课程交付",
+        "价格区间",
+        "私域入口"
+      ],
+      "outputTemplate": [
+        "定位一句话",
+        "学员痛点",
+        "方法内容",
+        "学员案例",
+        "私域承接",
+        "直播/训练营节奏"
+      ],
+      "example": "课程老师不能只讲干货，要用学员结果、误区纠正和训练过程证明“跟你学能少走弯路”。",
+      "keywords": [
+        "课程老师",
+        "训练营",
+        "学员结果",
+        "方法论",
+        "私域",
+        "直播",
+        "报名"
+      ]
+    },
+    {
+      "id": "ip-industry-b2b-service-method",
+      "category": "personal_ip",
+      "moduleIds": [
+        "ip-positioning",
+        "conversion-topics",
+        "script",
+        "operation-plan"
+      ],
+      "title": "行业方法：B端服务IP完整打法",
+      "methods": [
+        "老板痛点",
+        "成本/风险/效率",
+        "案例证明",
+        "团队过程",
+        "表单/电话询盘",
+        "专业判断"
+      ],
+      "scenarios": [
+        "企业服务",
+        "SaaS",
+        "财税",
+        "法务",
+        "咨询",
+        "供应链",
+        "代运营"
+      ],
+      "requiredInputs": [
+        "服务对象",
+        "企业痛点",
+        "服务结果",
+        "案例证据",
+        "决策链",
+        "询盘入口"
+      ],
+      "outputTemplate": [
+        "B端定位",
+        "老板痛点",
+        "ROI/风险",
+        "案例证明",
+        "询盘承接",
+        "复盘指标"
+      ],
+      "example": "B端内容要少讲“我们服务好”，多讲老板正在损失什么、怎么判断供应商、案例如何降低风险。",
+      "keywords": [
+        "B端服务",
+        "企业服务",
+        "老板痛点",
+        "询盘",
+        "表单",
+        "电话",
+        "案例证明"
+      ]
+    },
+    {
+      "id": "ip-quality-method-card-standard",
+      "category": "system",
+      "moduleIds": [
+        "operation-plan",
+        "viral-analysis",
+        "ip-positioning"
+      ],
+      "title": "方法库标准：每张方法卡必须可执行",
+      "methods": [
+        "适用场景",
+        "必要输入",
+        "输出骨架",
+        "示例",
+        "关键词",
+        "边界"
+      ],
+      "scenarios": [
+        "知识库扩展",
+        "方法卡整理",
+        "对标账号学习",
+        "质量评估"
+      ],
+      "requiredInputs": [
+        "方法名称",
+        "成功样本",
+        "适用行业",
+        "输入条件",
+        "输出结果",
+        "不可用边界"
+      ],
+      "outputTemplate": [
+        "方法定义",
+        "适用场景",
+        "必要输入",
+        "操作步骤",
+        "示例",
+        "风险边界"
+      ],
+      "example": "不是把经验写成散文，而是写成模型可调用的方法卡：什么场景用、要问什么、输出什么、怎么判断质量。",
+      "keywords": [
+        "方法卡",
+        "结构化知识",
+        "可执行",
+        "知识库",
+        "质量评估",
+        "输入输出"
       ]
     }
   ]

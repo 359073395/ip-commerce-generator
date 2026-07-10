@@ -268,8 +268,36 @@ function buildQueryTerms({ moduleId, label, knowledge, output, formData, selecti
   (moduleRetrievalTerms[moduleId] || []).forEach((term) => terms.add(term));
   if (context?.agentGoal) addText(context.agentGoal);
   if (context?.agentPreviousSteps) addText(JSON.stringify(context.agentPreviousSteps));
+  applyQueryAliases(terms);
 
   return normalizeTerms([...terms]);
+}
+
+function applyQueryAliases(terms) {
+  const text = [...terms].join('\n').toLowerCase();
+  const add = (...values) => values.forEach((value) => terms.add(value));
+
+  if (/脏数据|空输入|缺失|信息不足|太短|模糊/.test(text)) {
+    add('脏数据', '待确认', '不编造', '可执行初版', '缺失信息');
+  }
+  if (/报价贵|怕贵|价格异议|费用太高|异议化解/.test(text)) {
+    add('异议', '怕贵', '报价贵', '价格异议', '费用太高', '顾虑化解');
+  }
+  if (/种草|尝鲜|新品/.test(text)) {
+    add('种草', '场景需求', '兴趣激发', '新品种草');
+  }
+  if (/tiktok|tik tok|跨境|短句.*shop|shop.*短句/.test(text)) {
+    add('TikTok', 'TikTok Shop', '短句', '短句口播', '平台表达');
+  }
+  if (/私域|社群|朋友圈|评论关键词/.test(text)) {
+    add('私域', '评论关键词', '私信承接', '社群', '朋友圈');
+  }
+  if (/冷启动|起号|新账号/.test(text)) {
+    add('冷启动', '账号冷启动', '发布节奏', '内容矩阵');
+  }
+  if (/专家|顾问|财税顾问|咨询/.test(text)) {
+    add('专家顾问', '风险提示', '合规');
+  }
 }
 
 function scoreSectionLegacy(section, terms) {
@@ -440,9 +468,14 @@ function scoreStructuredBlock({ block, moduleId, taskType, queryTerms = [] }) {
   }
   const specificMatches = [...new Set(matchedTerms)]
     .filter((term) => isSpecificStructuredTerm(term, moduleId));
-  const shouldBoostVideoMethod = String(block.id || '').startsWith('ip-video-method-');
-  if (shouldBoostVideoMethod && specificMatches.length >= 2) {
-    score += 18 + Math.min(specificMatches.length, 5) * 4;
+  const blockId = String(block.id || '');
+  const shouldBoostVideoMethod = blockId.startsWith('ip-video-method-');
+  const shouldBoostMethodLibrary =
+    shouldBoostVideoMethod ||
+    /^ip-(asset|research|hook|script|conversion|operation|industry|polish|quality|benchmark|deep|wutian|persona|content|expert|topic)-/.test(blockId) ||
+    /^(conversion|commerce|script|pain|viral|publishing)-/.test(blockId);
+  if (shouldBoostMethodLibrary && specificMatches.length >= 2) {
+    score += 14 + Math.min(specificMatches.length, 5) * 4;
     reasons.push('specific_query_match');
   }
   const priorityText = [
@@ -451,7 +484,7 @@ function scoreStructuredBlock({ block, moduleId, taskType, queryTerms = [] }) {
     ...(block.scenarios || []),
     ...(block.keywords || []),
   ].filter(Boolean).join('\n').toLowerCase();
-  if (shouldBoostVideoMethod && specificMatches.some((term) => priorityText.includes(String(term).toLowerCase()))) {
+  if (shouldBoostMethodLibrary && specificMatches.some((term) => priorityText.includes(String(term).toLowerCase()))) {
     score += 8;
     reasons.push('priority_field_match');
   }
@@ -468,6 +501,7 @@ function isSpecificStructuredTerm(term, moduleId) {
   const genericTerms = new Set([
     'script',
     'cta',
+    'CTA',
     'b-roll',
     '案例',
     '示例',
@@ -483,11 +517,21 @@ function isSpecificStructuredTerm(term, moduleId) {
     '商业定位',
     '商业目标',
     '目标用户',
+    '专家',
+    '顾问',
+    '老板',
+    '表单',
+    '专业服务',
+    '企业服务',
+    '合规',
     '内容矩阵',
     '人设资产',
     '成交设计',
+    '成交',
     '成交理由',
+    '信任证明',
     '承接',
+    '承接方式',
     '私域',
     '咨询',
     '带货视频',
