@@ -60,10 +60,59 @@ const combinedPack = await loadKnowledgePack({
 assert.ok(combinedPack.retrieval.selectedSources.length >= 2, 'combined retrieval should keep source diversity when budget allows');
 assert.ok(combinedPack.selected.some((item) => /成交|承接|CTA|私域/.test(`${item.heading} ${item.matchedTerms?.join(' ')}`)), 'combined retrieval should hit conversion knowledge');
 
+const benchmarkMethodCases = [
+  {
+    query: '第一视角 忙碌 业绩 美甲',
+    moduleId: 'script',
+    expectedBlockId: 'ip-video-method-first-person-busy-proof',
+  },
+  {
+    query: '抓路人 前后对比 素人改造',
+    moduleId: 'viral-analysis',
+    expectedBlockId: 'ip-video-method-street-transformation-proof',
+  },
+  {
+    query: '装修 你就这么问 导购',
+    moduleId: 'script',
+    expectedBlockId: 'ip-video-method-domain-question-template',
+  },
+  {
+    query: '七位数 展厅 工厂',
+    moduleId: 'ip-positioning',
+    expectedBlockId: 'ip-video-method-proof-asset-frontload',
+  },
+  {
+    query: '工程律师 执行回款 团队证据',
+    moduleId: 'conversion-topics',
+    expectedBlockId: 'ip-benchmark-lawyer-professional-judgment',
+  },
+];
+
+const benchmarkMethodHits = [];
+for (const testCase of benchmarkMethodCases) {
+  const pack = await loadKnowledgePack({
+    taskType: 'combined',
+    moduleId: testCase.moduleId,
+    label: testCase.query,
+    knowledge: testCase.query.split(' '),
+    formData: { prompt: testCase.query },
+    budgetChars: 1600,
+  });
+  const hits = pack.selected
+    .filter((item) => item.source?.startsWith('structured-blocks/'))
+    .map((item) => item.source.replace('structured-blocks/', ''));
+  benchmarkMethodHits.push({ query: testCase.query, hits: hits.slice(0, 6) });
+  assert.ok(
+    hits.includes(testCase.expectedBlockId),
+    `benchmark method retrieval should include ${testCase.expectedBlockId} for ${testCase.query}`,
+  );
+}
+
 console.log(JSON.stringify({
   ok: true,
   scriptSelected: scriptPack.selected.map((item) => `${item.source} > ${item.heading}`),
   commerceSelected: commercePack.selected.map((item) => `${item.source} > ${item.heading}`),
   combinedSources: combinedPack.retrieval.selectedSources,
+  benchmarkMethodHits,
   message: 'Knowledge retrieval tests passed.',
 }, null, 2));

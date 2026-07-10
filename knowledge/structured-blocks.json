@@ -1,6 +1,6 @@
 {
-  "version": "2026-07-10-benchmark-account-methods-v1",
-  "description": "Structured method and example blocks for IP commerce generation retrieval. Added benchmark account method cards from account homepage analysis.",
+  "version": "2026-07-10-video-deep-methods-v1",
+  "description": "Structured method and example blocks for IP commerce generation retrieval. Added benchmark account method cards from account homepage analysis. Added video-level benchmark method cards.",
   "blocks": [
     {
       "id": "ip-positioning-core",
@@ -4390,6 +4390,392 @@
         "趋势",
         "在场证明",
         "好产品好IP"
+      ]
+    },
+    {
+      "id": "ip-video-method-cross-scene-reversal",
+      "category": "personal_ip",
+      "moduleIds": [
+        "viral-analysis",
+        "viral-topics",
+        "script",
+        "rewrite"
+      ],
+      "title": "视频方法：跨场景反差钩子",
+      "methods": [
+        "行业人进入陌生场景",
+        "反差制造停留",
+        "评论区争议",
+        "把争议转成专业观点"
+      ],
+      "scenarios": [
+        "美业IP",
+        "实体老板IP",
+        "本地服务IP",
+        "冷启动爆款"
+      ],
+      "requiredInputs": [
+        "行业身份",
+        "陌生场景",
+        "观众误解点",
+        "可回扣的专业观点",
+        "转化入口"
+      ],
+      "outputTemplate": [
+        "反差第一句",
+        "陌生场景动作",
+        "观众争议",
+        "行业洞察",
+        "回到产品/方法"
+      ],
+      "example": "“当美业人去摆摊卖菜”不是为了真的卖菜，而是用美业和摆摊的冲突，让评论区讨论引流、客单价、利润，再回扣美业同城获客。",
+      "keywords": [
+        "跨场景",
+        "反差",
+        "摆摊",
+        "争议",
+        "引流",
+        "实体老板",
+        "冷启动爆款"
+      ]
+    },
+    {
+      "id": "ip-video-method-first-person-busy-proof",
+      "category": "personal_ip",
+      "moduleIds": [
+        "script",
+        "viral-analysis",
+        "conversion-topics"
+      ],
+      "title": "视频方法：第一视角忙碌证明",
+      "methods": [
+        "第一视角",
+        "忙碌过程",
+        "客单价外显",
+        "顾客互动",
+        "团队日常",
+        "招聘吸引"
+      ],
+      "scenarios": [
+        "美甲美睫",
+        "本地门店",
+        "服务业老板IP",
+        "招聘型账号"
+      ],
+      "requiredInputs": [
+        "服务过程",
+        "客户预约或排队",
+        "客单价信号",
+        "顾客反馈",
+        "团队状态"
+      ],
+      "outputTemplate": [
+        "忙碌开场",
+        "连续服务动作",
+        "客户关系细节",
+        "客单价/业绩提示",
+        "预约或招聘CTA"
+      ],
+      "example": "“美甲店超忙碌，业绩大爆炸的一天”用第一视角把客流、服务动作、顾客治愈和千元美甲拍成证据。",
+      "keywords": [
+        "第一视角",
+        "忙碌",
+        "业绩大爆炸",
+        "千元美甲",
+        "顾客",
+        "工作日常",
+        "招聘"
+      ]
+    },
+    {
+      "id": "ip-video-method-street-transformation-proof",
+      "category": "personal_ip",
+      "moduleIds": [
+        "viral-analysis",
+        "script",
+        "viral-topics"
+      ],
+      "title": "视频方法：街头素人改造证明",
+      "methods": [
+        "抓路人",
+        "前后对比",
+        "第N天连续栏目",
+        "陌生人即时反应",
+        "结果纯享"
+      ],
+      "scenarios": [
+        "变美IP",
+        "技术服务IP",
+        "线下课程",
+        "审美服务"
+      ],
+      "requiredInputs": [
+        "可改造对象",
+        "改造前痛点",
+        "改造过程",
+        "改造后反应",
+        "课程或服务入口"
+      ],
+      "outputTemplate": [
+        "问题脸/问题眉开场",
+        "快速授权/坐下",
+        "过程压缩",
+        "结果对比",
+        "用户反应",
+        "课程CTA"
+      ],
+      "example": "“在成都街头抓路人改眉毛第52天”把技术实力从自夸变成陌生人可见变化。",
+      "keywords": [
+        "街头",
+        "抓路人",
+        "素人改造",
+        "前后对比",
+        "变装",
+        "第N天",
+        "男士眉"
+      ]
+    },
+    {
+      "id": "ip-video-method-strong-viewpoint-filter",
+      "category": "personal_ip",
+      "moduleIds": [
+        "viral-topics",
+        "script",
+        "conversion-topics"
+      ],
+      "title": "视频方法：强观点筛选高意向用户",
+      "methods": [
+        "反常识判断",
+        "老板痛点",
+        "筛选不合适用户",
+        "私域关键词",
+        "资料领取"
+      ],
+      "scenarios": [
+        "课程IP",
+        "咨询IP",
+        "企业服务IP",
+        "老板IP"
+      ],
+      "requiredInputs": [
+        "目标用户",
+        "常见错误认知",
+        "反常识观点",
+        "案例或结果",
+        "私信关键词"
+      ],
+      "outputTemplate": [
+        "强观点第一句",
+        "为什么多数人错",
+        "真实案例",
+        "方法框架",
+        "关键词CTA"
+      ],
+      "example": "“管理者一定要闲，你如果忙，证明你错了”用一句反常识筛出真正关心管理的老板。",
+      "keywords": [
+        "强观点",
+        "反常识",
+        "老板",
+        "管理者一定要闲",
+        "私信关键词",
+        "课程IP",
+        "咨询"
+      ]
+    },
+    {
+      "id": "ip-video-method-risk-checklist-save",
+      "category": "combined",
+      "moduleIds": [
+        "pain-topics",
+        "viral-topics",
+        "script",
+        "commerce"
+      ],
+      "title": "视频方法：风险清单收藏型内容",
+      "methods": [
+        "数字清单",
+        "避坑",
+        "错误后果",
+        "验收标准",
+        "预算建议",
+        "收藏驱动"
+      ],
+      "scenarios": [
+        "装修IP",
+        "宠物IP",
+        "测评IP",
+        "高风险消费决策"
+      ],
+      "requiredInputs": [
+        "具体场景",
+        "风险列表",
+        "错误后果",
+        "正确标准",
+        "用户行动"
+      ],
+      "outputTemplate": [
+        "场景点名",
+        "数字清单",
+        "每条风险后果",
+        "正确做法",
+        "评论/收藏CTA"
+      ],
+      "example": "“厨房装修记住十条小细节”“夏天慢性虐猫6个行为”“猫粮一句话总结”都在替用户降低犯错成本。",
+      "keywords": [
+        "数字清单",
+        "避坑",
+        "风险",
+        "收藏",
+        "装修",
+        "宠物",
+        "猫粮",
+        "狗粮",
+        "验收"
+      ]
+    },
+    {
+      "id": "ip-video-method-proof-asset-frontload",
+      "category": "personal_ip",
+      "moduleIds": [
+        "ip-positioning",
+        "script",
+        "conversion-topics",
+        "viral-analysis"
+      ],
+      "title": "视频方法：高价值资产前置",
+      "methods": [
+        "金额/规模前置",
+        "团队证据",
+        "展厅工厂",
+        "办案区域",
+        "结果证明",
+        "老板投入"
+      ],
+      "scenarios": [
+        "工程律师IP",
+        "工厂老板IP",
+        "B端服务IP",
+        "高客单专业服务"
+      ],
+      "requiredInputs": [
+        "金额或规模",
+        "强证据资产",
+        "目标客户痛点",
+        "服务结果",
+        "咨询入口"
+      ],
+      "outputTemplate": [
+        "第一句高价值信号",
+        "为什么难/为什么强",
+        "现场证据",
+        "结果证明",
+        "合作/咨询CTA"
+      ],
+      "example": "“我花了七位数把电器城搬到展厅”“5000㎡实景展厅”“为什么全国工程老板找我们执行工程款”都把信任资产放到最前面。",
+      "keywords": [
+        "高价值资产",
+        "金额前置",
+        "七位数",
+        "2亿工厂",
+        "5000㎡",
+        "团队",
+        "执行回款",
+        "展厅"
+      ]
+    },
+    {
+      "id": "ip-video-method-identity-growth-story",
+      "category": "personal_ip",
+      "moduleIds": [
+        "script",
+        "viral-topics",
+        "viral-analysis"
+      ],
+      "title": "视频方法：身份成长故事",
+      "methods": [
+        "人生节点",
+        "挫折到结果",
+        "团队/学员感谢",
+        "使命感",
+        "自我证明"
+      ],
+      "scenarios": [
+        "创始人IP",
+        "课程IP",
+        "美业老师IP",
+        "老板IP"
+      ],
+      "requiredInputs": [
+        "过去困境",
+        "关键转折",
+        "具体成果",
+        "帮助他人结果",
+        "价值观"
+      ],
+      "outputTemplate": [
+        "人生节点开场",
+        "过去困境",
+        "转折动作",
+        "结果证明",
+        "感谢/使命",
+        "行动召唤"
+      ],
+      "example": "“敬自己”“十年商业路”“一场车祸把我撞醒”这类视频不是直接卖课，而是先让用户相信这个人有真实来路和使命。",
+      "keywords": [
+        "成长故事",
+        "敬自己",
+        "十年商业路",
+        "车祸",
+        "使命",
+        "创始人",
+        "真实来路"
+      ]
+    },
+    {
+      "id": "ip-video-method-domain-question-template",
+      "category": "personal_ip",
+      "moduleIds": [
+        "script",
+        "viral-topics",
+        "pain-topics"
+      ],
+      "title": "视频方法：你就这么问模板",
+      "methods": [
+        "替用户提问",
+        "导购/专家话术",
+        "选择标准",
+        "避坑问题",
+        "低门槛执行"
+      ],
+      "scenarios": [
+        "装修建材",
+        "高决策产品",
+        "咨询服务",
+        "测评账号"
+      ],
+      "requiredInputs": [
+        "购买场景",
+        "用户不会问的问题",
+        "商家容易忽悠点",
+        "正确提问句式",
+        "判断标准"
+      ],
+      "outputTemplate": [
+        "买X时别这样问",
+        "你就这么问",
+        "对方回答怎么判断",
+        "避坑提醒",
+        "收藏CTA"
+      ],
+      "example": "“你买冰箱/智能锁/瓷砖就这么问导购”把专业判断变成用户能直接复制的一句话。",
+      "keywords": [
+        "你就这么问",
+        "导购",
+        "选择标准",
+        "装修",
+        "建材",
+        "避坑",
+        "提问模板"
       ]
     }
   ]

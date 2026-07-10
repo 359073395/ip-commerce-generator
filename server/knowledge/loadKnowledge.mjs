@@ -436,11 +436,64 @@ function scoreStructuredBlock({ block, moduleId, taskType, queryTerms = [] }) {
       score += normalized.length >= 4 ? 4 : 2;
     }
   }
+  const specificMatches = [...new Set(matchedTerms)]
+    .filter((term) => isSpecificStructuredTerm(term, moduleId));
+  const shouldBoostVideoMethod = String(block.id || '').startsWith('ip-video-method-');
+  if (shouldBoostVideoMethod && specificMatches.length >= 2) {
+    score += 18 + Math.min(specificMatches.length, 5) * 4;
+    reasons.push('specific_query_match');
+  }
+  const priorityText = [
+    block.title,
+    ...(block.methods || []),
+    ...(block.scenarios || []),
+    ...(block.keywords || []),
+  ].filter(Boolean).join('\n').toLowerCase();
+  if (shouldBoostVideoMethod && specificMatches.some((term) => priorityText.includes(String(term).toLowerCase()))) {
+    score += 8;
+    reasons.push('priority_field_match');
+  }
   return {
     score,
     matchedTerms: [...new Set(matchedTerms)].slice(0, 12),
     reasons: [...new Set(reasons)].slice(0, 12),
   };
+}
+
+function isSpecificStructuredTerm(term, moduleId) {
+  const value = String(term || '').trim().toLowerCase();
+  if (!value || value === moduleId) return false;
+  const genericTerms = new Set([
+    'script',
+    'cta',
+    'b-roll',
+    '案例',
+    '示例',
+    '脚本',
+    '完整脚本',
+    '输出格式',
+    '四类脚本卡',
+    '黄金3秒',
+    '钩子',
+    '分镜',
+    '个人ip',
+    '账号定位',
+    '商业定位',
+    '商业目标',
+    '目标用户',
+    '内容矩阵',
+    '人设资产',
+    '成交设计',
+    '成交理由',
+    '承接',
+    '私域',
+    '咨询',
+    '带货视频',
+    '商品卡',
+    '小黄车',
+  ]);
+  if (genericTerms.has(value)) return false;
+  return value.length >= 2;
 }
 
 function toSelectedBlockSection(block) {
