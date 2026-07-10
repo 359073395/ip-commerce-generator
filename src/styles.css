@@ -28,6 +28,7 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
+  caret-color: transparent;
 }
 
 button,
@@ -37,9 +38,16 @@ textarea {
   font: inherit;
 }
 
+input,
+textarea,
+[contenteditable="true"] {
+  caret-color: auto;
+}
+
 button {
   border: 0;
   cursor: pointer;
+  user-select: none;
 }
 
 button:disabled {

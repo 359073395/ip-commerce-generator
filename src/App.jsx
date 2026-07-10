@@ -531,20 +531,22 @@ function App() {
           <main className="workspace original-workspace">
             <div className="workspace-grid original-workspace-grid">
               <section className="input-panel original-input-panel">
-                <AgentPlannerPanel
-                  goal={agentGoal}
-                  onGoalChange={setAgentGoal}
-                  plan={agentPlan}
-                  task={agentTask}
-                  loading={agentLoading}
-                  error={agentError}
-                  run={agentRun}
-                  runLoading={agentRunLoading}
-                  runError={agentRunError}
-                  onPlan={runAgentPlanner}
-                  onApply={applyAgentPlan}
-                  onRun={runAgentAutoChain}
-                />
+                {activeModule === 'operation-plan' && (
+                  <AgentPlannerPanel
+                    goal={agentGoal}
+                    onGoalChange={setAgentGoal}
+                    plan={agentPlan}
+                    task={agentTask}
+                    loading={agentLoading}
+                    error={agentError}
+                    run={agentRun}
+                    runLoading={agentRunLoading}
+                    runError={agentRunError}
+                    onPlan={runAgentPlanner}
+                    onApply={applyAgentPlan}
+                    onRun={runAgentAutoChain}
+                  />
+                )}
                 <FormGroups module={module} values={forms[activeModule] || {}} onChange={updateField} />
                 <OptionGroups module={module} selections={selections[activeModule] || []} onChange={updateSelection} />
                 {error && <ErrorBox message={error} />}
