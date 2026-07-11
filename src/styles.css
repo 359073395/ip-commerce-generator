@@ -1939,6 +1939,10 @@ th {
 }
 
 @media (max-width: 760px) {
+  .original-app-shell {
+    overflow-x: hidden;
+  }
+
   .app-shell {
     grid-template-columns: 1fr;
   }
@@ -1960,19 +1964,56 @@ th {
   }
 
   .original-topbar {
-    min-height: 74px;
-    padding: 0 16px;
+    position: static;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+    min-height: auto;
+    padding: 10px 12px;
+  }
+
+  .original-topbar-title {
+    min-width: 0;
   }
 
   .original-topbar-title h1 {
-    font-size: 22px;
+    font-size: 20px;
+  }
+
+  .original-top-actions {
+    width: 100%;
+    max-width: 100%;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+
+  .original-top-actions::-webkit-scrollbar {
+    display: none;
+  }
+
+  .original-share-button {
+    flex: 0 0 auto;
+    min-height: 34px;
+    padding: 0 10px;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  .project-select {
+    flex: 0 0 auto;
+    max-width: 132px;
+    min-height: 34px;
+    font-size: 13px;
   }
 
   .original-module-rail {
     position: sticky;
-    top: 74px;
+    top: 0;
     z-index: 5;
     flex-direction: row;
+    max-width: 100vw;
     overflow-x: auto;
     min-height: auto;
     padding: 10px 12px;
