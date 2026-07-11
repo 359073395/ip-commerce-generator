@@ -24,6 +24,17 @@ import { modules, moduleMap } from './modules.js';
 const SUB_CHOICE_SEPARATOR = '::';
 const MULTI_CHOICE_SEPARATOR = '||';
 
+function formatRequestError(error, fallback = 'Request failed') {
+  const message = String(error?.message || error || '').trim();
+  if (/load failed|failed to fetch|networkerror|network error|fetch failed/i.test(message)) {
+    return '\u65e0\u6cd5\u8fde\u63a5\u670d\u52a1\u5668\u63a5\u53e3\u3002\u8bf7\u68c0\u67e5\u57df\u540d\u53cd\u4ee3\u662f\u5426\u628a /api \u8f6c\u53d1\u5230\u540e\u7aef\u7aef\u53e3\uff0c\u6216\u5237\u65b0\u9875\u9762\u540e\u91cd\u8bd5\u3002';
+  }
+  if (/unexpected token|json/i.test(message)) {
+    return '\u670d\u52a1\u5668\u8fd4\u56de\u5185\u5bb9\u4e0d\u662f\u63a5\u53e3\u6570\u636e\u3002\u901a\u5e38\u662f /api \u88ab\u53cd\u4ee3\u5230\u4e86\u524d\u7aef\u9875\u9762\uff0c\u8bf7\u68c0\u67e5\u53cd\u4ee3\u89c4\u5219\u3002';
+  }
+  return message || fallback;
+}
+
 function splitSelection(value = '') {
   const [choice = '', subChoice = ''] = String(value).split(SUB_CHOICE_SEPARATOR);
   return { choice, subChoice };
@@ -228,7 +239,7 @@ function App() {
       setAgentPlan(payload.plan);
       setAgentTask(payload.task);
     } catch (error) {
-      setAgentError(error.message);
+      setAgentError(formatRequestError(error, '智能任务规划失败'));
     } finally {
       setAgentLoading(false);
     }
@@ -293,7 +304,7 @@ function App() {
       }
       refreshGenerationHistory();
     } catch (error) {
-      setAgentRunError(error.message);
+      setAgentRunError(formatRequestError(error, 'Agent自动执行失败'));
     } finally {
       setAgentRunLoading(false);
     }
@@ -386,7 +397,7 @@ function App() {
         };
       });
     } catch (error) {
-      setError(error.message);
+      setError(formatRequestError(error));
     }
   }
 
@@ -462,7 +473,7 @@ function App() {
       }));
       refreshGenerationHistory();
     } catch (err) {
-      setError(err.message);
+      setError(formatRequestError(err));
     } finally {
       setLoading(false);
     }
@@ -849,7 +860,7 @@ function LoginScreen({ onLogin }) {
       if (!response.ok || !payload.ok) throw new Error(payload.message || '登录失败');
       onLogin(payload.user);
     } catch (err) {
-      setError(err.message);
+      setError(formatRequestError(err));
     } finally {
       setLoading(false);
     }
@@ -1549,7 +1560,7 @@ function ProjectProfileModal({ profile, project, ipContext, onSaved, onClose }) 
       setMessage('项目档案已保存，后续所有模块会自动继承。');
       setMessageType('ready');
     } catch (error) {
-      setMessage(error.message);
+      setMessage(formatRequestError(error));
       setMessageType('error');
     } finally {
       setSaving(false);
@@ -1571,7 +1582,7 @@ function ProjectProfileModal({ profile, project, ipContext, onSaved, onClose }) 
       setMessage('新项目已创建并保存。');
       setMessageType('ready');
     } catch (error) {
-      setMessage(error.message);
+      setMessage(formatRequestError(error));
       setMessageType('error');
     } finally {
       setSaving(false);
@@ -1760,7 +1771,7 @@ function EnhancedAdminUsersModal({ onClose }) {
 
   useEffect(() => {
     loadUsers().catch((error) => {
-      setMessage(error.message);
+      setMessage(formatRequestError(error));
       setMessageType('error');
     });
   }, []);
@@ -1781,7 +1792,7 @@ function EnhancedAdminUsersModal({ onClose }) {
       setMessage('用户已创建。');
       setMessageType('ready');
     } catch (error) {
-      setMessage(error.message);
+      setMessage(formatRequestError(error));
       setMessageType('error');
     } finally {
       setLoading(false);
@@ -1803,7 +1814,7 @@ function EnhancedAdminUsersModal({ onClose }) {
       setMessage('用户已更新。');
       setMessageType('ready');
     } catch (error) {
-      setMessage(error.message);
+      setMessage(formatRequestError(error));
       setMessageType('error');
     } finally {
       setLoading(false);
@@ -1964,7 +1975,7 @@ function AdminUsersModal({ onClose }) {
 
   useEffect(() => {
     loadUsers().catch((error) => {
-      setMessage(error.message);
+      setMessage(formatRequestError(error));
       setMessageType('error');
     });
   }, []);
@@ -1985,7 +1996,7 @@ function AdminUsersModal({ onClose }) {
       setMessage('用户已创建。');
       setMessageType('ready');
     } catch (error) {
-      setMessage(error.message);
+      setMessage(formatRequestError(error));
       setMessageType('error');
     } finally {
       setLoading(false);
@@ -2007,7 +2018,7 @@ function AdminUsersModal({ onClose }) {
       setMessage('用户已更新。');
       setMessageType('ready');
     } catch (error) {
-      setMessage(error.message);
+      setMessage(formatRequestError(error));
       setMessageType('error');
     } finally {
       setLoading(false);
@@ -2112,7 +2123,7 @@ function SettingsModal({ health, onConfigured, onClose }) {
       setMessage(`检测到 ${payload.models.length} 个模型，请选择一个用于生成。`);
       setMessageType('ready');
     } catch (error) {
-      setMessage(error.message);
+      setMessage(formatRequestError(error));
       setMessageType('error');
     } finally {
       setDetecting(false);
@@ -2134,7 +2145,7 @@ function SettingsModal({ health, onConfigured, onClose }) {
       setMessage('API 配置已保存，当前服务已立即生效。');
       setMessageType('ready');
     } catch (error) {
-      setMessage(error.message);
+      setMessage(formatRequestError(error));
       setMessageType('error');
     } finally {
       setSaving(false);
