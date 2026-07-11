@@ -13,9 +13,11 @@ import { generateModuleForUser } from './generationService.mjs';
 import {
   buildSessionCookie,
   clearSessionCookie,
+  createContentExperimentForUser,
   createProjectForUser,
   createUser,
   deleteProjectForUser,
+  getContentExperimentForUser,
   getProjectForUser,
   getAdminOverview,
   getAgentRunForUser,
@@ -25,12 +27,14 @@ import {
   initializeDatabase,
   listAgentRunsForUser,
   listAgentTasksForUser,
+  listContentExperimentsForUser,
   listGenerationRecordsForUser,
   listProjectsForUser,
   listUsers,
   loginUser,
   logoutSession,
   recordAgentTask,
+  reviewContentExperimentForUser,
   updateProjectForUser,
   updateUser,
 } from './database.mjs';
@@ -381,6 +385,51 @@ app.get('/api/generations/:recordId', async (req, res) => {
     return;
   }
   res.json({ ok: true, record });
+});
+
+app.get('/api/content-experiments', async (req, res) => {
+  res.json({
+    ok: true,
+    experiments: await listContentExperimentsForUser(req.user.id, {
+      projectId: String(req.query.projectId || '') || undefined,
+      limit: req.query.limit,
+    }),
+  });
+});
+
+app.post('/api/content-experiments', async (req, res) => {
+  try {
+    const experiment = await createContentExperimentForUser(req.user.id, req.body || {});
+    res.json({ ok: true, experiment });
+  } catch (error) {
+    res.status(400).json({
+      ok: false,
+      code: error.code || 'CONTENT_EXPERIMENT_CREATE_FAILED',
+      message: error.message,
+    });
+  }
+});
+
+app.get('/api/content-experiments/:experimentId', async (req, res) => {
+  const experiment = await getContentExperimentForUser(req.user.id, req.params.experimentId);
+  if (!experiment) {
+    res.status(404).json({ ok: false, code: 'CONTENT_EXPERIMENT_NOT_FOUND', message: '内容实验不存在或无权访问。' });
+    return;
+  }
+  res.json({ ok: true, experiment });
+});
+
+app.patch('/api/content-experiments/:experimentId/review', async (req, res) => {
+  try {
+    const experiment = await reviewContentExperimentForUser(req.user.id, req.params.experimentId, req.body || {});
+    res.json({ ok: true, experiment });
+  } catch (error) {
+    res.status(400).json({
+      ok: false,
+      code: error.code || 'CONTENT_EXPERIMENT_REVIEW_FAILED',
+      message: error.message,
+    });
+  }
 });
 
 app.post('/api/generate', async (req, res) => {

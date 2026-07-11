@@ -381,6 +381,108 @@ export async function getGenerationRecordForUser(userId, recordId) {
   return row ? generationRecordFromRow(row) : null;
 }
 
+export async function listContentExperimentsForUser(userId, { projectId, limit = 20 } = {}) {
+  const db = await getDb();
+  const safeLimit = clampLimit(limit, 1, 100, 20);
+  const clauses = ['user_id = ?'];
+  const params = [userId];
+  if (projectId) {
+    clauses.push('project_id = ?');
+    params.push(projectId);
+  }
+  params.push(safeLimit);
+  const rows = all(db, `
+    SELECT * FROM content_experiments
+    WHERE ${clauses.join(' AND ')}
+    ORDER BY updated_at DESC, created_at DESC
+    LIMIT ?
+  `, params);
+  return rows.map(contentExperimentFromRow);
+}
+
+export async function createContentExperimentForUser(userId, {
+  projectId,
+  generationRecordId,
+  moduleId,
+  title,
+  contentType,
+} = {}) {
+  const db = await getDb();
+  const record = generationRecordId ? getGenerationRecordForUserSync(db, userId, generationRecordId) : null;
+  const derivedModuleId = moduleId || record?.moduleId || '';
+  const derivedTitle = normalizeExperimentTitle(title || record?.summary || record?.moduleLabel || '内容实验');
+  const analysis = buildExperimentAnalysis({ record, moduleId: derivedModuleId, contentType });
+  const timestamp = nowIso();
+  const id = randomId();
+  run(db, `
+    INSERT INTO content_experiments (
+      id, user_id, project_id, generation_record_id, module_id, title, content_type,
+      score_json, prediction_json, publish_json, review_json, rubric_json, status,
+      created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `, [
+    id,
+    userId,
+    projectId || record?.projectId || '',
+    generationRecordId || record?.id || '',
+    derivedModuleId,
+    derivedTitle,
+    String(contentType || analysis.contentType || '未分类').slice(0, 80),
+    JSON.stringify(analysis.score),
+    JSON.stringify(analysis.prediction),
+    JSON.stringify({}),
+    JSON.stringify({}),
+    JSON.stringify(analysis.rubric),
+    'predicted',
+    timestamp,
+    timestamp,
+  ]);
+  await persistDb(db);
+  return getContentExperimentForUser(userId, id);
+}
+
+export async function reviewContentExperimentForUser(userId, experimentId, updates = {}) {
+  const db = await getDb();
+  const existing = getContentExperimentForUserSync(db, userId, experimentId);
+  if (!existing) {
+    const error = new Error('内容实验不存在或无权访问。');
+    error.code = 'CONTENT_EXPERIMENT_NOT_FOUND';
+    throw error;
+  }
+  const publish = {
+    ...(existing.publish || {}),
+    url: String(updates.publishUrl || updates.url || existing.publish?.url || '').slice(0, 500),
+    publishedAt: String(updates.publishedAt || existing.publish?.publishedAt || '').slice(0, 80),
+  };
+  const metrics = normalizeExperimentMetrics(updates.metrics || updates);
+  const review = buildExperimentReview({
+    score: existing.score,
+    prediction: existing.prediction,
+    metrics,
+    notes: updates.notes,
+  });
+  const status = review.decision === '样本不足' ? 'reviewed' : 'learned';
+  run(db, `
+    UPDATE content_experiments
+    SET publish_json = ?, review_json = ?, status = ?, updated_at = ?
+    WHERE id = ? AND user_id = ?
+  `, [
+    JSON.stringify(publish),
+    JSON.stringify(review),
+    status,
+    nowIso(),
+    experimentId,
+    userId,
+  ]);
+  await persistDb(db);
+  return getContentExperimentForUser(userId, experimentId);
+}
+
+export async function getContentExperimentForUser(userId, experimentId) {
+  const db = await getDb();
+  return getContentExperimentForUserSync(db, userId, experimentId);
+}
+
 export async function recordAgentTask(userId, projectId, goal, plan) {
   const db = await getDb();
   const timestamp = nowIso();
@@ -570,6 +672,24 @@ function migrate(db) {
       updated_at TEXT NOT NULL,
       FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
     );
+    CREATE TABLE IF NOT EXISTS content_experiments (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      project_id TEXT,
+      generation_record_id TEXT,
+      module_id TEXT,
+      title TEXT NOT NULL,
+      content_type TEXT NOT NULL,
+      score_json TEXT NOT NULL,
+      prediction_json TEXT NOT NULL,
+      publish_json TEXT NOT NULL,
+      review_json TEXT NOT NULL,
+      rubric_json TEXT NOT NULL,
+      status TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
   `);
 }
 
@@ -747,6 +867,227 @@ function generationRecordFromRow(row) {
     summary: String(result.summary || '').slice(0, 240),
     createdAt: row.created_at,
   };
+}
+
+function contentExperimentFromRow(row) {
+  return {
+    id: row.id,
+    userId: row.user_id,
+    projectId: row.project_id || '',
+    generationRecordId: row.generation_record_id || '',
+    moduleId: row.module_id || '',
+    title: row.title || '',
+    contentType: row.content_type || '',
+    score: parseJsonObject(row.score_json),
+    prediction: parseJsonObject(row.prediction_json),
+    publish: parseJsonObject(row.publish_json),
+    review: parseJsonObject(row.review_json),
+    rubric: parseJsonObject(row.rubric_json),
+    status: row.status || '',
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+function getGenerationRecordForUserSync(db, userId, recordId) {
+  const row = first(db, 'SELECT * FROM generation_records WHERE id = ? AND user_id = ?', [recordId, userId]);
+  return row ? generationRecordFromRow(row) : null;
+}
+
+function getContentExperimentForUserSync(db, userId, experimentId) {
+  const row = first(db, 'SELECT * FROM content_experiments WHERE id = ? AND user_id = ?', [experimentId, userId]);
+  return row ? contentExperimentFromRow(row) : null;
+}
+
+function buildExperimentAnalysis({ record, moduleId, contentType }) {
+  const text = flattenText([
+    record?.moduleLabel,
+    record?.summary,
+    record?.request,
+    record?.result,
+  ]);
+  const inferredType = contentType || inferContentType(moduleId, text);
+  const scoreItems = [
+    scoreItem('开头强度', text, ['第一句', '开头', '黄金3秒', '金额', '结果', '反常识', '冲突', '痛点'], 14),
+    scoreItem('目标用户精准度', text, ['目标用户', '人群', '老板', '客户', '工程老板', '实际施工人', '宝妈', '本地'], 14),
+    scoreItem('痛点强度', text, ['痛点', '焦虑', '怕', '亏', '被拖欠', '没钱', '风险', '撑不住'], 14),
+    scoreItem('信任证明', text, ['案例', '证明', '合同', '判决书', '评价', '胜诉', '金额', '资质', '过程'], 14),
+    scoreItem('成交承接', text, ['私信', '电话', '表单', '预约', '到店', '评论关键词', 'CTA', '咨询'], 14),
+    scoreItem('真实人设', text, ['方言', '真实', '情绪', '口播', '现场', '团队', '喝酒', '本地'], 14),
+    scoreItem('可复盘性', text, ['发布', '复盘', '数据', '完播', '评论', '私信', '下一条', '测试'], 16),
+  ];
+  const totalScore = Math.min(100, scoreItems.reduce((sum, item) => sum + item.score, 0));
+  const flags = buildExperimentFlags(scoreItems, text, inferredType);
+  return {
+    contentType: inferredType,
+    score: {
+      total: totalScore,
+      level: totalScore >= 85 ? '强发布' : totalScore >= 70 ? '可测试' : '需打磨',
+      items: scoreItems,
+      flags,
+      summary: buildScoreSummary(totalScore, inferredType, flags),
+    },
+    prediction: buildExperimentPrediction({ totalScore, scoreItems, flags, contentType: inferredType }),
+    rubric: {
+      version: '2026-07-11-content-loop-v1',
+      principles: ['先盲预测再发布', 'T+3看干净数据', '每次只改一处', '低播放高咨询优先保留', '播放高不成交先查脏数据'],
+      nextReviewFields: ['播放', '完播率', '点赞', '评论', '私信', '电话', '成交', '高意向原话'],
+    },
+  };
+}
+
+function scoreItem(name, text, terms, maxScore) {
+  const hits = terms.filter((term) => text.includes(term));
+  const ratio = hits.length >= 4 ? 1 : hits.length === 3 ? 0.85 : hits.length === 2 ? 0.65 : hits.length === 1 ? 0.4 : 0;
+  const score = Math.min(maxScore, Math.round(maxScore * ratio));
+  return {
+    name,
+    score,
+    maxScore,
+    hits: hits.slice(0, 6),
+    advice: score >= Math.round(maxScore * 0.7) ? '保留' : `补强${name}`,
+  };
+}
+
+function buildExperimentFlags(scoreItems, text, contentType) {
+  const byName = Object.fromEntries(scoreItems.map((item) => [item.name, item.score]));
+  const flags = [];
+  if ((byName['开头强度'] || 0) < 8) flags.push('开头不够狠');
+  if ((byName['目标用户精准度'] || 0) < 8) flags.push('目标用户不够准');
+  if ((byName['信任证明'] || 0) < 8) flags.push('缺少证明材料');
+  if ((byName['成交承接'] || 0) < 8 && /转化|成交|咨询|课程|服务/.test(contentType + text)) flags.push('成交入口不清楚');
+  if (/泛流量|热点|反常识/.test(text) && !/私信|电话|评论关键词|表单/.test(text)) flags.push('可能有泛流量脏数据');
+  return flags;
+}
+
+function buildScoreSummary(totalScore, contentType, flags) {
+  if (totalScore >= 85) return `${contentType}发布前评分较强，可以发布并做T+3复盘。`;
+  if (totalScore >= 70) return `${contentType}可以小流量测试，发布后重点观察评论和私信是否精准。`;
+  return `${contentType}建议先补强：${flags.slice(0, 3).join('、') || '开头、痛点和证明'}。`;
+}
+
+function buildExperimentPrediction({ totalScore, scoreItems, flags, contentType }) {
+  const item = (name) => scoreItems.find((entry) => entry.name === name)?.score || 0;
+  const traffic = item('开头强度') + item('痛点强度') + item('真实人设');
+  const conversion = item('目标用户精准度') + item('信任证明') + item('成交承接');
+  const likelyOutcome = conversion >= traffic + 6
+    ? '低播放高咨询'
+    : traffic >= conversion + 10
+      ? '高播放低转化'
+      : totalScore >= 80
+        ? '流量与转化均衡'
+        : '需要小样本测试';
+  return {
+    blind: true,
+    contentType,
+    likelyOutcome,
+    expectedSignals: [
+      traffic >= 28 ? '开头有停留潜力' : '开头需要观察3秒留存',
+      conversion >= 28 ? '咨询/私信质量可能较高' : '成交承接需要重点复盘',
+      flags.includes('可能有泛流量脏数据') ? '评论热闹但不一定成交' : '优先看评论是否来自目标用户',
+    ],
+    watchMetrics: ['3秒留存', '完播率', '评论关键词', '私信数', '电话数', '成交线索'],
+    publishAdvice: totalScore >= 70 ? '可以发布测试，T+3填写数据复盘。' : '建议修改后再发布。',
+  };
+}
+
+function normalizeExperimentMetrics(input = {}) {
+  const metric = (key) => Math.max(0, Number(input[key] ?? 0) || 0);
+  return {
+    views: metric('views'),
+    completionRate: Math.max(0, Math.min(100, Number(input.completionRate ?? 0) || 0)),
+    likes: metric('likes'),
+    comments: metric('comments'),
+    saves: metric('saves'),
+    shares: metric('shares'),
+    privateMessages: metric('privateMessages'),
+    phoneCalls: metric('phoneCalls'),
+    leads: metric('leads'),
+    deals: metric('deals'),
+    highIntentQuotes: String(input.highIntentQuotes || '').slice(0, 1000),
+  };
+}
+
+function buildExperimentReview({ score, prediction, metrics, notes }) {
+  const engagement = metrics.views > 0
+    ? Number((((metrics.likes + metrics.comments + metrics.saves + metrics.shares) / metrics.views) * 100).toFixed(2))
+    : 0;
+  const consultRate = metrics.views > 0
+    ? Number((((metrics.privateMessages + metrics.phoneCalls + metrics.leads) / metrics.views) * 100).toFixed(2))
+    : 0;
+  const hasConversion = metrics.privateMessages + metrics.phoneCalls + metrics.leads + metrics.deals > 0;
+  const decision = metrics.views < 100
+    ? '样本不足'
+    : hasConversion && consultRate >= 0.3
+      ? '干净数据'
+      : metrics.views >= 2000 && !hasConversion
+        ? '疑似脏数据'
+        : '继续观察';
+  const matchedPrediction = prediction?.likelyOutcome
+    ? inferPredictionMatched(prediction.likelyOutcome, metrics, hasConversion)
+    : false;
+  return {
+    reviewedAt: nowIso(),
+    metrics,
+    engagement,
+    consultRate,
+    decision,
+    matchedPrediction,
+    notes: String(notes || '').slice(0, 1200),
+    diagnosis: buildReviewDiagnosis({ decision, metrics, score }),
+    nextActions: buildReviewNextActions({ decision, metrics, score }),
+    rubricUpdate: buildRubricUpdate({ decision, metrics, score }),
+  };
+}
+
+function inferPredictionMatched(likelyOutcome, metrics, hasConversion) {
+  if (likelyOutcome === '低播放高咨询') return metrics.views < 2000 && hasConversion;
+  if (likelyOutcome === '高播放低转化') return metrics.views >= 2000 && !hasConversion;
+  if (likelyOutcome === '流量与转化均衡') return metrics.views >= 500 && hasConversion;
+  return metrics.views < 1000;
+}
+
+function buildReviewDiagnosis({ decision, metrics, score }) {
+  if (decision === '样本不足') return '样本太少，先不要改太多变量，保留结构再测一条。';
+  if (decision === '疑似脏数据') return '播放不少但咨询弱，优先检查目标用户、开头承诺和成交入口是否偏泛。';
+  if (decision === '干净数据') return '数据较干净，保留开头结构、证明方式和承接路径，做同主题追投。';
+  if ((score?.total || 0) < 70) return '发布前评分偏低，复盘时优先改开头、痛点和证明材料。';
+  return `继续观察高意向信号：评论${metrics.comments}、私信${metrics.privateMessages}、电话${metrics.phoneCalls}。`;
+}
+
+function buildReviewNextActions({ decision, metrics }) {
+  if (decision === '干净数据') return ['24-72小时内追一条同主题转化视频', '复用开头结构，只替换案例或证明材料', '把评论/私信原话沉淀进项目档案'];
+  if (decision === '疑似脏数据') return ['下一条收窄目标人群', '第一句加入客户身份或具体场景', 'CTA从泛互动改成私信/电话/关键词'];
+  if (decision === '样本不足') return ['保留原结构再发布一条', '只改一个变量', '不要用单条低播放否定方法'];
+  return ['补充T+3后续数据', '对比预测与真实结果', '记录下一条实验假设'];
+}
+
+function buildRubricUpdate({ decision, metrics, score }) {
+  if (decision === '干净数据') return '提高本条命中的开头、证明、承接因子权重。';
+  if (decision === '疑似脏数据') return '降低泛流量钩子权重，提高目标用户精准度和成交入口权重。';
+  if ((score?.total || 0) < 70) return '发布前评分低于70的内容不建议直接发布，先补强骨架。';
+  return '保留当前评分规则，等待更多样本校准。';
+}
+
+function inferContentType(moduleId, text) {
+  if (/转化|成交|私信|电话|表单|预约/.test(text) || moduleId === 'conversion-topics') return '成交转化型';
+  if (/热点|爆款|反常识|泛流量/.test(text) || moduleId === 'viral-topics') return '泛流量/起量型';
+  if (/信任|证明|案例|判决书|评价|资质/.test(text)) return '信任证明型';
+  if (/人设|定位|自己人|方言|真实/.test(text) || moduleId === 'ip-positioning') return '立人设型';
+  if (/带货|商品|TikTok|小黄车|团购/.test(text) || moduleId === 'commerce') return '带货转化型';
+  return '内容测试型';
+}
+
+function flattenText(value) {
+  if (value === null || value === undefined) return '';
+  if (typeof value === 'string') return value;
+  if (Array.isArray(value)) return value.map(flattenText).join('\n');
+  if (typeof value === 'object') return Object.values(value).map(flattenText).join('\n');
+  return String(value);
+}
+
+function normalizeExperimentTitle(title) {
+  return String(title || '').replace(/\s+/g, ' ').trim().slice(0, 120) || '内容实验';
 }
 
 function parseJsonObject(value) {

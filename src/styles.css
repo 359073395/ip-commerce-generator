@@ -2065,7 +2065,203 @@ th {
     padding: 10px;
   }
 
-  .module-header {
+.module-header {
+  flex-direction: column;
+}
+}
+
+.content-experiment-panel {
+  border-top: 1px solid #dfe7f1;
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+}
+
+.experiment-card {
+  background: #f8fbff;
+  border: 1px solid #dfe7f1;
+  border-radius: 8px;
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+}
+
+.experiment-title {
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.experiment-title strong {
+  color: #162033;
+  font-size: 15px;
+}
+
+.experiment-title span {
+  color: #64748b;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.experiment-score-row {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 112px 1fr;
+}
+
+.experiment-score,
+.experiment-prediction {
+  background: #ffffff;
+  border: 1px solid #e6edf5;
+  border-radius: 8px;
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+}
+
+.experiment-score span,
+.experiment-prediction span,
+.experiment-score small,
+.experiment-prediction small {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.experiment-score strong {
+  color: #0f766e;
+  font-size: 28px;
+  line-height: 1;
+}
+
+.experiment-prediction strong {
+  color: #162033;
+  font-size: 14px;
+}
+
+.experiment-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.experiment-tags span {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 999px;
+  color: #9a3412;
+  font-size: 12px;
+  padding: 4px 8px;
+}
+
+.experiment-mini-list,
+.experiment-review-result {
+  color: #475569;
+  display: grid;
+  font-size: 13px;
+  gap: 6px;
+}
+
+.experiment-mini-list p,
+.experiment-review-result p {
+  margin: 0;
+}
+
+.experiment-review-result {
+  background: #ecfdf5;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.experiment-review-result strong {
+  color: #166534;
+}
+
+.experiment-review-result ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.experiment-review-form {
+  border-top: 1px solid #e6edf5;
+  display: grid;
+  gap: 10px;
+  padding-top: 12px;
+}
+
+.experiment-form-grid {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.experiment-review-form label {
+  display: grid;
+  gap: 5px;
+}
+
+.experiment-review-form span {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.experiment-review-form input,
+.experiment-review-form textarea {
+  background: #ffffff;
+  border: 1px solid #dbe5ef;
+  border-radius: 6px;
+  color: #162033;
+  font: inherit;
+  min-width: 0;
+  padding: 8px 9px;
+}
+
+.experiment-review-form textarea {
+  min-height: 64px;
+  resize: vertical;
+}
+
+.experiment-wide {
+  grid-column: 1 / -1;
+}
+
+.experiment-archive {
+  display: grid;
+  gap: 6px;
+}
+
+.experiment-archive-row {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #e6edf5;
+  border-radius: 6px;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+  padding: 8px 10px;
+}
+
+.experiment-archive-row span {
+  color: #475569;
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.experiment-archive-row strong {
+  color: #0f766e;
+  font-size: 14px;
+}
+
+@media (max-width: 720px) {
+  .experiment-score-row,
+  .experiment-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .experiment-title {
+    align-items: flex-start;
     flex-direction: column;
   }
 }

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
+  BarChart3,
   Bot,
   CheckCircle2,
   CircleAlert,
@@ -139,6 +140,9 @@ function App() {
   const [agentRunError, setAgentRunError] = useState('');
   const [generationHistory, setGenerationHistory] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [contentExperiments, setContentExperiments] = useState([]);
+  const [experimentLoading, setExperimentLoading] = useState(false);
+  const [experimentError, setExperimentError] = useState('');
 
   const module = moduleMap[activeModule];
   const currentResult = results[activeModule];
@@ -199,6 +203,7 @@ function App() {
   useEffect(() => {
     if (!authUser || !activeProjectId || !activeModule) return;
     refreshGenerationHistory();
+    refreshContentExperiments();
   }, [authUser?.id, activeProjectId, activeModule]);
 
   async function handleLogin(user) {
@@ -329,6 +334,78 @@ function App() {
       return [];
     } finally {
       setHistoryLoading(false);
+    }
+  }
+
+  async function refreshContentExperiments() {
+    if (!activeProjectId) return [];
+    setExperimentLoading(true);
+    try {
+      const params = new URLSearchParams({
+        projectId: activeProjectId,
+        limit: '20',
+      });
+      const response = await fetch(`/api/content-experiments?${params.toString()}`);
+      const payload = await response.json();
+      if (!response.ok || !payload.ok) throw new Error(payload.message || '读取内容实验失败');
+      setContentExperiments(payload.experiments || []);
+      return payload.experiments || [];
+    } catch (error) {
+      setExperimentError(formatRequestError(error));
+      return [];
+    } finally {
+      setExperimentLoading(false);
+    }
+  }
+
+  async function createContentExperiment() {
+    if (!currentResult?.recordId) {
+      setExperimentError('请先生成一次内容，系统会基于生成记录创建发布前实验。');
+      return null;
+    }
+    setExperimentLoading(true);
+    setExperimentError('');
+    try {
+      const response = await fetch('/api/content-experiments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId: activeProjectId,
+          generationRecordId: currentResult.recordId,
+          moduleId: activeModule,
+          title: currentResult.result?.summary || module.name,
+        }),
+      });
+      const payload = await response.json();
+      if (!response.ok || !payload.ok) throw new Error(payload.message || '创建内容实验失败');
+      await refreshContentExperiments();
+      return payload.experiment;
+    } catch (error) {
+      setExperimentError(formatRequestError(error));
+      return null;
+    } finally {
+      setExperimentLoading(false);
+    }
+  }
+
+  async function reviewContentExperiment(experimentId, reviewData) {
+    setExperimentLoading(true);
+    setExperimentError('');
+    try {
+      const response = await fetch(`/api/content-experiments/${experimentId}/review`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(reviewData),
+      });
+      const payload = await response.json();
+      if (!response.ok || !payload.ok) throw new Error(payload.message || '保存复盘失败');
+      await refreshContentExperiments();
+      return payload.experiment;
+    } catch (error) {
+      setExperimentError(formatRequestError(error));
+      return null;
+    } finally {
+      setExperimentLoading(false);
     }
   }
 
@@ -584,6 +661,12 @@ function App() {
                 onRefreshHistory={refreshGenerationHistory}
                 onLoadHistory={applyGenerationRecord}
                 onApplyProfileSuggestions={applyProfileSuggestions}
+                experiments={contentExperiments}
+                experimentLoading={experimentLoading}
+                experimentError={experimentError}
+                onCreateExperiment={createContentExperiment}
+                onReviewExperiment={reviewContentExperiment}
+                onRefreshExperiments={refreshContentExperiments}
               />
             </div>
           </main>
@@ -688,6 +771,12 @@ function App() {
             onRefreshHistory={refreshGenerationHistory}
             onLoadHistory={applyGenerationRecord}
             onApplyProfileSuggestions={applyProfileSuggestions}
+            experiments={contentExperiments}
+            experimentLoading={experimentLoading}
+            experimentError={experimentError}
+            onCreateExperiment={createContentExperiment}
+            onReviewExperiment={reviewContentExperiment}
+            onRefreshExperiments={refreshContentExperiments}
           />
         </div>
       </main>
@@ -1307,7 +1396,23 @@ function ErrorBox({ message }) {
   );
 }
 
-function ResultPanel({ module, result, loading, error, history = [], historyLoading, onRefreshHistory, onLoadHistory, onApplyProfileSuggestions }) {
+function ResultPanel({
+  module,
+  result,
+  loading,
+  error,
+  history = [],
+  historyLoading,
+  onRefreshHistory,
+  onLoadHistory,
+  onApplyProfileSuggestions,
+  experiments = [],
+  experimentLoading,
+  experimentError,
+  onCreateExperiment,
+  onReviewExperiment,
+  onRefreshExperiments,
+}) {
   return (
     <aside className="result-panel">
       <div className="result-header">
@@ -1321,6 +1426,15 @@ function ResultPanel({ module, result, loading, error, history = [], historyLoad
       {!loading && error && <StateMessage title="生成未完成" body="请根据左侧提示处理 API 或输入问题。" warning />}
       {!loading && !error && !result && <EmptyResult module={module} />}
       {!loading && result && <RenderedResult result={result} onApplyProfileSuggestions={onApplyProfileSuggestions} />}
+      <ContentExperimentPanel
+        hasResult={Boolean(result)}
+        experiments={experiments}
+        loading={experimentLoading}
+        error={experimentError}
+        onCreate={onCreateExperiment}
+        onReview={onReviewExperiment}
+        onRefresh={onRefreshExperiments}
+      />
       <GenerationHistoryPanel
         history={history}
         loading={historyLoading}
@@ -1328,6 +1442,171 @@ function ResultPanel({ module, result, loading, error, history = [], historyLoad
         onLoad={onLoadHistory}
       />
     </aside>
+  );
+}
+
+function ContentExperimentPanel({
+  hasResult,
+  experiments = [],
+  loading,
+  error,
+  onCreate,
+  onReview,
+  onRefresh,
+}) {
+  const latest = experiments[0] || null;
+  return (
+    <div className="content-experiment-panel">
+      <div className="history-head">
+        <div>
+          <h3>内容实验闭环</h3>
+          <span>发布前评分、盲预测、T+3复盘和下一条建议</span>
+        </div>
+        <button className="soft-button history-refresh" type="button" onClick={onRefresh} disabled={loading}>
+          {loading ? <Loader2 className="spin" size={15} /> : <RefreshCw size={15} />}
+          刷新
+        </button>
+      </div>
+      {error && <ErrorBox message={error} />}
+      <button className="primary-button full" type="button" onClick={onCreate} disabled={!hasResult || loading}>
+        {loading ? <Loader2 className="spin" size={18} /> : <BarChart3 size={18} />}
+        加入发布前实验
+      </button>
+      {!hasResult && <div className="history-empty">先生成内容，再创建发布前实验。</div>}
+      {latest && (
+        <div className="experiment-card">
+          <div className="experiment-title">
+            <strong>{latest.title}</strong>
+            <span>{latest.contentType} / {latest.status}</span>
+          </div>
+          <div className="experiment-score-row">
+            <div className="experiment-score">
+              <span>发布前评分</span>
+              <strong>{latest.score?.total ?? 0}</strong>
+              <small>{latest.score?.level || '未评分'}</small>
+            </div>
+            <div className="experiment-prediction">
+              <span>盲预测</span>
+              <strong>{latest.prediction?.likelyOutcome || '待预测'}</strong>
+              <small>{latest.prediction?.publishAdvice || ''}</small>
+            </div>
+          </div>
+          {Boolean(latest.score?.flags?.length) && (
+            <div className="experiment-tags">
+              {latest.score.flags.map((flag) => <span key={flag}>{flag}</span>)}
+            </div>
+          )}
+          <div className="experiment-mini-list">
+            {(latest.prediction?.expectedSignals || []).map((item) => <p key={item}>{item}</p>)}
+          </div>
+          {latest.review?.diagnosis && (
+            <div className="experiment-review-result">
+              <strong>{latest.review.decision}</strong>
+              <p>{latest.review.diagnosis}</p>
+              <ul>{(latest.review.nextActions || []).map((item) => <li key={item}>{item}</li>)}</ul>
+            </div>
+          )}
+          <ContentExperimentReviewForm experiment={latest} loading={loading} onReview={onReview} />
+        </div>
+      )}
+      {experiments.length > 1 && (
+        <div className="experiment-archive">
+          {experiments.slice(1, 4).map((item) => (
+            <div className="experiment-archive-row" key={item.id}>
+              <span>{item.title}</span>
+              <strong>{item.score?.total ?? 0}</strong>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ContentExperimentReviewForm({ experiment, loading, onReview }) {
+  const [draft, setDraft] = useState(() => ({
+    publishUrl: experiment?.publish?.url || '',
+    publishedAt: experiment?.publish?.publishedAt || '',
+    views: experiment?.review?.metrics?.views || '',
+    completionRate: experiment?.review?.metrics?.completionRate || '',
+    likes: experiment?.review?.metrics?.likes || '',
+    comments: experiment?.review?.metrics?.comments || '',
+    saves: experiment?.review?.metrics?.saves || '',
+    shares: experiment?.review?.metrics?.shares || '',
+    privateMessages: experiment?.review?.metrics?.privateMessages || '',
+    phoneCalls: experiment?.review?.metrics?.phoneCalls || '',
+    leads: experiment?.review?.metrics?.leads || '',
+    deals: experiment?.review?.metrics?.deals || '',
+    highIntentQuotes: experiment?.review?.metrics?.highIntentQuotes || '',
+    notes: experiment?.review?.notes || '',
+  }));
+
+  useEffect(() => {
+    setDraft({
+      publishUrl: experiment?.publish?.url || '',
+      publishedAt: experiment?.publish?.publishedAt || '',
+      views: experiment?.review?.metrics?.views || '',
+      completionRate: experiment?.review?.metrics?.completionRate || '',
+      likes: experiment?.review?.metrics?.likes || '',
+      comments: experiment?.review?.metrics?.comments || '',
+      saves: experiment?.review?.metrics?.saves || '',
+      shares: experiment?.review?.metrics?.shares || '',
+      privateMessages: experiment?.review?.metrics?.privateMessages || '',
+      phoneCalls: experiment?.review?.metrics?.phoneCalls || '',
+      leads: experiment?.review?.metrics?.leads || '',
+      deals: experiment?.review?.metrics?.deals || '',
+      highIntentQuotes: experiment?.review?.metrics?.highIntentQuotes || '',
+      notes: experiment?.review?.notes || '',
+    });
+  }, [experiment?.id]);
+
+  const update = (key, value) => setDraft((prev) => ({ ...prev, [key]: value }));
+
+  function submit(event) {
+    event.preventDefault();
+    onReview?.(experiment.id, {
+      publishUrl: draft.publishUrl,
+      publishedAt: draft.publishedAt,
+      notes: draft.notes,
+      metrics: {
+        views: draft.views,
+        completionRate: draft.completionRate,
+        likes: draft.likes,
+        comments: draft.comments,
+        saves: draft.saves,
+        shares: draft.shares,
+        privateMessages: draft.privateMessages,
+        phoneCalls: draft.phoneCalls,
+        leads: draft.leads,
+        deals: draft.deals,
+        highIntentQuotes: draft.highIntentQuotes,
+      },
+    });
+  }
+
+  return (
+    <form className="experiment-review-form" onSubmit={submit}>
+      <div className="experiment-form-grid">
+        <label><span>发布链接</span><input value={draft.publishUrl} onChange={(event) => update('publishUrl', event.target.value)} /></label>
+        <label><span>发布时间</span><input value={draft.publishedAt} onChange={(event) => update('publishedAt', event.target.value)} placeholder="2026-07-11" /></label>
+        <label><span>播放</span><input type="number" min="0" value={draft.views} onChange={(event) => update('views', event.target.value)} /></label>
+        <label><span>完播率%</span><input type="number" min="0" max="100" value={draft.completionRate} onChange={(event) => update('completionRate', event.target.value)} /></label>
+        <label><span>点赞</span><input type="number" min="0" value={draft.likes} onChange={(event) => update('likes', event.target.value)} /></label>
+        <label><span>评论</span><input type="number" min="0" value={draft.comments} onChange={(event) => update('comments', event.target.value)} /></label>
+        <label><span>收藏</span><input type="number" min="0" value={draft.saves} onChange={(event) => update('saves', event.target.value)} /></label>
+        <label><span>转发</span><input type="number" min="0" value={draft.shares} onChange={(event) => update('shares', event.target.value)} /></label>
+        <label><span>私信</span><input type="number" min="0" value={draft.privateMessages} onChange={(event) => update('privateMessages', event.target.value)} /></label>
+        <label><span>电话</span><input type="number" min="0" value={draft.phoneCalls} onChange={(event) => update('phoneCalls', event.target.value)} /></label>
+        <label><span>线索</span><input type="number" min="0" value={draft.leads} onChange={(event) => update('leads', event.target.value)} /></label>
+        <label><span>成交</span><input type="number" min="0" value={draft.deals} onChange={(event) => update('deals', event.target.value)} /></label>
+      </div>
+      <label className="experiment-wide"><span>高意向原话</span><textarea value={draft.highIntentQuotes} onChange={(event) => update('highIntentQuotes', event.target.value)} /></label>
+      <label className="experiment-wide"><span>复盘备注</span><textarea value={draft.notes} onChange={(event) => update('notes', event.target.value)} /></label>
+      <button className="soft-button ready" type="submit" disabled={loading}>
+        {loading ? <Loader2 className="spin" size={16} /> : <Save size={16} />}
+        保存T+3复盘
+      </button>
+    </form>
   );
 }
 
