@@ -10,19 +10,21 @@ SERVICE_NAME="${SERVICE_NAME:-ip-commerce-generator}"
 APP_DIR="${APP_DIR:-$(pwd)}"
 APP_GIT_URL="${APP_GIT_URL:-}"
 APP_GIT_REF="${APP_GIT_REF:-}"
-PORT="${PORT:-8790}"
 NODE_MAJOR="${NODE_MAJOR:-20}"
+APP_RUN_USER="${APP_RUN_USER:-${SUDO_USER:-root}}"
+APP_RUN_GROUP="${APP_RUN_GROUP:-}"
+PRIVATE_KNOWLEDGE_DIR="${PRIVATE_KNOWLEDGE_DIR:-/opt/ip-commerce-private}"
 
-DEFAULT_FALLBACK_MODELS="${OPENAI_FALLBACK_MODELS:-gpt-5.4,gemini-3-flash,gpt-5.4-mini}"
-DEFAULT_TIMEOUT_MS="${OPENAI_TIMEOUT_MS:-45000}"
-DEFAULT_FALLBACK_TIMEOUT_MS="${OPENAI_FALLBACK_TIMEOUT_MS:-30000}"
-DEFAULT_MAX_TOKENS="${OPENAI_MAX_TOKENS:-1200}"
-DEFAULT_TEMPERATURE="${OPENAI_TEMPERATURE:-0.4}"
-DEFAULT_REASONING_EFFORT="${OPENAI_REASONING_EFFORT:-low}"
-DEFAULT_KNOWLEDGE_BUDGET_CHARS="${KNOWLEDGE_BUDGET_CHARS:-1200}"
-DEFAULT_AGENT_REVIEW_ENABLED="${AGENT_REVIEW_ENABLED:-true}"
-DEFAULT_AGENT_REVIEW_MAX_TOKENS="${AGENT_REVIEW_MAX_TOKENS:-1200}"
-DEFAULT_AGENT_REVIEW_TIMEOUT_MS="${AGENT_REVIEW_TIMEOUT_MS:-20000}"
+DEFAULT_FALLBACK_MODELS="gpt-5.4,gemini-3-flash,gpt-5.4-mini"
+DEFAULT_TIMEOUT_MS="45000"
+DEFAULT_FALLBACK_TIMEOUT_MS="30000"
+DEFAULT_MAX_TOKENS="1200"
+DEFAULT_TEMPERATURE="0.4"
+DEFAULT_REASONING_EFFORT="low"
+DEFAULT_KNOWLEDGE_BUDGET_CHARS="1200"
+DEFAULT_AGENT_REVIEW_ENABLED="true"
+DEFAULT_AGENT_REVIEW_MAX_TOKENS="1200"
+DEFAULT_AGENT_REVIEW_TIMEOUT_MS="20000"
 DEFAULT_ENABLE_NGINX_BASIC_AUTH="${ENABLE_NGINX_BASIC_AUTH:-no}"
 DEFAULT_BASIC_AUTH_USER="${BASIC_AUTH_USER:-admin}"
 GENERATED_BASIC_AUTH_PASSWORD="${GENERATED_BASIC_AUTH_PASSWORD:-no}"
@@ -31,6 +33,25 @@ DEFAULT_APP_AUTH_USER="${APP_AUTH_USER:-admin}"
 GENERATED_APP_AUTH_PASSWORD="${GENERATED_APP_AUTH_PASSWORD:-no}"
 DEFAULT_ADMIN_USERNAME="${ADMIN_USERNAME:-admin}"
 GENERATED_INITIAL_ADMIN_PASSWORD="${GENERATED_INITIAL_ADMIN_PASSWORD:-no}"
+
+DEPLOY_ENV_KEYS=(
+  OPENAI_BASE_URL OPENAI_API_KEY OPENAI_MODEL OPENAI_FALLBACK_MODELS
+  OPENAI_TIMEOUT_MS OPENAI_FALLBACK_TIMEOUT_MS OPENAI_MAX_TOKENS
+  OPENAI_TEMPERATURE OPENAI_REASONING_EFFORT
+  DEEPSEEK_ENABLED DEEPSEEK_BASE_URL DEEPSEEK_API_KEY DEEPSEEK_MODEL
+  DEEPSEEK_MODE DEEPSEEK_TIMEOUT_MS
+  APP_AUTH_ENABLED APP_AUTH_USER APP_AUTH_PASSWORD ADMIN_USERNAME
+  INITIAL_ADMIN_PASSWORD PORT HOST APP_DATA_DIR SESSION_DAYS
+  KNOWLEDGE_DB_PATH KNOWLEDGE_BACKUP_DIR KNOWLEDGE_BACKUP_ENABLED
+  PRIVATE_KNOWLEDGE_REQUIRED PRIVATE_KNOWLEDGE_MIN_CARDS
+  KNOWLEDGE_UPLOAD_MAX_BYTES KNOWLEDGE_INGEST_MAX_CHUNKS
+  KNOWLEDGE_INGEST_CHUNK_CHARS KNOWLEDGE_INGEST_MAX_INPUT_CHARS
+  KNOWLEDGE_INGEST_MAX_TOKENS KNOWLEDGE_BUDGET_CHARS
+  AGENT_REVIEW_ENABLED AGENT_REVIEW_MAX_TOKENS AGENT_REVIEW_TIMEOUT_MS
+  QUALITY_REPAIR_ENABLED QUALITY_REPAIR_THRESHOLD AGENT_QUALITY_GATE_THRESHOLD
+  JOB_GLOBAL_CONCURRENCY JOB_MAX_QUEUED_PER_USER
+)
+declare -A DEPLOY_ENV_WAS_SET=()
 
 log() {
   printf '\n[%s] %s\n' "$APP_NAME" "$*"
@@ -104,13 +125,53 @@ quote_env_value() {
 read_env_value() {
   local key="$1"
   local value
-  if [[ ! -f ".env" ]]; then
+  local env_file="${APP_DIR}/.env"
+  if [[ ! -f "$env_file" ]]; then
     return
   fi
-  value="$(grep -E "^${key}=" .env 2>/dev/null | tail -n 1 | cut -d= -f2- || true)"
+  value="$(grep -E "^${key}=" "$env_file" 2>/dev/null | tail -n 1 | cut -d= -f2- || true)"
   value="${value%\"}"
   value="${value#\"}"
   printf '%s' "$value"
+}
+
+capture_env_overrides() {
+  local key
+  for key in "${DEPLOY_ENV_KEYS[@]}"; do
+    if [[ -v "$key" ]]; then
+      DEPLOY_ENV_WAS_SET["$key"]="1"
+    else
+      DEPLOY_ENV_WAS_SET["$key"]="0"
+    fi
+  done
+}
+
+resolve_env_setting() {
+  local key="$1"
+  local default_value="$2"
+  local current_value="${!key-}"
+  local existing_value=""
+
+  if [[ "${DEPLOY_ENV_WAS_SET[$key]:-0}" != "1" && "${FORCE_ENV:-0}" != "1" ]]; then
+    existing_value="$(read_env_value "$key")"
+    if [[ -n "$existing_value" ]]; then
+      current_value="$existing_value"
+    fi
+  fi
+  if [[ -z "$current_value" ]]; then
+    current_value="$default_value"
+  fi
+  printf -v "$key" '%s' "$current_value"
+}
+
+normalize_boolean_setting() {
+  local key="$1"
+  local value="${!key:-}"
+  case "${value,,}" in
+    y|yes|true|1|on) printf -v "$key" '%s' "true" ;;
+    n|no|false|0|off) printf -v "$key" '%s' "false" ;;
+    *) die "${key} must be true or false." ;;
+  esac
 }
 
 install_system_packages() {
@@ -160,46 +221,66 @@ prepare_app_dir() {
 }
 
 collect_env_settings() {
-  APP_AUTH_ENABLED_WAS_SET="${APP_AUTH_ENABLED+x}"
-  APP_AUTH_USER_WAS_SET="${APP_AUTH_USER+x}"
-  APP_AUTH_PASSWORD_WAS_SET="${APP_AUTH_PASSWORD+x}"
-  ADMIN_USERNAME_WAS_SET="${ADMIN_USERNAME+x}"
-  INITIAL_ADMIN_PASSWORD_WAS_SET="${INITIAL_ADMIN_PASSWORD+x}"
-  AGENT_REVIEW_ENABLED_WAS_SET="${AGENT_REVIEW_ENABLED+x}"
-  AGENT_REVIEW_MAX_TOKENS_WAS_SET="${AGENT_REVIEW_MAX_TOKENS+x}"
-  AGENT_REVIEW_TIMEOUT_MS_WAS_SET="${AGENT_REVIEW_TIMEOUT_MS+x}"
-  OPENAI_BASE_URL="${OPENAI_BASE_URL:-}"
-  OPENAI_API_KEY="${OPENAI_API_KEY:-}"
-  OPENAI_MODEL="${OPENAI_MODEL:-}"
-  OPENAI_FALLBACK_MODELS="${OPENAI_FALLBACK_MODELS:-$DEFAULT_FALLBACK_MODELS}"
-  OPENAI_TIMEOUT_MS="${OPENAI_TIMEOUT_MS:-$DEFAULT_TIMEOUT_MS}"
-  OPENAI_FALLBACK_TIMEOUT_MS="${OPENAI_FALLBACK_TIMEOUT_MS:-$DEFAULT_FALLBACK_TIMEOUT_MS}"
-  OPENAI_MAX_TOKENS="${OPENAI_MAX_TOKENS:-$DEFAULT_MAX_TOKENS}"
-  OPENAI_TEMPERATURE="${OPENAI_TEMPERATURE:-$DEFAULT_TEMPERATURE}"
-  OPENAI_REASONING_EFFORT="${OPENAI_REASONING_EFFORT:-$DEFAULT_REASONING_EFFORT}"
-  KNOWLEDGE_BUDGET_CHARS="${KNOWLEDGE_BUDGET_CHARS:-$DEFAULT_KNOWLEDGE_BUDGET_CHARS}"
-  AGENT_REVIEW_ENABLED="${AGENT_REVIEW_ENABLED:-$DEFAULT_AGENT_REVIEW_ENABLED}"
-  AGENT_REVIEW_MAX_TOKENS="${AGENT_REVIEW_MAX_TOKENS:-$DEFAULT_AGENT_REVIEW_MAX_TOKENS}"
-  AGENT_REVIEW_TIMEOUT_MS="${AGENT_REVIEW_TIMEOUT_MS:-$DEFAULT_AGENT_REVIEW_TIMEOUT_MS}"
+  capture_env_overrides
+
+  resolve_env_setting OPENAI_BASE_URL ""
+  resolve_env_setting OPENAI_API_KEY ""
+  resolve_env_setting OPENAI_MODEL ""
+  resolve_env_setting OPENAI_FALLBACK_MODELS "$DEFAULT_FALLBACK_MODELS"
+  resolve_env_setting OPENAI_TIMEOUT_MS "$DEFAULT_TIMEOUT_MS"
+  resolve_env_setting OPENAI_FALLBACK_TIMEOUT_MS "$DEFAULT_FALLBACK_TIMEOUT_MS"
+  resolve_env_setting OPENAI_MAX_TOKENS "$DEFAULT_MAX_TOKENS"
+  resolve_env_setting OPENAI_TEMPERATURE "$DEFAULT_TEMPERATURE"
+  resolve_env_setting OPENAI_REASONING_EFFORT "$DEFAULT_REASONING_EFFORT"
+  resolve_env_setting DEEPSEEK_ENABLED "false"
+  resolve_env_setting DEEPSEEK_BASE_URL "https://api.deepseek.com/v1"
+  resolve_env_setting DEEPSEEK_API_KEY ""
+  resolve_env_setting DEEPSEEK_MODEL "deepseek-chat"
+  resolve_env_setting DEEPSEEK_MODE "fallback"
+  resolve_env_setting DEEPSEEK_TIMEOUT_MS "45000"
+
+  # The legacy shared page password stays disabled unless explicitly requested.
   APP_AUTH_ENABLED="${APP_AUTH_ENABLED:-$DEFAULT_APP_AUTH_ENABLED}"
-  APP_AUTH_USER="${APP_AUTH_USER:-$DEFAULT_APP_AUTH_USER}"
-  APP_AUTH_PASSWORD="${APP_AUTH_PASSWORD:-}"
-  ADMIN_USERNAME="${ADMIN_USERNAME:-$DEFAULT_ADMIN_USERNAME}"
-  INITIAL_ADMIN_PASSWORD="${INITIAL_ADMIN_PASSWORD:-}"
-  PORT="${PORT:-8790}"
+  resolve_env_setting APP_AUTH_USER "$DEFAULT_APP_AUTH_USER"
+  resolve_env_setting APP_AUTH_PASSWORD ""
+  resolve_env_setting ADMIN_USERNAME "$DEFAULT_ADMIN_USERNAME"
+  resolve_env_setting INITIAL_ADMIN_PASSWORD ""
+  resolve_env_setting PORT "8790"
+  resolve_env_setting HOST "0.0.0.0"
+  resolve_env_setting APP_DATA_DIR "${APP_DIR}/data"
+  resolve_env_setting SESSION_DAYS "14"
+
+  resolve_env_setting KNOWLEDGE_DB_PATH "${PRIVATE_KNOWLEDGE_DIR}/knowledge.db"
+  PRIVATE_KNOWLEDGE_DIR="$(dirname "$KNOWLEDGE_DB_PATH")"
+  resolve_env_setting KNOWLEDGE_BACKUP_DIR "${PRIVATE_KNOWLEDGE_DIR}/backups"
+  resolve_env_setting KNOWLEDGE_BACKUP_ENABLED "true"
+  resolve_env_setting PRIVATE_KNOWLEDGE_REQUIRED "true"
+  resolve_env_setting PRIVATE_KNOWLEDGE_MIN_CARDS "200"
+  resolve_env_setting KNOWLEDGE_UPLOAD_MAX_BYTES "10485760"
+  resolve_env_setting KNOWLEDGE_INGEST_MAX_CHUNKS "4"
+  resolve_env_setting KNOWLEDGE_INGEST_CHUNK_CHARS "12000"
+  resolve_env_setting KNOWLEDGE_INGEST_MAX_INPUT_CHARS "100000"
+  resolve_env_setting KNOWLEDGE_INGEST_MAX_TOKENS "1800"
+  resolve_env_setting KNOWLEDGE_BUDGET_CHARS "$DEFAULT_KNOWLEDGE_BUDGET_CHARS"
+
+  resolve_env_setting AGENT_REVIEW_ENABLED "$DEFAULT_AGENT_REVIEW_ENABLED"
+  resolve_env_setting AGENT_REVIEW_MAX_TOKENS "$DEFAULT_AGENT_REVIEW_MAX_TOKENS"
+  resolve_env_setting AGENT_REVIEW_TIMEOUT_MS "$DEFAULT_AGENT_REVIEW_TIMEOUT_MS"
+  resolve_env_setting QUALITY_REPAIR_ENABLED "true"
+  resolve_env_setting QUALITY_REPAIR_THRESHOLD "70"
+  resolve_env_setting AGENT_QUALITY_GATE_THRESHOLD "70"
+  resolve_env_setting JOB_GLOBAL_CONCURRENCY "2"
+  resolve_env_setting JOB_MAX_QUEUED_PER_USER "3"
+
+  LEGACY_KNOWLEDGE_DIR="${LEGACY_KNOWLEDGE_DIR:-${APP_DIR}/knowledge}"
   ENABLE_NGINX_BASIC_AUTH="${ENABLE_NGINX_BASIC_AUTH:-$DEFAULT_ENABLE_NGINX_BASIC_AUTH}"
 
-  case "${APP_AUTH_ENABLED,,}" in
-    y|yes|true|1|on) APP_AUTH_ENABLED="true" ;;
-    n|no|false|0|off) APP_AUTH_ENABLED="false" ;;
-    *) die "APP_AUTH_ENABLED must be true or false." ;;
-  esac
-
-  case "${AGENT_REVIEW_ENABLED,,}" in
-    y|yes|true|1|on) AGENT_REVIEW_ENABLED="true" ;;
-    n|no|false|0|off) AGENT_REVIEW_ENABLED="false" ;;
-    *) die "AGENT_REVIEW_ENABLED must be true or false." ;;
-  esac
+  normalize_boolean_setting APP_AUTH_ENABLED
+  normalize_boolean_setting DEEPSEEK_ENABLED
+  normalize_boolean_setting KNOWLEDGE_BACKUP_ENABLED
+  normalize_boolean_setting PRIVATE_KNOWLEDGE_REQUIRED
+  normalize_boolean_setting AGENT_REVIEW_ENABLED
+  normalize_boolean_setting QUALITY_REPAIR_ENABLED
 
   case "${ENABLE_NGINX_BASIC_AUTH,,}" in
     y|yes|true|1) ENABLE_NGINX_BASIC_AUTH="yes" ;;
@@ -234,62 +315,8 @@ write_env_file() {
   cd "${APP_DIR}"
 
   if [[ -f ".env" && "${FORCE_ENV:-0}" != "1" ]]; then
-    log ".env already exists; preserving API values and updating deployment defaults."
-    [[ -n "$OPENAI_BASE_URL" ]] || OPENAI_BASE_URL="$(read_env_value OPENAI_BASE_URL)"
-    [[ -n "$OPENAI_API_KEY" ]] || OPENAI_API_KEY="$(read_env_value OPENAI_API_KEY)"
-    [[ -n "$OPENAI_MODEL" ]] || OPENAI_MODEL="$(read_env_value OPENAI_MODEL)"
-    if [[ -z "$APP_AUTH_USER_WAS_SET" ]]; then
-      APP_AUTH_USER="$(read_env_value APP_AUTH_USER)"
-    fi
-    if [[ -z "$APP_AUTH_PASSWORD_WAS_SET" ]]; then
-      APP_AUTH_PASSWORD="$(read_env_value APP_AUTH_PASSWORD)"
-    fi
-    # The shared page password is deprecated. Keep it disabled on upgrades
-    # unless the operator explicitly passes APP_AUTH_ENABLED=true.
-    if [[ -z "$ADMIN_USERNAME_WAS_SET" ]]; then
-      local existing_admin_username
-      existing_admin_username="$(read_env_value ADMIN_USERNAME)"
-      [[ -z "$existing_admin_username" ]] || ADMIN_USERNAME="$existing_admin_username"
-    fi
-    if [[ -z "$INITIAL_ADMIN_PASSWORD_WAS_SET" ]]; then
-      local existing_initial_admin_password
-      existing_initial_admin_password="$(read_env_value INITIAL_ADMIN_PASSWORD)"
-      [[ -z "$existing_initial_admin_password" ]] || INITIAL_ADMIN_PASSWORD="$existing_initial_admin_password"
-    fi
-    if [[ -z "$AGENT_REVIEW_ENABLED_WAS_SET" ]]; then
-      local existing_agent_review_enabled
-      existing_agent_review_enabled="$(read_env_value AGENT_REVIEW_ENABLED)"
-      [[ -z "$existing_agent_review_enabled" ]] || AGENT_REVIEW_ENABLED="$existing_agent_review_enabled"
-    fi
-    if [[ -z "$AGENT_REVIEW_MAX_TOKENS_WAS_SET" ]]; then
-      local existing_agent_review_max_tokens
-      existing_agent_review_max_tokens="$(read_env_value AGENT_REVIEW_MAX_TOKENS)"
-      [[ -z "$existing_agent_review_max_tokens" ]] || AGENT_REVIEW_MAX_TOKENS="$existing_agent_review_max_tokens"
-    fi
-    if [[ -z "$AGENT_REVIEW_TIMEOUT_MS_WAS_SET" ]]; then
-      local existing_agent_review_timeout_ms
-      existing_agent_review_timeout_ms="$(read_env_value AGENT_REVIEW_TIMEOUT_MS)"
-      [[ -z "$existing_agent_review_timeout_ms" ]] || AGENT_REVIEW_TIMEOUT_MS="$existing_agent_review_timeout_ms"
-    fi
+    log ".env already exists; preserving model, queue, quality, authentication, and storage settings."
   fi
-
-  APP_AUTH_ENABLED="${APP_AUTH_ENABLED:-$DEFAULT_APP_AUTH_ENABLED}"
-  APP_AUTH_USER="${APP_AUTH_USER:-$DEFAULT_APP_AUTH_USER}"
-  ADMIN_USERNAME="${ADMIN_USERNAME:-$DEFAULT_ADMIN_USERNAME}"
-  AGENT_REVIEW_ENABLED="${AGENT_REVIEW_ENABLED:-$DEFAULT_AGENT_REVIEW_ENABLED}"
-  AGENT_REVIEW_MAX_TOKENS="${AGENT_REVIEW_MAX_TOKENS:-$DEFAULT_AGENT_REVIEW_MAX_TOKENS}"
-  AGENT_REVIEW_TIMEOUT_MS="${AGENT_REVIEW_TIMEOUT_MS:-$DEFAULT_AGENT_REVIEW_TIMEOUT_MS}"
-  case "${APP_AUTH_ENABLED,,}" in
-    y|yes|true|1|on) APP_AUTH_ENABLED="true" ;;
-    n|no|false|0|off) APP_AUTH_ENABLED="false" ;;
-    *) die "APP_AUTH_ENABLED must be true or false." ;;
-  esac
-
-  case "${AGENT_REVIEW_ENABLED,,}" in
-    y|yes|true|1|on) AGENT_REVIEW_ENABLED="true" ;;
-    n|no|false|0|off) AGENT_REVIEW_ENABLED="false" ;;
-    *) die "AGENT_REVIEW_ENABLED must be true or false." ;;
-  esac
 
   if [[ "$APP_AUTH_ENABLED" == "true" && -z "$APP_AUTH_PASSWORD" ]]; then
     APP_AUTH_PASSWORD="$(openssl rand -base64 18)"
@@ -325,12 +352,100 @@ write_env_file() {
     printf 'OPENAI_MAX_TOKENS=%s\n' "$(quote_env_value "$OPENAI_MAX_TOKENS")"
     printf 'OPENAI_TEMPERATURE=%s\n' "$(quote_env_value "$OPENAI_TEMPERATURE")"
     printf 'OPENAI_REASONING_EFFORT=%s\n' "$(quote_env_value "$OPENAI_REASONING_EFFORT")"
+    printf 'DEEPSEEK_ENABLED=%s\n' "$(quote_env_value "$DEEPSEEK_ENABLED")"
+    printf 'DEEPSEEK_BASE_URL=%s\n' "$(quote_env_value "$DEEPSEEK_BASE_URL")"
+    printf 'DEEPSEEK_API_KEY=%s\n' "$(quote_env_value "$DEEPSEEK_API_KEY")"
+    printf 'DEEPSEEK_MODEL=%s\n' "$(quote_env_value "$DEEPSEEK_MODEL")"
+    printf 'DEEPSEEK_MODE=%s\n' "$(quote_env_value "$DEEPSEEK_MODE")"
+    printf 'DEEPSEEK_TIMEOUT_MS=%s\n' "$(quote_env_value "$DEEPSEEK_TIMEOUT_MS")"
+    printf 'APP_DATA_DIR=%s\n' "$(quote_env_value "$APP_DATA_DIR")"
+    printf 'SESSION_DAYS=%s\n' "$(quote_env_value "$SESSION_DAYS")"
+    printf 'KNOWLEDGE_DB_PATH=%s\n' "$(quote_env_value "$KNOWLEDGE_DB_PATH")"
+    printf 'KNOWLEDGE_BACKUP_DIR=%s\n' "$(quote_env_value "$KNOWLEDGE_BACKUP_DIR")"
+    printf 'KNOWLEDGE_BACKUP_ENABLED=%s\n' "$(quote_env_value "$KNOWLEDGE_BACKUP_ENABLED")"
+    printf 'PRIVATE_KNOWLEDGE_REQUIRED=%s\n' "$(quote_env_value "$PRIVATE_KNOWLEDGE_REQUIRED")"
+    printf 'PRIVATE_KNOWLEDGE_MIN_CARDS=%s\n' "$(quote_env_value "$PRIVATE_KNOWLEDGE_MIN_CARDS")"
+    printf 'KNOWLEDGE_UPLOAD_MAX_BYTES=%s\n' "$(quote_env_value "$KNOWLEDGE_UPLOAD_MAX_BYTES")"
+    printf 'KNOWLEDGE_INGEST_MAX_CHUNKS=%s\n' "$(quote_env_value "$KNOWLEDGE_INGEST_MAX_CHUNKS")"
+    printf 'KNOWLEDGE_INGEST_CHUNK_CHARS=%s\n' "$(quote_env_value "$KNOWLEDGE_INGEST_CHUNK_CHARS")"
+    printf 'KNOWLEDGE_INGEST_MAX_INPUT_CHARS=%s\n' "$(quote_env_value "$KNOWLEDGE_INGEST_MAX_INPUT_CHARS")"
+    printf 'KNOWLEDGE_INGEST_MAX_TOKENS=%s\n' "$(quote_env_value "$KNOWLEDGE_INGEST_MAX_TOKENS")"
     printf 'KNOWLEDGE_BUDGET_CHARS=%s\n' "$(quote_env_value "$KNOWLEDGE_BUDGET_CHARS")"
     printf 'AGENT_REVIEW_ENABLED=%s\n' "$(quote_env_value "$AGENT_REVIEW_ENABLED")"
     printf 'AGENT_REVIEW_MAX_TOKENS=%s\n' "$(quote_env_value "$AGENT_REVIEW_MAX_TOKENS")"
     printf 'AGENT_REVIEW_TIMEOUT_MS=%s\n' "$(quote_env_value "$AGENT_REVIEW_TIMEOUT_MS")"
+    printf 'QUALITY_REPAIR_ENABLED=%s\n' "$(quote_env_value "$QUALITY_REPAIR_ENABLED")"
+    printf 'QUALITY_REPAIR_THRESHOLD=%s\n' "$(quote_env_value "$QUALITY_REPAIR_THRESHOLD")"
+    printf 'AGENT_QUALITY_GATE_THRESHOLD=%s\n' "$(quote_env_value "$AGENT_QUALITY_GATE_THRESHOLD")"
+    printf 'JOB_GLOBAL_CONCURRENCY=%s\n' "$(quote_env_value "$JOB_GLOBAL_CONCURRENCY")"
+    printf 'JOB_MAX_QUEUED_PER_USER=%s\n' "$(quote_env_value "$JOB_MAX_QUEUED_PER_USER")"
   } > .env
   chmod 600 .env
+}
+
+resolve_run_identity() {
+  id "$APP_RUN_USER" >/dev/null 2>&1 || die "APP_RUN_USER does not exist: ${APP_RUN_USER}"
+  if [[ -z "$APP_RUN_GROUP" ]]; then
+    APP_RUN_GROUP="$(id -gn "$APP_RUN_USER")"
+  fi
+}
+
+stop_existing_service() {
+  if systemctl cat "${SERVICE_NAME}.service" >/dev/null 2>&1; then
+    log "Stopping existing ${SERVICE_NAME} service before private knowledge migration..."
+    systemctl stop "$SERVICE_NAME"
+  fi
+}
+
+prepare_runtime_storage() {
+  log "Preparing application and private knowledge storage..."
+  mkdir -p "$APP_DATA_DIR" "$PRIVATE_KNOWLEDGE_DIR" "$KNOWLEDGE_BACKUP_DIR"
+  chown -R "${APP_RUN_USER}:${APP_RUN_GROUP}" "$APP_DATA_DIR" "$KNOWLEDGE_BACKUP_DIR"
+  chown "${APP_RUN_USER}:${APP_RUN_GROUP}" "$PRIVATE_KNOWLEDGE_DIR"
+  if [[ -f "$KNOWLEDGE_DB_PATH" ]]; then
+    chown "${APP_RUN_USER}:${APP_RUN_GROUP}" "$KNOWLEDGE_DB_PATH"
+    chmod 600 "$KNOWLEDGE_DB_PATH"
+  fi
+  chmod 750 "$APP_DATA_DIR" "$PRIVATE_KNOWLEDGE_DIR" "$KNOWLEDGE_BACKUP_DIR"
+  chown "${APP_RUN_USER}:${APP_RUN_GROUP}" "${APP_DIR}/.env"
+  chmod 600 "${APP_DIR}/.env"
+}
+
+backup_private_knowledge_before_migration() {
+  [[ -s "$KNOWLEDGE_DB_PATH" ]] || return
+  cd "${APP_DIR}"
+  local timestamp
+  local raw_backup_path
+  timestamp="$(date -u +%Y-%m-%dT%H-%M-%S-000Z)"
+  raw_backup_path="${KNOWLEDGE_BACKUP_DIR}/private-knowledge-pre-migration-${timestamp}.db"
+  log "Creating a private knowledge backup before migration..."
+  cp "$KNOWLEDGE_DB_PATH" "$raw_backup_path"
+  chmod 600 "$raw_backup_path"
+  if ! npm run backup:private-knowledge >/tmp/${APP_NAME}-private-knowledge-backup.log 2>&1; then
+    cat /tmp/${APP_NAME}-private-knowledge-backup.log
+    die "Private knowledge backup failed; deployment stopped before migration."
+  fi
+  tail -n 30 /tmp/${APP_NAME}-private-knowledge-backup.log
+}
+
+migrate_private_knowledge() {
+  cd "${APP_DIR}"
+  local args=("$LEGACY_KNOWLEDGE_DIR")
+  if [[ "${FORCE_LEGACY_KNOWLEDGE_IMPORT:-0}" == "1" ]]; then
+    args+=("--force")
+  fi
+  log "Migrating and verifying the private knowledge database..."
+  if ! npm run migrate:private-knowledge -- "${args[@]}" >/tmp/${APP_NAME}-private-knowledge-migration.log 2>&1; then
+    cat /tmp/${APP_NAME}-private-knowledge-migration.log
+    die "Private knowledge migration or minimum-card verification failed."
+  fi
+  cat /tmp/${APP_NAME}-private-knowledge-migration.log
+  chown "${APP_RUN_USER}:${APP_RUN_GROUP}" "$PRIVATE_KNOWLEDGE_DIR" "$KNOWLEDGE_DB_PATH"
+  chown -R "${APP_RUN_USER}:${APP_RUN_GROUP}" "$KNOWLEDGE_BACKUP_DIR"
+  chmod 750 "$PRIVATE_KNOWLEDGE_DIR" "$KNOWLEDGE_BACKUP_DIR"
+  chmod 600 "$KNOWLEDGE_DB_PATH"
+  find "$KNOWLEDGE_BACKUP_DIR" -type d -exec chmod 750 {} +
+  find "$KNOWLEDGE_BACKUP_DIR" -type f -exec chmod 600 {} +
 }
 
 install_and_build() {
@@ -359,9 +474,7 @@ verify_knowledge() {
 install_systemd_service() {
   need_root_for_system
   local node_bin
-  local run_user
   node_bin="$(command -v node)"
-  run_user="${APP_RUN_USER:-${SUDO_USER:-root}}"
 
   log "Installing systemd service ${SERVICE_NAME}..."
   cat > "/etc/systemd/system/${SERVICE_NAME}.service" <<EOF
@@ -377,7 +490,9 @@ EnvironmentFile=${APP_DIR}/.env
 ExecStart=${node_bin} ${APP_DIR}/server/index.mjs
 Restart=always
 RestartSec=5
-User=${run_user}
+User=${APP_RUN_USER}
+Group=${APP_RUN_GROUP}
+UMask=0077
 
 [Install]
 WantedBy=multi-user.target
@@ -524,6 +639,7 @@ print_result() {
     log "Health check: curl ${public_url%/}/api/health"
   fi
   log "Configure the model API from the web page after login."
+  log "Private knowledge is stored outside the program directory and is preserved during upgrades."
 }
 
 main() {
@@ -535,6 +651,12 @@ main() {
   write_env_file
   install_and_build
   verify_knowledge
+  resolve_run_identity
+  stop_existing_service
+  prepare_runtime_storage
+  backup_private_knowledge_before_migration
+  migrate_private_knowledge
+  prepare_runtime_storage
   install_systemd_service
   install_nginx_basic_auth
   open_firewall_ports
@@ -542,4 +664,6 @@ main() {
   print_result
 }
 
-main "$@"
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+  main "$@"
+fi

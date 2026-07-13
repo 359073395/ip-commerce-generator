@@ -3,6 +3,7 @@
 node_modules/
 dist/
 data/
+outputs/
 .venv/
 .superpowers/
 qa-*.png

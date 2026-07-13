@@ -16,6 +16,7 @@ const maxQueuedPerUser = positiveInteger(process.env.JOB_MAX_QUEUED_PER_USER, 3)
 const queuedJobIds = [];
 const jobContexts = new Map();
 const runningControllers = new Map();
+const runningJobPromises = new Set();
 const runningUsers = new Set();
 let pumpScheduled = false;
 
@@ -81,6 +82,25 @@ export async function cancelGenerationJob(userId, jobId) {
 
 export { getGenerationJobForUser, listGenerationJobsForUser };
 
+export async function waitForGenerationJobsIdle({ timeoutMs = 15000 } = {}) {
+  const deadline = Date.now() + positiveInteger(timeoutMs, 15000);
+  while (Date.now() < deadline) {
+    const active = [...runningJobPromises];
+    if (!queuedJobIds.length && !active.length && !pumpScheduled) return;
+    if (active.length) {
+      await Promise.race([
+        Promise.allSettled(active),
+        delay(25),
+      ]);
+    } else {
+      await delay(25);
+    }
+  }
+  const error = new Error('等待后台生成任务结束超时。');
+  error.code = 'JOB_IDLE_TIMEOUT';
+  throw error;
+}
+
 function schedulePump() {
   if (pumpScheduled) return;
   pumpScheduled = true;
@@ -104,7 +124,7 @@ async function pumpQueue() {
     const controller = new AbortController();
     runningControllers.set(jobId, controller);
     runningUsers.add(context.user.id);
-    void runQueuedJob(jobId, context, controller)
+    const runningPromise = runQueuedJob(jobId, context, controller)
       .catch((error) => console.error(`Generation job ${jobId} crashed: ${error.message}`))
       .finally(() => {
         runningControllers.delete(jobId);
@@ -112,6 +132,8 @@ async function pumpQueue() {
         jobContexts.delete(jobId);
         schedulePump();
       });
+    runningJobPromises.add(runningPromise);
+    void runningPromise.finally(() => runningJobPromises.delete(runningPromise));
   }
 }
 
@@ -229,4 +251,8 @@ function findActualModel(result = {}) {
 function positiveInteger(value, fallback) {
   const parsed = Number(value);
   return Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : fallback;
+}
+
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }

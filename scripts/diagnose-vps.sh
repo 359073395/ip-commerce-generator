@@ -37,9 +37,29 @@ fi
 
 section "App .env without secrets"
 if [[ -f "${APP_DIR}/.env" ]]; then
-  sed -E 's/^(OPENAI_API_KEY=).*/\1***redacted***/; s/^(APP_AUTH_PASSWORD=).*/\1***redacted***/; s/^(INITIAL_ADMIN_PASSWORD=).*/\1***redacted***/' "${APP_DIR}/.env" || true
+  sed -E 's/^(OPENAI_API_KEY=).*/\1***redacted***/; s/^(DEEPSEEK_API_KEY=).*/\1***redacted***/; s/^(APP_AUTH_PASSWORD=).*/\1***redacted***/; s/^(INITIAL_ADMIN_PASSWORD=).*/\1***redacted***/' "${APP_DIR}/.env" || true
 else
   echo "${APP_DIR}/.env not found"
+fi
+
+section "Private knowledge storage"
+if [[ -f "${APP_DIR}/.env" ]]; then
+  KNOWLEDGE_DB_PATH="$(grep -E '^KNOWLEDGE_DB_PATH=' "${APP_DIR}/.env" | tail -n 1 | cut -d= -f2- | sed 's/^"//; s/"$//')"
+  KNOWLEDGE_BACKUP_DIR="$(grep -E '^KNOWLEDGE_BACKUP_DIR=' "${APP_DIR}/.env" | tail -n 1 | cut -d= -f2- | sed 's/^"//; s/"$//')"
+fi
+KNOWLEDGE_DB_PATH="${KNOWLEDGE_DB_PATH:-/opt/ip-commerce-private/knowledge.db}"
+KNOWLEDGE_BACKUP_DIR="${KNOWLEDGE_BACKUP_DIR:-$(dirname "$KNOWLEDGE_DB_PATH")/backups}"
+if [[ -f "$KNOWLEDGE_DB_PATH" ]]; then
+  run ls -lh "$KNOWLEDGE_DB_PATH"
+else
+  echo "private knowledge database not found: ${KNOWLEDGE_DB_PATH}"
+fi
+if [[ -d "$KNOWLEDGE_BACKUP_DIR" ]]; then
+  printf 'backup files: '
+  find "$KNOWLEDGE_BACKUP_DIR" -maxdepth 1 -type f -name 'private-knowledge-*.db' | wc -l
+  run ls -ld "$KNOWLEDGE_BACKUP_DIR"
+else
+  echo "private knowledge backup directory not found: ${KNOWLEDGE_BACKUP_DIR}"
 fi
 
 section "Local app health"

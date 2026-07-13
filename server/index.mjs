@@ -8,6 +8,10 @@ import { env, getApiStatus } from './config/env.mjs';
 import { registerModelConfigRoutes } from './config/registerModelConfigRoutes.mjs';
 import { moduleDefinitions } from './prompt-engine/modules.mjs';
 import { getKnowledgeOptimizationStatus, loadManifest, verifyKnowledgeFiles } from './knowledge/loadKnowledge.mjs';
+import { getPrivateKnowledgeDatabaseStatus, startPrivateKnowledgeBackupScheduler } from './knowledge/privateKnowledgeDatabase.mjs';
+import { learnFromContentExperiment } from './knowledge/privateKnowledgeFeedback.mjs';
+import { initializePrivateKnowledgeSystem } from './knowledge/privateKnowledgeMigration.mjs';
+import { registerKnowledgeRoutes } from './knowledge/registerKnowledgeRoutes.mjs';
 import { planAgentTask } from './agentPlanner.mjs';
 import { runAgentExecution } from './agentExecutor.mjs';
 import { generateModuleForUser } from './generationService.mjs';
@@ -51,6 +55,8 @@ app.use(requireBasicAuth);
 app.use(express.json({ limit: '2mb' }));
 
 await initializeDatabase();
+await initializePrivateKnowledgeSystem();
+startPrivateKnowledgeBackupScheduler();
 await initializeGenerationJobService();
 
 function requireBasicAuth(req, res, next) {
@@ -119,6 +125,7 @@ app.get('/api/health', async (_req, res) => {
   const manifest = await loadManifest();
   const knowledge = await verifyKnowledgeFiles();
   const optimization = await getKnowledgeOptimizationStatus();
+  const privateKnowledge = await getPrivateKnowledgeDatabaseStatus();
   res.json({
     ok: true,
     api: getApiStatus(),
@@ -129,6 +136,7 @@ app.get('/api/health', async (_req, res) => {
       files: knowledge.checks?.length || 0,
       failed: (knowledge.checks || []).filter((item) => !item.ok).map((item) => item.path),
       optimization,
+      private: privateKnowledge,
     },
     system: {
       name: 'ip-commerce-generator',
@@ -146,6 +154,7 @@ app.get('/api/health', async (_req, res) => {
         knowledgeCitations: true,
         profileSuggestions: true,
         structuredKnowledge: optimization.structuredBlocks.ok,
+        privateKnowledge: privateKnowledge.ok && privateKnowledge.publishedCards > 0,
         qualityBenchmark: optimization.benchmarkCases.ok,
       },
     },
@@ -180,6 +189,7 @@ app.post('/api/auth/logout', requireUser, async (req, res) => {
 app.use('/api', requireUser);
 registerGenerationJobRoutes(app);
 registerModelConfigRoutes(app, requireAdmin);
+registerKnowledgeRoutes(app, requireAdmin);
 
 async function requireUser(req, res, next) {
   const user = await getSessionUser(getSessionCookie(req));
@@ -406,7 +416,18 @@ app.get('/api/content-experiments/:experimentId', async (req, res) => {
 app.patch('/api/content-experiments/:experimentId/review', async (req, res) => {
   try {
     const experiment = await reviewContentExperimentForUser(req.user.id, req.params.experimentId, req.body || {});
-    res.json({ ok: true, experiment });
+    const record = experiment.generationRecordId
+      ? await getGenerationRecordForUser(req.user.id, experiment.generationRecordId)
+      : null;
+    let learning = null;
+    let learningWarning = '';
+    try {
+      learning = await learnFromContentExperiment({ userId: req.user.id, experiment, generationRecord: record });
+    } catch (learningError) {
+      learningWarning = learningError.message;
+      console.warn(`Content experiment learning failed for ${experiment.id}: ${learningError.message}`);
+    }
+    res.json({ ok: true, experiment, learning, learningWarning });
   } catch (error) {
     res.status(400).json({
       ok: false,

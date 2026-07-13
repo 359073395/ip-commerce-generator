@@ -165,6 +165,19 @@
 - 刷新页面、切换模块或短暂断网不会丢失正在执行的任务
 - 表单按用户和项目自动保存在当前浏览器
 
+### 10. 可持续学习的私有知识库
+
+专业知识不再只是一批跟随代码发布的文件，而是独立的私有知识系统：
+
+- 管理员可以粘贴资料或上传 TXT、Markdown、CSV、JSON、DOCX、PDF、XLSX
+- 原文件只用于临时提炼，长期仅保存结构化方法卡
+- 新方法先进入待审核区，管理员确认后才会成为全局知识
+- 用户反馈先只在自己的项目内学习，不会影响其他用户
+- 有真实线索、咨询或成交证据的项目经验可进入管理员候选区
+- 生成时按“当前项目记忆 -> 全局私有方法 -> 内置基础框架”检索
+- 每次生成保存知识卡 ID、作用域和版本，能够追溯结果依据
+- 私有库独立备份，升级程序不会覆盖知识资产
+
 ## 技术栈
 
 - React + Vite
@@ -173,6 +186,7 @@
 - 兼容 OpenAI API 格式的大模型接口
 - 服务端知识库检索与提示词组装
 - 多用户登录、项目档案、生成历史、Agent任务记录
+- 外置私有知识库、版本、审核、项目学习和自动备份
 
 ## 本地运行
 
@@ -241,15 +255,31 @@ INITIAL_ADMIN_PASSWORD=change-this-admin-password
 
 PORT=8790
 HOST=0.0.0.0
+APP_DATA_DIR=./data
+SESSION_DAYS=14
 OPENAI_TIMEOUT_MS=45000
 OPENAI_FALLBACK_TIMEOUT_MS=30000
 OPENAI_MAX_TOKENS=1200
 OPENAI_TEMPERATURE=0.4
 OPENAI_REASONING_EFFORT=low
+
+KNOWLEDGE_DB_PATH=./data/private-knowledge.db
+KNOWLEDGE_BACKUP_DIR=./data/private-knowledge-backups
+KNOWLEDGE_BACKUP_ENABLED=true
+PRIVATE_KNOWLEDGE_REQUIRED=false
+PRIVATE_KNOWLEDGE_MIN_CARDS=20
+KNOWLEDGE_UPLOAD_MAX_BYTES=10485760
+KNOWLEDGE_INGEST_MAX_CHUNKS=4
+KNOWLEDGE_INGEST_CHUNK_CHARS=12000
+KNOWLEDGE_INGEST_MAX_INPUT_CHARS=100000
+KNOWLEDGE_INGEST_MAX_TOKENS=1800
 KNOWLEDGE_BUDGET_CHARS=1200
 AGENT_REVIEW_ENABLED=true
 AGENT_REVIEW_MAX_TOKENS=1200
 AGENT_REVIEW_TIMEOUT_MS=20000
+QUALITY_REPAIR_ENABLED=true
+QUALITY_REPAIR_THRESHOLD=70
+AGENT_QUALITY_GATE_THRESHOLD=70
 JOB_GLOBAL_CONCURRENCY=2
 JOB_MAX_QUEUED_PER_USER=3
 ```
@@ -264,9 +294,20 @@ JOB_MAX_QUEUED_PER_USER=3
 data/app.db
 ```
 
+本地开发时，私有知识库和备份默认保存在 `data/`。VPS 一键安装会改用程序目录之外的稳定位置：
+
+```text
+/opt/ip-commerce-private/knowledge.db
+/opt/ip-commerce-private/backups/
+```
+
+`/opt/ip-commerce-generator` 可以升级或替换，`/opt/ip-commerce-private` 不会被安装器覆盖。管理员上传的资料、审核后的方法卡和用户项目学习都进入外置数据库，不依赖 GitHub 仓库。
+
 不要把下面这些内容提交到 GitHub：
 
 - `data/app.db`
+- `data/private-knowledge.db`
+- `/opt/ip-commerce-private/`
 - `.env`
 - API Key
 - 真实用户数据
@@ -295,6 +336,8 @@ curl -fsSL https://raw.githubusercontent.com/359073395/ip-commerce-generator/mai
 
 第一次进入网页后，用管理员账号登录，再在网页里配置 API。API 不需要在安装命令里填写。
 
+首次安装会把仓库中现有知识资料迁移到外置私有库，并要求至少有 `200` 条已发布知识后才启动服务。这样可以避免程序看似安装成功、实际却在空知识库上生成低质量结果。
+
 如果网页打不开，先在 VPS 上诊断：
 
 ```bash
@@ -310,7 +353,15 @@ sudo systemctl restart ip-commerce-generator
 
 ## 升级部署
 
-在 VPS 上重新运行一键安装脚本即可。脚本会保留 `.env` 和 `data/`，不会覆盖已有用户、项目档案和 API 配置。
+在 VPS 上重新运行一键安装脚本即可。升级器会：
+
+- 停止服务，保证数据库备份一致
+- 备份现有私有知识库
+- 保留完整 `.env`，包括主 API、DeepSeek、任务队列和质量配置
+- 保留 `data/` 中的用户、项目、历史和任务
+- 保留旧版 `knowledge/` 作为迁移来源
+- 不移动、不删除、不覆盖 `/opt/ip-commerce-private`
+- 迁移并校验私有知识后再启动服务
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/359073395/ip-commerce-generator/main/scripts/install-from-github.sh | sudo bash
@@ -325,11 +376,39 @@ sudo systemctl status ip-commerce-generator --no-pager
 sudo journalctl -u ip-commerce-generator -f
 sudo systemctl restart ip-commerce-generator
 curl http://127.0.0.1:8790/api/health
+npm --prefix /opt/ip-commerce-generator run backup:private-knowledge
 ```
 
-## 知识库文件
+## 私有知识库管理
 
-服务端只读取项目内 `knowledge/`，部署后不依赖本地 Windows 路径。部署时需要确保这些文件一起上传：
+管理员登录后点击顶部“知识库”，可以完成：
+
+- 查看知识数量、分类覆盖、项目记忆和版本状态
+- 粘贴文本或上传资料，让模型提炼结构化方法卡
+- 编辑、驳回、发布待审核知识
+- 搜索、编辑、停用和恢复全局知识
+- 查看或删除用户项目内学到的偏好
+- 创建、下载和恢复知识库备份
+
+命令行备份：
+
+```bash
+cd /opt/ip-commerce-generator
+sudo -u "$(systemctl show -p User --value ip-commerce-generator)" npm run backup:private-knowledge
+```
+
+手动迁移或校验私有库：
+
+```bash
+cd /opt/ip-commerce-generator
+npm run migrate:private-knowledge -- /opt/ip-commerce-generator/knowledge
+```
+
+恢复推荐从网页“知识库 -> 备份状态”执行，系统会在恢复前再创建一份保护备份。也可以把完整的 `knowledge.db` 和 `backups/` 复制到新 VPS 的 `/opt/ip-commerce-private/`，设置为服务用户可读写后重启服务。
+
+## 内置基础知识文件
+
+项目内 `knowledge/` 是首次迁移、离线测试和基础框架来源。生产生成会优先使用外置私有库和当前项目记忆，不依赖本地 Windows 路径。部署时仍需确保这些基础文件存在：
 
 - `knowledge/handbooks/personal-ip.md`
 - `knowledge/handbooks/commerce-video.md`
@@ -354,6 +433,9 @@ npm run verify:knowledge
 ```bash
 npm run build
 npm run verify:knowledge
+npm run test:private-knowledge
+npm run test:knowledge-ingestion
+npm run test:knowledge-api
 npm run test:knowledge-retrieval
 npm run test:quality-benchmark
 npm run test:quality-evaluation

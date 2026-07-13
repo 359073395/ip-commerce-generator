@@ -83,6 +83,7 @@ try {
   assert.ok(generated.result.quality.score >= 70, 'repaired result should pass quality gate');
   assert.equal(generated.result.quality.repair.status, 'completed');
   assert.ok(generated.result.knowledgeCitations.length > 0, 'result should include knowledge citations');
+  assert.ok(generated.result.knowledgeCitations.every((item) => item.scope), 'every citation should preserve its knowledge scope');
   assert.ok(generated.result.profileSuggestions.hasSuggestions, 'result should include project profile suggestions');
   assert.ok(generated.result.profileSuggestions.items.some((item) => item.field === 'notes'), 'agent goal should be suggested as notes');
 

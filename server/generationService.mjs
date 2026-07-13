@@ -37,6 +37,8 @@ export async function generateModuleForUser({
   const requestWithMemory = {
     ...requestBody,
     projectProfile: project.profile,
+    userId: user.id,
+    projectId: project.id,
   };
   await reportProgress(onProgress, { stage: 'knowledge', label: '正在检索知识库和项目档案', percent: 10 });
   const { system, user: userPrompt, definition, agent, knowledge } = await buildPrompt(requestWithMemory);
@@ -141,6 +143,8 @@ export async function getKnowledgePreviewForRequest(requestBody = {}) {
     taskType: definition.taskType,
     moduleId: definition.id,
     label: definition.label,
+    userId: requestBody.userId || '',
+    projectId: requestBody.projectId || '',
     knowledge: definition.knowledge,
     output: definition.output,
     formData: requestBody.formData || {},
@@ -322,10 +326,23 @@ function buildKnowledgeCitations(knowledge = []) {
   return (knowledge || []).slice(0, 6).map((item) => ({
     source: item.source || '',
     heading: item.heading || '',
+    scope: item.scope || inferKnowledgeScope(item),
+    cardId: item.cardId || '',
+    memoryId: item.memoryId || '',
+    blockId: item.blockId || '',
+    version: Number(item.version || 0) || undefined,
+    category: item.category || '',
     score: Number(item.score || 0),
     matchedTerms: Array.isArray(item.matchedTerms) ? item.matchedTerms.slice(0, 8) : [],
     reasons: Array.isArray(item.scoreReasons) ? item.scoreReasons.slice(0, 6) : [],
   })).filter((item) => item.source || item.heading);
+}
+
+function inferKnowledgeScope(item = {}) {
+  if (item.memoryId || String(item.source || '').startsWith('private/project/')) return 'project';
+  if (item.cardId || String(item.source || '').startsWith('private/global/')) return 'global';
+  if (item.blockId || String(item.source || '').startsWith('structured-blocks/')) return 'bundled_structured';
+  return 'bundled_handbook';
 }
 
 function buildProfileSuggestions({ requestBody = {}, result = {}, definition = {} }) {

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import {
   BarChart3,
   Bot,
@@ -7,6 +7,7 @@ import {
   ClipboardCopy,
   Download,
   FileText,
+  LibraryBig,
   LogOut,
   Loader2,
   Moon,
@@ -25,6 +26,10 @@ import { GenerationProgress } from './features/generation/GenerationProgress.jsx
 import { useGenerationJob } from './features/generation/useGenerationJob.js';
 import { loadProjectDraft, saveProjectDraft } from './features/drafts/projectDraftStorage.js';
 import { ModelSettingsModal } from './features/settings/ModelSettingsModal.jsx';
+import { ResultFeedbackPanel } from './features/knowledge/ResultFeedbackPanel.jsx';
+
+const KnowledgeManagerModal = lazy(() => import('./features/knowledge/KnowledgeManagerModal.jsx')
+  .then((module) => ({ default: module.KnowledgeManagerModal })));
 
 const SUB_CHOICE_SEPARATOR = '::';
 const MULTI_CHOICE_SEPARATOR = '||';
@@ -133,6 +138,7 @@ function App() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
+  const [knowledgeOpen, setKnowledgeOpen] = useState(false);
   const [agentGoal, setAgentGoal] = useState('');
   const [agentPlan, setAgentPlan] = useState(null);
   const [agentTask, setAgentTask] = useState(null);
@@ -644,6 +650,7 @@ function App() {
           onSettings={() => setSettingsOpen(true)}
           onProjectProfile={() => setProfileOpen(true)}
           onAdmin={() => setAdminOpen(true)}
+          onKnowledge={() => setKnowledgeOpen(true)}
           onLogout={logout}
           originalMode
         />
@@ -719,6 +726,8 @@ function App() {
                 onCreateExperiment={createContentExperiment}
                 onReviewExperiment={reviewContentExperiment}
                 onRefreshExperiments={refreshContentExperiments}
+                projectId={activeProjectId}
+                generationRecordId={currentResult?.recordId}
               />
             </div>
           </main>
@@ -743,6 +752,9 @@ function App() {
           />
         )}
         {adminOpen && authUser?.role === 'admin' && <EnhancedAdminUsersModal onClose={() => setAdminOpen(false)} />}
+        {knowledgeOpen && authUser?.role === 'admin' && (
+          <Suspense fallback={null}><KnowledgeManagerModal onClose={() => setKnowledgeOpen(false)} /></Suspense>
+        )}
       </div>
     );
   }
@@ -759,6 +771,7 @@ function App() {
         onSettings={() => setSettingsOpen(true)}
         onProjectProfile={() => setProfileOpen(true)}
         onAdmin={() => setAdminOpen(true)}
+        onKnowledge={() => setKnowledgeOpen(true)}
       />
       <ModuleRail activeModule={activeModule} onSelect={selectModule} />
 
@@ -777,6 +790,7 @@ function App() {
           onSettings={() => setSettingsOpen(true)}
           onProjectProfile={() => setProfileOpen(true)}
           onAdmin={() => setAdminOpen(true)}
+          onKnowledge={() => setKnowledgeOpen(true)}
           onLogout={logout}
         />
         <div className="workspace-grid">
@@ -843,6 +857,8 @@ function App() {
             onCreateExperiment={createContentExperiment}
             onReviewExperiment={reviewContentExperiment}
             onRefreshExperiments={refreshContentExperiments}
+            projectId={activeProjectId}
+            generationRecordId={currentResult?.recordId}
           />
         </div>
       </main>
@@ -867,6 +883,9 @@ function App() {
         />
       )}
       {adminOpen && authUser?.role === 'admin' && <EnhancedAdminUsersModal onClose={() => setAdminOpen(false)} />}
+      {knowledgeOpen && authUser?.role === 'admin' && (
+        <Suspense fallback={null}><KnowledgeManagerModal onClose={() => setKnowledgeOpen(false)} /></Suspense>
+      )}
     </div>
   );
 }
@@ -1071,7 +1090,7 @@ function LoginScreen({ onLogin }) {
   );
 }
 
-function OuterSidebar({ health, projectProfile, authUser, onSettings, onProjectProfile, onAdmin }) {
+function OuterSidebar({ health, projectProfile, authUser, onSettings, onProjectProfile, onAdmin, onKnowledge }) {
   return (
     <aside className="outer-sidebar">
       <div className="brand">
@@ -1098,6 +1117,12 @@ function OuterSidebar({ health, projectProfile, authUser, onSettings, onProjectP
         <button className="outer-nav" onClick={onAdmin}>
           <UserPlus size={18} />
           用户管理
+        </button>
+      )}
+      {authUser?.role === 'admin' && (
+        <button className="outer-nav" onClick={onKnowledge}>
+          <LibraryBig size={18} />
+          知识库管理
         </button>
       )}
       <div className="outer-spacer" />
@@ -1147,6 +1172,7 @@ function TopBar({
   onSettings,
   onProjectProfile,
   onAdmin,
+  onKnowledge,
   onLogout,
   originalMode = false,
 }) {
@@ -1172,6 +1198,12 @@ function TopBar({
             <button className="original-share-button" type="button" onClick={onAdmin}>
               <UserPlus size={18} />
               用户管理
+            </button>
+          )}
+          {authUser?.role === 'admin' && (
+            <button className="original-share-button" type="button" onClick={onKnowledge}>
+              <LibraryBig size={18} />
+              知识库
             </button>
           )}
           {authUser?.role === 'admin' && (
@@ -1217,6 +1249,12 @@ function TopBar({
           <button className="soft-button" onClick={onAdmin}>
             <UserPlus size={16} />
             用户管理
+          </button>
+        )}
+        {authUser?.role === 'admin' && (
+          <button className="soft-button" onClick={onKnowledge}>
+            <LibraryBig size={16} />
+            知识库
           </button>
         )}
         <button className="soft-button" onClick={onLogout}>
@@ -1506,6 +1544,8 @@ function ResultPanel({
   onCreateExperiment,
   onReviewExperiment,
   onRefreshExperiments,
+  projectId,
+  generationRecordId,
 }) {
   return (
     <aside className="result-panel">
@@ -1525,6 +1565,14 @@ function ResultPanel({
       {!loading && error && <StateMessage title="生成未完成" body="请根据左侧提示处理 API 或输入问题。" warning />}
       {!loading && !error && !result && <EmptyResult module={module} />}
       {!loading && result && <RenderedResult result={result} onApplyProfileSuggestions={onApplyProfileSuggestions} />}
+      {!loading && result && (
+        <ResultFeedbackPanel
+          projectId={projectId}
+          moduleId={module.id}
+          generationRecordId={generationRecordId}
+          result={result}
+        />
+      )}
       <ContentExperimentPanel
         hasResult={Boolean(result)}
         experiments={experiments}
@@ -1858,13 +1906,28 @@ function KnowledgeCitations({ citations = [] }) {
         {citations.map((item, index) => (
           <div className="citation-item" key={`${item.source}-${item.heading}-${index}`}>
             <strong>{item.heading || item.source}</strong>
-            <span>{item.source}{item.score ? ` / ${Math.round(item.score)}分` : ''}</span>
+            <span>
+              {knowledgeScopeLabel(item.scope)}
+              {item.version ? ` / v${item.version}` : ''}
+              {item.score ? ` / ${Math.round(item.score)}分` : ''}
+              {item.source ? ` / ${item.source}` : ''}
+            </span>
             {Boolean(item.matchedTerms?.length) && <p>{item.matchedTerms.slice(0, 6).join('、')}</p>}
           </div>
         ))}
       </div>
     </div>
   );
+}
+
+function knowledgeScopeLabel(scope) {
+  const labels = {
+    project: '当前项目学习',
+    global: '全局私有方法',
+    bundled_structured: '内置结构化方法',
+    bundled_handbook: '内置基础手册',
+  };
+  return labels[scope] || '知识来源';
 }
 
 function ProfileSuggestionCard({ suggestions, onApply }) {

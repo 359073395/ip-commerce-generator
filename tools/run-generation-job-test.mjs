@@ -163,6 +163,7 @@ try {
     message: 'Persistent generation jobs, 429 fallback, model metadata, progress, and cancellation passed.',
   }, null, 2));
 } finally {
+  await jobs.waitForGenerationJobsIdle({ timeoutMs: 15000 });
   await new Promise((resolve) => fakeServer.close(resolve));
   await fs.rm(temporaryDataDir, { recursive: true, force: true });
 }

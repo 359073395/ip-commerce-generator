@@ -14,7 +14,7 @@ function formatFacts(input = {}) {
     .join('；') || '用户未填写明确事实';
 }
 
-export async function buildPrompt({ moduleId, formData, selections, context, projectProfile }) {
+export async function buildPrompt({ moduleId, formData, selections, context, projectProfile, userId = '', projectId = '' }) {
   const definition = getModuleDefinition(moduleId);
   const agent = getAgentProfile(definition.id);
   const memoryContext = {
@@ -25,6 +25,8 @@ export async function buildPrompt({ moduleId, formData, selections, context, pro
     taskType: definition.taskType,
     moduleId: definition.id,
     label: definition.label,
+    userId,
+    projectId,
     knowledge: definition.knowledge,
     output: definition.output,
     formData,

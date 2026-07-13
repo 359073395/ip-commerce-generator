@@ -25,6 +25,9 @@ assert.ok(scriptPack.selected.length >= 3, 'script retrieval should select multi
 assert.ok(scriptPack.selected.some((item) => /脚本|黄金3秒|CTA|爆款/.test(`${item.heading} ${item.matchedTerms?.join(' ')}`)), 'script retrieval should hit script/viral/CTA knowledge');
 assert.ok(scriptPack.selected.every((item) => Array.isArray(item.matchedTerms)), 'selected sections should include matched terms');
 assert.ok(scriptPack.retrieval.selectedSources.length >= 1, 'retrieval metadata should include selected sources');
+assert.equal(scriptPack.selected.filter((item) => item.heading === '7. 四类脚本卡').length, 1, 'identical handbook sections should only enter the prompt once');
+assert.equal(new Set(scriptPack.selected.map((item) => item.heading.trim().toLowerCase())).size, scriptPack.selected.length, 'knowledge layers should not repeat the same heading');
+assert.ok(scriptPack.pack.length < 7000, `knowledge pack should stay compact, received ${scriptPack.pack.length} characters`);
 
 const commercePack = await loadKnowledgePack({
   taskType: 'commerce_video',
@@ -204,8 +207,8 @@ for (const testCase of benchmarkMethodCases) {
     budgetChars: 1600,
   });
   const hits = pack.selected
-    .filter((item) => item.source?.startsWith('structured-blocks/'))
-    .map((item) => item.source.replace('structured-blocks/', ''));
+    .map((item) => item.blockId || (item.source?.startsWith('structured-blocks/') ? item.source.replace('structured-blocks/', '') : ''))
+    .filter(Boolean);
   benchmarkMethodHits.push({ query: testCase.query, hits: hits.slice(0, 6) });
   const expectedBlockIds = testCase.expectedBlockIds || [testCase.expectedBlockId];
   assert.ok(

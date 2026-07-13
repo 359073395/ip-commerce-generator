@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import { formatPrivateKnowledgeItem, retrievePrivateKnowledge } from './privateKnowledgeRetrieval.mjs';
 
 const rootDir = process.cwd();
 const knowledgeDir = path.join(rootDir, 'knowledge');
@@ -123,6 +124,8 @@ export async function loadKnowledgePack({
   taskType,
   moduleId,
   label,
+  userId = '',
+  projectId = '',
   knowledge = [],
   output = [],
   formData = {},
@@ -133,8 +136,16 @@ export async function loadKnowledgePack({
   const files = handbookFiles[taskType] || handbookFiles.personal_ip;
 
   const queryTerms = buildQueryTerms({ moduleId, label, knowledge, output, formData, selections, context });
+  const privateKnowledge = await retrievePrivateKnowledge({
+    userId,
+    projectId,
+    moduleId,
+    taskType,
+    queryTerms,
+    budgetChars: Math.max(500, Math.round(budgetChars * 0.65)),
+  });
   const structuredBlocks = await loadStructuredKnowledgeBlocks();
-  const selectedBlocks = selectStructuredBlocks({
+  const rankedBlocks = rankStructuredBlocks({
     blocks: structuredBlocks.blocks,
     moduleId,
     taskType,
@@ -166,8 +177,16 @@ export async function loadKnowledgePack({
     }
   }
 
-  const selected = selectSectionsV2(sections, budgetChars);
+  const deduplicatedBlocks = excludeDuplicateHeadings(rankedBlocks, privateKnowledge.selected);
+  const selectedBlocks = deduplicatedBlocks.slice(0, getStructuredBlockLimit(budgetChars));
+  const rankedSections = selectSectionsV2(sections, budgetChars);
+  const deduplicatedSections = deduplicateSelectedSections(rankedSections);
+  const selected = excludeDuplicateHeadings(deduplicatedSections, [
+    ...privateKnowledge.selected,
+    ...selectedBlocks.map(toSelectedBlockSection),
+  ]);
   const selectedKnowledge = [
+    ...privateKnowledge.selected,
     ...selectedBlocks.map(toSelectedBlockSection),
     ...selected,
   ];
@@ -175,19 +194,24 @@ export async function loadKnowledgePack({
     `# Knowledge Pack: ${label || moduleId}`,
     `Selected sources: ${selectedKnowledge.map((item) => `${item.source} > ${item.heading}`).join(' | ')}`,
     '',
+    ...privateKnowledge.selected.map(formatPrivateKnowledgeItem),
     ...selectedBlocks.map(formatStructuredBlock),
     ...selected.map((item) => `- ${item.heading} (${item.source}): ${compactSection(item.content, 260)}`),
   ].join('\n\n');
 
   return {
     pack,
-    selected: selectedKnowledge.map(({ source, heading, score, matchedTerms, scoreReasons, blockId, category, methods, keywords, scenarios }) => ({
+    selected: selectedKnowledge.map(({ source, heading, score, matchedTerms, scoreReasons, blockId, cardId, memoryId, scope, version, category, methods, keywords, scenarios }) => ({
       source,
       heading,
       score,
       matchedTerms,
       scoreReasons,
       blockId,
+      cardId,
+      memoryId,
+      scope,
+      version,
       category,
       methods,
       keywords,
@@ -199,6 +223,9 @@ export async function loadKnowledgePack({
       structuredBlocksVersion: structuredBlocks.version,
       totalStructuredBlocks: structuredBlocks.blocks.length,
       selectedStructuredBlocks: selectedBlocks.length,
+      deduplicatedStructuredBlocks: rankedBlocks.length - deduplicatedBlocks.length,
+      deduplicatedHandbookSections: rankedSections.length - selected.length,
+      privateKnowledge: privateKnowledge.retrieval,
       selectedCount: selectedKnowledge.length,
       selectedSources: [...new Set(selectedKnowledge.map((item) => item.source))],
     },
@@ -402,14 +429,42 @@ function selectSectionsV2(sections, budgetChars) {
     selected.push(section);
     sourceCounts.set(section.source, sourceCount + 1);
     total += cost;
-    if (selected.length >= 5 || total >= budgetChars) break;
+    if (selected.length >= 4 || total >= budgetChars) break;
   }
 
   return selected.length ? selected : sorted.slice(0, 4);
 }
 
-function selectStructuredBlocks({ blocks = [], moduleId, taskType, queryTerms = [], budgetChars }) {
-  const scored = blocks
+function deduplicateSelectedSections(sections = []) {
+  const seen = new Set();
+  const unique = [];
+  for (const section of sections) {
+    const fingerprint = `${normalizeFingerprintText(section.heading)}|${normalizeFingerprintText(section.content)}`;
+    if (seen.has(fingerprint)) continue;
+    seen.add(fingerprint);
+    unique.push(section);
+  }
+  return unique;
+}
+
+function excludeDuplicateHeadings(items = [], existingItems = []) {
+  const seen = new Set(existingItems.map((item) => normalizeFingerprintText(item.heading || item.title)).filter(Boolean));
+  const unique = [];
+  for (const item of items) {
+    const heading = normalizeFingerprintText(item.heading || item.title);
+    if (heading && seen.has(heading)) continue;
+    if (heading) seen.add(heading);
+    unique.push(item);
+  }
+  return unique;
+}
+
+function normalizeFingerprintText(value) {
+  return String(value || '').replace(/\s+/g, ' ').trim().toLowerCase();
+}
+
+function rankStructuredBlocks({ blocks = [], moduleId, taskType, queryTerms = [] }) {
+  return blocks
     .map((block) => {
       const score = scoreStructuredBlock({ block, moduleId, taskType, queryTerms });
       return {
@@ -421,8 +476,10 @@ function selectStructuredBlocks({ blocks = [], moduleId, taskType, queryTerms = 
     })
     .filter((block) => block.score > 0)
     .sort((a, b) => b.score - a.score);
-  const maxBlocks = budgetChars >= 1600 ? 8 : 6;
-  return scored.slice(0, maxBlocks);
+}
+
+function getStructuredBlockLimit(budgetChars) {
+  return budgetChars >= 1600 ? 6 : 5;
 }
 
 function scoreStructuredBlock({ block, moduleId, taskType, queryTerms = [] }) {
