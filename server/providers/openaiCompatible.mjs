@@ -4,16 +4,18 @@ import {
   isRetryableModelError,
   normalizeModelError,
 } from '../model-routing/modelErrors.mjs';
+import { buildModelAttempts } from '../model-routing/modelRoutes.mjs';
 
 export async function callOpenAICompatible(messages, options = {}) {
-  if (!env.openaiBaseUrl || !env.openaiApiKey || !env.openaiModel) {
-    const error = new Error('API 未配置，请先设置 OPENAI_BASE_URL、OPENAI_API_KEY、OPENAI_MODEL。');
+  const attempts = buildModelAttempts(options);
+  if (!attempts.length) {
+    const error = new Error('API 未配置，请先配置主API或启用 DeepSeek API。');
     error.code = 'API_NOT_CONFIGURED';
     throw error;
   }
 
   const payload = {
-    model: env.openaiModel,
+    model: attempts[0].model,
     messages,
     temperature: Number(options.temperature ?? process.env.OPENAI_TEMPERATURE ?? 0.4),
     max_tokens: Number(options.maxTokens ?? process.env.OPENAI_MAX_TOKENS ?? 1200),
@@ -21,7 +23,7 @@ export async function callOpenAICompatible(messages, options = {}) {
     response_format: { type: 'json_object' },
   };
 
-  const { data, metadata } = await requestWithModelFallback(payload, options);
+  const { data, metadata } = await requestWithModelFallback(payload, options, attempts);
   notify(options.onModelResolved, metadata);
   const content = data.choices?.[0]?.message?.content;
   if (!content) {
@@ -45,27 +47,30 @@ export async function callOpenAICompatible(messages, options = {}) {
   }
 }
 
-async function requestWithModelFallback(payload, options = {}) {
-  const models = (options.disableFallback ? [payload.model] : [payload.model, ...env.openaiFallbackModels])
-    .filter((model, index, list) => model && list.indexOf(model) === index);
+async function requestWithModelFallback(payload, options = {}, attempts = []) {
   let lastError;
 
-  for (let index = 0; index < models.length; index += 1) {
-    const model = models[index];
-    const timeoutMs = model === payload.model
-      ? options.timeoutMs ?? env.openaiTimeoutMs
-      : options.fallbackTimeoutMs ?? env.openaiFallbackTimeoutMs;
+  for (let index = 0; index < attempts.length; index += 1) {
+    const attempt = attempts[index];
+    const model = attempt.model;
+    const timeoutMs = attempt.timeoutMs;
     const startedAt = Date.now();
     notify(options.onModelEvent, {
       type: 'attempt',
+      provider: attempt.provider,
+      providerLabel: attempt.providerLabel,
       model,
       attempt: index + 1,
-      totalAttempts: models.length,
+      totalAttempts: attempts.length,
       timeoutMs,
     });
 
     try {
-      const response = await requestWithCompatibility({ ...payload, model }, { ...options, timeoutMs });
+      const response = await requestWithCompatibility(
+        { ...payload, model },
+        { ...options, timeoutMs },
+        attempt,
+      );
       let data;
       try {
         data = await response.json();
@@ -77,11 +82,15 @@ async function requestWithModelFallback(payload, options = {}) {
         throw invalidResponse;
       }
       const metadata = {
-        requestedModel: payload.model,
+        requestedModel: attempts[0].model,
+        requestedProvider: attempts[0].provider,
+        provider: attempt.provider,
+        providerLabel: attempt.providerLabel,
         attemptedModel: model,
         actualModel: String(data.model || model),
         attempt: index + 1,
         fallbackUsed: index > 0,
+        crossProviderFallback: attempt.provider !== attempts[0].provider,
         elapsedMs: Date.now() - startedAt,
       };
       notify(options.onModelEvent, { type: 'success', ...metadata });
@@ -90,30 +99,36 @@ async function requestWithModelFallback(payload, options = {}) {
       lastError = normalizeModelError(error);
       notify(options.onModelEvent, {
         type: 'error',
+        provider: attempt.provider,
+        providerLabel: attempt.providerLabel,
         model,
         attempt: index + 1,
         code: lastError.code,
         message: lastError.message,
         elapsedMs: Date.now() - startedAt,
       });
-      const hasNextModel = index < models.length - 1;
+      const hasNextModel = index < attempts.length - 1;
       if (!hasNextModel || !isRetryableModelError(lastError)) throw lastError;
-      const nextModel = models[index + 1];
+      const nextAttempt = attempts[index + 1];
       notify(options.onModelEvent, {
         type: 'fallback',
+        provider: attempt.provider,
+        providerLabel: attempt.providerLabel,
         model,
-        nextModel,
+        nextProvider: nextAttempt.provider,
+        nextProviderLabel: nextAttempt.providerLabel,
+        nextModel: nextAttempt.model,
         reason: lastError.code,
       });
-      console.warn(`Model ${model} failed with ${lastError.code}, trying fallback model ${nextModel}.`);
+      console.warn(`${attempt.providerLabel} model ${model} failed with ${lastError.code}, trying ${nextAttempt.providerLabel} model ${nextAttempt.model}.`);
     }
   }
 
   throw lastError;
 }
 
-async function requestWithCompatibility(payload, options = {}) {
-  let response = await requestChatCompletion(payload, options);
+async function requestWithCompatibility(payload, options = {}, connection) {
+  let response = await requestChatCompletion(payload, options, connection);
   if (!response.ok) {
     const text = await response.text();
     if (response.status === 400 && /response_format|json_object|max_tokens|reasoning_effort/i.test(text)) {
@@ -122,7 +137,7 @@ async function requestWithCompatibility(payload, options = {}) {
         response_format: undefined,
         max_tokens: undefined,
         reasoning_effort: undefined,
-      }, options);
+      }, options, connection);
     } else {
       throw createModelHttpError(response.status, text);
     }
@@ -136,7 +151,7 @@ async function requestWithCompatibility(payload, options = {}) {
   return response;
 }
 
-async function requestChatCompletion(payload, options = {}) {
+async function requestChatCompletion(payload, options = {}, connection = {}) {
   const body = Object.fromEntries(Object.entries(payload).filter(([, value]) => value !== undefined));
   const controller = new AbortController();
   let timedOut = false;
@@ -149,11 +164,11 @@ async function requestChatCompletion(payload, options = {}) {
   else options.signal?.addEventListener('abort', abortFromCaller, { once: true });
 
   try {
-    return await fetch(`${env.openaiBaseUrl}/chat/completions`, {
+    return await fetch(`${connection.baseUrl}/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${env.openaiApiKey}`,
+        Authorization: `Bearer ${connection.apiKey}`,
       },
       body: JSON.stringify(body),
       signal: controller.signal,

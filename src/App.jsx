@@ -24,6 +24,7 @@ import { modules, moduleMap } from './modules.js';
 import { GenerationProgress } from './features/generation/GenerationProgress.jsx';
 import { useGenerationJob } from './features/generation/useGenerationJob.js';
 import { loadProjectDraft, saveProjectDraft } from './features/drafts/projectDraftStorage.js';
+import { ModelSettingsModal } from './features/settings/ModelSettingsModal.jsx';
 
 const SUB_CHOICE_SEPARATOR = '::';
 const MULTI_CHOICE_SEPARATOR = '||';
@@ -723,7 +724,7 @@ function App() {
           </main>
         </div>
         {settingsOpen && authUser?.role === 'admin' && (
-          <SettingsModal
+          <ModelSettingsModal
             health={health}
             onConfigured={(api) => setHealth((prev) => ({ ...(prev || {}), api }))}
             onClose={() => setSettingsOpen(false)}
@@ -847,7 +848,7 @@ function App() {
       </main>
 
       {settingsOpen && authUser?.role === 'admin' && (
-        <SettingsModal
+        <ModelSettingsModal
           health={health}
           onConfigured={(api) => setHealth((prev) => ({ ...(prev || {}), api }))}
           onClose={() => setSettingsOpen(false)}
@@ -2474,123 +2475,6 @@ function AdminUsersModal({ onClose }) {
             </div>
           ))}
         </div>
-      </div>
-    </div>
-  );
-}
-
-function SettingsModal({ health, onConfigured, onClose }) {
-  const [baseUrl, setBaseUrl] = useState(health?.api?.baseUrl || '');
-  const [apiKey, setApiKey] = useState('');
-  const [model, setModel] = useState(health?.api?.model || '');
-  const [models, setModels] = useState(health?.api?.model ? [health.api.model] : []);
-  const [detecting, setDetecting] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState('');
-  const [messageType, setMessageType] = useState(health?.api?.configured ? 'ready' : 'info');
-
-  async function detectModels() {
-    setDetecting(true);
-    setMessage('');
-    try {
-      const response = await fetch('/api/config/models', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ baseUrl, apiKey }),
-      });
-      const payload = await response.json();
-      if (!response.ok || !payload.ok) throw new Error(payload.message || '模型检测失败');
-      setBaseUrl(payload.baseUrl);
-      setModels(payload.models);
-      setModel((current) => (payload.models.includes(current) ? current : payload.models[0]));
-      setMessage(`检测到 ${payload.models.length} 个模型，请选择一个用于生成。`);
-      setMessageType('ready');
-    } catch (error) {
-      setMessage(formatRequestError(error));
-      setMessageType('error');
-    } finally {
-      setDetecting(false);
-    }
-  }
-
-  async function saveConfig() {
-    setSaving(true);
-    setMessage('');
-    try {
-      const response = await fetch('/api/config', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ baseUrl, apiKey, model }),
-      });
-      const payload = await response.json();
-      if (!response.ok || !payload.ok) throw new Error(payload.message || '保存失败');
-      onConfigured?.(payload.api);
-      setMessage('API 配置已保存，当前服务已立即生效。');
-      setMessageType('ready');
-    } catch (error) {
-      setMessage(formatRequestError(error));
-      setMessageType('error');
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  return (
-    <div className="modal-backdrop">
-      <div className="settings-modal">
-        <div className="modal-header">
-          <h2>配置API</h2>
-          <button className="icon-button" onClick={onClose}>x</button>
-        </div>
-        <div className="settings-grid">
-          <label className="settings-field">
-            <span>Base URL</span>
-            <input
-              value={baseUrl}
-              placeholder="https://api.openai.com/v1"
-              onChange={(event) => setBaseUrl(event.target.value)}
-            />
-          </label>
-          <label className="settings-field">
-            <span>API Key</span>
-            <input
-              type="password"
-              value={apiKey}
-              placeholder={health?.api?.hasApiKey ? '已配置，重新保存时需要再次输入' : 'sk-...'}
-              onChange={(event) => setApiKey(event.target.value)}
-            />
-          </label>
-          <button className="soft-button settings-detect" type="button" onClick={detectModels} disabled={detecting || !baseUrl || !apiKey}>
-            {detecting ? <Loader2 className="spin" size={16} /> : <RefreshCw size={16} />}
-            {detecting ? '检测中' : '检测模型'}
-          </button>
-          <label className="settings-field">
-            <span>模型</span>
-            {models.length ? (
-              <select value={model} onChange={(event) => setModel(event.target.value)}>
-                {models.map((item) => <option key={item} value={item}>{item}</option>)}
-              </select>
-            ) : (
-              <input value={model} placeholder="先检测模型，或手动输入模型名" onChange={(event) => setModel(event.target.value)} />
-            )}
-          </label>
-        </div>
-        {message && (
-          <div className={`context-strip ${messageType === 'ready' ? 'ready' : ''} ${messageType === 'error' ? 'error' : ''}`}>
-            <ShieldCheck size={18} />
-            {message}
-          </div>
-        )}
-        {!message && (
-          <div className={`context-strip ${health?.api?.configured ? 'ready' : ''}`}>
-            <ShieldCheck size={18} />
-            {health?.api?.configured ? `当前模型：${health.api.model}` : '填写 URL 和 API Key 后先检测模型，再保存配置。'}
-          </div>
-        )}
-        <button className="primary-button full" onClick={saveConfig} disabled={saving || !baseUrl || !apiKey || !model}>
-          {saving ? <Loader2 className="spin" size={18} /> : <CheckCircle2 size={18} />}
-          {saving ? '保存中' : '保存配置'}
-        </button>
       </div>
     </div>
   );

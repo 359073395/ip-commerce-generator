@@ -22,6 +22,7 @@
     "test:quality-evaluation": "node tools/run-quality-evaluation-test.mjs",
     "test:productized-generation": "node tools/run-productized-generation-test.mjs",
     "test:generation-jobs": "node tools/run-generation-job-test.mjs",
+    "test:deepseek-provider": "node tools/run-deepseek-provider-test.mjs",
     "test:quality-benchmark": "node tools/run-quality-benchmark-test.mjs",
     "reset:admin-password": "node tools/reset-admin-password.mjs",
     "benchmark:models": "node tools/run-model-quality-benchmark.mjs",

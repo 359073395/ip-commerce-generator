@@ -92,13 +92,18 @@ export async function generateModuleForUser({
 
   const draftSuccess = modelEvents.find((event) => event.phase === 'draft' && event.type === 'success');
   const successfulEvent = draftSuccess || modelEvents.find((event) => event.type === 'success');
+  const firstAttempt = modelEvents.find((event) => event.phase === 'draft' && event.type === 'attempt')
+    || modelEvents.find((event) => event.type === 'attempt');
   const actualModel = successfulEvent?.actualModel || successfulEvent?.attemptedModel || env.openaiModel;
   const resultWithMetadata = {
     ...resultWithQuality,
     generationMeta: {
-      requestedModel: env.openaiModel,
+      requestedModel: firstAttempt?.model || env.openaiModel,
+      requestedProvider: firstAttempt?.provider || 'primary',
       actualModel,
+      actualProvider: successfulEvent?.provider || firstAttempt?.provider || 'primary',
       fallbackUsed: modelEvents.some((event) => event.type === 'fallback'),
+      crossProviderFallback: modelEvents.some((event) => event.type === 'fallback' && event.nextProvider && event.nextProvider !== event.provider),
       attempts: modelEvents
         .filter((event) => ['attempt', 'fallback', 'error', 'success'].includes(event.type))
         .map(sanitizeModelEvent),
@@ -387,9 +392,10 @@ function modelEventToProgress(event = {}, phase = 'generation') {
     return {
       stage: 'model_fallback',
       phase,
-      label: `当前模型未响应，正在切换备用模型 ${event.nextModel}`,
+      label: `当前模型未响应，正在切换 ${event.nextProviderLabel || '备用API'} ${event.nextModel}`,
       percent: range.start,
       model: event.nextModel,
+      provider: event.nextProvider,
       reason: event.reason,
     };
   }
@@ -397,9 +403,10 @@ function modelEventToProgress(event = {}, phase = 'generation') {
     return {
       stage: `${phase}_model_ready`,
       phase,
-      label: `${event.actualModel || event.attemptedModel || '模型'} 已返回结果`,
+      label: `${providerDisplayName(event)} ${event.actualModel || event.attemptedModel || '模型'} 已返回结果`,
       percent: range.success,
       model: event.actualModel || event.attemptedModel,
+      provider: event.provider,
       fallbackUsed: event.fallbackUsed,
     };
   }
@@ -410,15 +417,17 @@ function modelEventToProgress(event = {}, phase = 'generation') {
       label: `模型请求未完成：${friendlyModelError(event.code)}`,
       percent: range.start,
       model: event.model,
+      provider: event.provider,
       reason: event.code,
     };
   }
   return {
     stage: `${phase}_model`,
     phase,
-    label: `正在调用 ${event.model || '模型'}${event.totalAttempts > 1 ? `（第${event.attempt}次尝试）` : ''}`,
+    label: `正在调用 ${providerDisplayName(event)} ${event.model || '模型'}${event.totalAttempts > 1 ? `（第${event.attempt}次尝试）` : ''}`,
     percent: range.start,
     model: event.model,
+    provider: event.provider,
     attempt: event.attempt,
     totalAttempts: event.totalAttempts,
   };
@@ -437,6 +446,10 @@ function friendlyModelError(code) {
 
 function sanitizeModelEvent(event = {}) {
   return Object.fromEntries(Object.entries(event).filter(([key, value]) => key !== 'message' && value !== undefined));
+}
+
+function providerDisplayName(event = {}) {
+  return event.providerLabel || (event.provider === 'deepseek' ? 'DeepSeek' : '主API');
 }
 
 function throwIfAborted(signal) {

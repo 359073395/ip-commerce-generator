@@ -209,6 +209,13 @@ INITIAL_ADMIN_PASSWORD=change-this-admin-password
 
 登录后由管理员在网页右上角“配置API”里填写模型接口。普通用户不会看到 API 设置入口。
 
+配置窗口支持两套独立服务：
+
+- 主 API：任意兼容 OpenAI API 格式的接口
+- DeepSeek：默认使用官方 `https://api.deepseek.com/v1`
+
+DeepSeek 可以设为“作为备用”或“优先使用”。作为备用时，主 API 遇到超时、429、5xx 或网络异常会自动切换到 DeepSeek，两个服务分别保存自己的 API Key。
+
 ## 环境变量
 
 ```env
@@ -216,6 +223,13 @@ OPENAI_BASE_URL=https://api.example.com/v1
 OPENAI_API_KEY=replace-with-your-key
 OPENAI_MODEL=gpt-5.6-sol
 OPENAI_FALLBACK_MODELS=gpt-5.4,gemini-3-flash,gpt-5.4-mini
+
+DEEPSEEK_ENABLED=false
+DEEPSEEK_BASE_URL=https://api.deepseek.com/v1
+DEEPSEEK_API_KEY=
+DEEPSEEK_MODEL=deepseek-chat
+DEEPSEEK_MODE=fallback
+DEEPSEEK_TIMEOUT_MS=45000
 
 APP_AUTH_ENABLED=false
 # Optional legacy shared page password. Keep disabled for normal multi-user login.

@@ -1699,6 +1699,104 @@ th {
   box-shadow: var(--shadow);
 }
 
+.model-settings-modal {
+  width: min(700px, 100%);
+}
+
+.settings-subtitle {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.provider-status-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.provider-status {
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid #344258;
+  border-radius: 8px;
+  background: #071426;
+}
+
+.provider-status span,
+.provider-status strong {
+  display: block;
+  min-width: 0;
+}
+
+.provider-status span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.provider-status strong {
+  overflow: hidden;
+  margin-top: 4px;
+  color: var(--warn);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.provider-status.ready strong {
+  color: var(--accent-2);
+}
+
+.settings-tabs,
+.settings-segmented {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid #344258;
+  border-radius: 8px;
+  background: #071426;
+}
+
+.settings-tabs {
+  margin-top: 14px;
+}
+
+.settings-tabs button,
+.settings-segmented button {
+  min-height: 38px;
+  padding: 0 12px;
+  border-radius: 6px;
+  color: var(--muted);
+  background: transparent;
+  font-weight: 800;
+}
+
+.settings-tabs button.active,
+.settings-segmented button.active {
+  color: #03261a;
+  background: var(--accent-2);
+}
+
+.provider-settings-section {
+  margin-top: 14px;
+}
+
+.settings-field small {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.settings-action-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+
 .profile-modal {
   width: min(860px, 100%);
 }
@@ -2235,6 +2333,20 @@ th {
 
   .generation-progress-actions .soft-button {
     flex: 1 1 0;
+  }
+
+  .provider-status-row {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-action-row {
+    align-items: stretch;
+    flex-direction: column-reverse;
+  }
+
+  .settings-action-row .primary-button,
+  .settings-action-row .soft-button {
+    width: 100%;
   }
 
   .workspace-grid {

@@ -4,7 +4,8 @@ import crypto from 'node:crypto';
 import path from 'node:path';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { detectOpenAIModels, env, getApiStatus, setApiConfig } from './config/env.mjs';
+import { env, getApiStatus } from './config/env.mjs';
+import { registerModelConfigRoutes } from './config/registerModelConfigRoutes.mjs';
 import { moduleDefinitions } from './prompt-engine/modules.mjs';
 import { getKnowledgeOptimizationStatus, loadManifest, verifyKnowledgeFiles } from './knowledge/loadKnowledge.mjs';
 import { planAgentTask } from './agentPlanner.mjs';
@@ -138,6 +139,8 @@ app.get('/api/health', async (_req, res) => {
         agentRuns: true,
         backgroundGenerationJobs: true,
         cancellableGeneration: true,
+        deepseekProvider: true,
+        crossProviderFallback: true,
         qualityEvaluation: true,
         qualityAutoRepair: process.env.QUALITY_REPAIR_ENABLED !== 'false',
         knowledgeCitations: true,
@@ -176,6 +179,7 @@ app.post('/api/auth/logout', requireUser, async (req, res) => {
 
 app.use('/api', requireUser);
 registerGenerationJobRoutes(app);
+registerModelConfigRoutes(app, requireAdmin);
 
 async function requireUser(req, res, next) {
   const user = await getSessionUser(getSessionCookie(req));
@@ -197,32 +201,6 @@ function requireAdmin(req, res, next) {
 
 app.get('/api/knowledge/verify', async (_req, res) => {
   res.json(await verifyKnowledgeFiles());
-});
-
-app.post('/api/config/models', requireAdmin, async (req, res) => {
-  try {
-    const result = await detectOpenAIModels(req.body || {});
-    res.json({ ok: true, ...result });
-  } catch (error) {
-    res.status(400).json({
-      ok: false,
-      code: error.code || 'MODEL_DETECTION_FAILED',
-      message: error.message,
-    });
-  }
-});
-
-app.post('/api/config', requireAdmin, async (req, res) => {
-  try {
-    const api = setApiConfig(req.body || {});
-    res.json({ ok: true, api });
-  } catch (error) {
-    res.status(400).json({
-      ok: false,
-      code: error.code || 'API_CONFIG_SAVE_FAILED',
-      message: error.message,
-    });
-  }
 });
 
 app.get('/api/admin/users', requireAdmin, async (_req, res) => {
