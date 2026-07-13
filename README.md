@@ -44,10 +44,10 @@
 
 当前结构化知识库包含：
 
-- `65` 个结构化方法块
-- `102` 个离线质量基准案例
+- `147` 个结构化方法块
+- `104` 个离线质量基准案例
 - 个人IP、带货视频、组合型商业内容三类知识路径
-- 覆盖 9 个核心生成模块的 Agent 合约
+- 覆盖 10 个核心生成模块的 Agent 合约
 
 ## 系统能力
 
@@ -152,7 +152,18 @@
 - 检查是否命中知识库方法
 - 检查是否有完整骨架
 - 检查是否包含风险提醒和待确认项
-- 用 102 个案例覆盖个人IP、选题、脚本、成交、带货、改写、拆解、润色等场景
+- 用 104 个案例覆盖个人IP、选题、脚本、成交、带货、改写、拆解、润色等场景
+
+### 9. 后台生成任务
+
+普通生成和四步 Agent 执行链都会进入持久化后台任务：
+
+- 提交后立即返回任务，不再让浏览器或反向代理长时间挂起
+- 显示知识检索、模型尝试、备用模型、质量检查和保存进度
+- 主模型遇到超时、429、5xx 或网络错误时自动尝试备用模型
+- 支持取消、失败重试和服务重启后的中断提示
+- 刷新页面、切换模块或短暂断网不会丢失正在执行的任务
+- 表单按用户和项目自动保存在当前浏览器
 
 ## 技术栈
 
@@ -225,13 +236,15 @@ KNOWLEDGE_BUDGET_CHARS=1200
 AGENT_REVIEW_ENABLED=true
 AGENT_REVIEW_MAX_TOKENS=1200
 AGENT_REVIEW_TIMEOUT_MS=20000
+JOB_GLOBAL_CONCURRENCY=2
+JOB_MAX_QUEUED_PER_USER=3
 ```
 
 `APP_AUTH_ENABLED=false` 是默认值，表示旧版统一网页密码关闭。现在推荐使用 SQLite 多用户登录。
 
 ## 数据存储
 
-多用户、登录会话、项目档案、Agent任务、生成记录保存在：
+多用户、登录会话、项目档案、Agent任务、后台任务和生成记录保存在：
 
 ```text
 data/app.db
@@ -338,6 +351,8 @@ npm run test:project-profile
 npm run test:auth-projects
 npm run test:generation-history
 npm run test:admin-overview
+npm run test:content-experiments
+npm run test:generation-jobs
 ```
 
 ## 后续学习方向

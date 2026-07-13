@@ -1,20 +1,12 @@
 import crypto from 'node:crypto';
-import fs from 'node:fs/promises';
-import path from 'node:path';
-import initSqlJs from 'sql.js';
 import { emptyProjectProfile, loadProjectProfile, normalizeProjectProfile, projectProfileIsEmpty } from './projectProfile.mjs';
+import { getDatabase, persistDatabase } from './storage/databaseStore.mjs';
 
-const rootDir = process.cwd();
-const dataDir = process.env.APP_DATA_DIR || path.join(rootDir, 'data');
-const dbPath = path.join(dataDir, 'app.db');
 const sessionCookieName = 'ip_commerce_session';
 const sessionDays = Number(process.env.SESSION_DAYS || 14);
 
-let dbPromise;
-
 export async function getDb() {
-  if (!dbPromise) dbPromise = openDb();
-  return dbPromise;
+  return getDatabase();
 }
 
 export async function initializeDatabase() {
@@ -587,20 +579,6 @@ export function clearSessionCookie() {
   return `${sessionCookieName}=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0`;
 }
 
-async function openDb() {
-  await fs.mkdir(dataDir, { recursive: true });
-  const SQL = await initSqlJs({
-    locateFile: (file) => path.join(rootDir, 'node_modules', 'sql.js', 'dist', file),
-  });
-  try {
-    const bytes = await fs.readFile(dbPath);
-    return new SQL.Database(bytes);
-  } catch (error) {
-    if (error.code !== 'ENOENT') throw error;
-    return new SQL.Database();
-  }
-}
-
 function migrate(db) {
   db.run(`
     CREATE TABLE IF NOT EXISTS users (
@@ -649,6 +627,27 @@ function migrate(db) {
       created_at TEXT NOT NULL,
       FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
     );
+    CREATE TABLE IF NOT EXISTS generation_jobs (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      project_id TEXT,
+      kind TEXT NOT NULL,
+      status TEXT NOT NULL,
+      progress_json TEXT NOT NULL,
+      request_json TEXT NOT NULL,
+      result_json TEXT NOT NULL,
+      error_json TEXT NOT NULL,
+      cancel_requested INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL,
+      started_at TEXT,
+      completed_at TEXT,
+      updated_at TEXT NOT NULL,
+      FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS generation_jobs_user_status_idx
+      ON generation_jobs(user_id, status, created_at);
+    CREATE INDEX IF NOT EXISTS generation_jobs_project_idx
+      ON generation_jobs(user_id, project_id, created_at);
     CREATE TABLE IF NOT EXISTS agent_tasks (
       id TEXT PRIMARY KEY,
       user_id TEXT NOT NULL,
@@ -729,8 +728,7 @@ function createDefaultProject(db, userId, name, profile) {
 }
 
 async function persistDb(db) {
-  await fs.mkdir(dataDir, { recursive: true });
-  await fs.writeFile(dbPath, Buffer.from(db.export()));
+  await persistDatabase(db);
 }
 
 function run(db, sql, params = []) {

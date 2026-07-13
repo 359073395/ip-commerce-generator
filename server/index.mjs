@@ -10,6 +10,8 @@ import { getKnowledgeOptimizationStatus, loadManifest, verifyKnowledgeFiles } fr
 import { planAgentTask } from './agentPlanner.mjs';
 import { runAgentExecution } from './agentExecutor.mjs';
 import { generateModuleForUser } from './generationService.mjs';
+import { initializeGenerationJobService } from './jobs/jobService.mjs';
+import { registerGenerationJobRoutes } from './jobs/registerJobRoutes.mjs';
 import {
   buildSessionCookie,
   clearSessionCookie,
@@ -48,6 +50,7 @@ app.use(requireBasicAuth);
 app.use(express.json({ limit: '2mb' }));
 
 await initializeDatabase();
+await initializeGenerationJobService();
 
 function requireBasicAuth(req, res, next) {
   if (!env.appAuthEnabled || req.method === 'OPTIONS') {
@@ -133,6 +136,8 @@ app.get('/api/health', async (_req, res) => {
       auth: 'sqlite-users',
       features: {
         agentRuns: true,
+        backgroundGenerationJobs: true,
+        cancellableGeneration: true,
         qualityEvaluation: true,
         qualityAutoRepair: process.env.QUALITY_REPAIR_ENABLED !== 'false',
         knowledgeCitations: true,
@@ -170,6 +175,7 @@ app.post('/api/auth/logout', requireUser, async (req, res) => {
 });
 
 app.use('/api', requireUser);
+registerGenerationJobRoutes(app);
 
 async function requireUser(req, res, next) {
   const user = await getSessionUser(getSessionCookie(req));

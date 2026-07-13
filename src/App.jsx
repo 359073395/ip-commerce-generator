@@ -21,6 +21,9 @@ import {
   UserRound,
 } from 'lucide-react';
 import { modules, moduleMap } from './modules.js';
+import { GenerationProgress } from './features/generation/GenerationProgress.jsx';
+import { useGenerationJob } from './features/generation/useGenerationJob.js';
+import { loadProjectDraft, saveProjectDraft } from './features/drafts/projectDraftStorage.js';
 
 const SUB_CHOICE_SEPARATOR = '::';
 const MULTI_CHOICE_SEPARATOR = '||';
@@ -120,7 +123,6 @@ function App() {
   const [forms, setForms] = useState(emptyFormState);
   const [selections, setSelections] = useState(initialSelections);
   const [results, setResults] = useState({});
-  const [loading, setLoading] = useState(false);
   const [authUser, setAuthUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [projects, setProjects] = useState([]);
@@ -136,13 +138,72 @@ function App() {
   const [agentLoading, setAgentLoading] = useState(false);
   const [agentError, setAgentError] = useState('');
   const [agentRun, setAgentRun] = useState(null);
-  const [agentRunLoading, setAgentRunLoading] = useState(false);
-  const [agentRunError, setAgentRunError] = useState('');
   const [generationHistory, setGenerationHistory] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [contentExperiments, setContentExperiments] = useState([]);
   const [experimentLoading, setExperimentLoading] = useState(false);
   const [experimentError, setExperimentError] = useState('');
+  const [draftReadyKey, setDraftReadyKey] = useState('');
+
+  const generationJobStorageKey = authUser?.id && activeProjectId
+    ? `ip-commerce-generation-job:${authUser.id}:${activeProjectId}`
+    : '';
+  const agentJobStorageKey = authUser?.id && activeProjectId
+    ? `ip-commerce-agent-job:${authUser.id}:${activeProjectId}`
+    : '';
+  const draftStorageKey = authUser?.id && activeProjectId
+    ? `ip-commerce-project-draft:${authUser.id}:${activeProjectId}`
+    : '';
+
+  const generationJob = useGenerationJob({
+    storageKey: generationJobStorageKey,
+    onCompleted: (job) => {
+      const payload = job.result || {};
+      const moduleId = payload.module?.id || job.moduleId;
+      if (!moduleId || !payload.result) return;
+      setResults((previous) => ({
+        ...previous,
+        [moduleId]: {
+          module: payload.module || moduleMap[moduleId],
+          result: payload.result,
+          generatedAt: job.completedAt || new Date().toISOString(),
+          recordId: payload.record?.id,
+        },
+      }));
+      refreshGenerationHistory();
+    },
+  });
+
+  const agentGenerationJob = useGenerationJob({
+    storageKey: agentJobStorageKey,
+    onCompleted: (job) => {
+      const payload = job.result || {};
+      setAgentPlan(payload.plan || null);
+      setAgentRun(payload.run || null);
+      const completedSteps = (payload.steps || []).filter((step) => step.status === 'completed' && step.result);
+      if (!completedSteps.length) return;
+      const resultUpdates = {};
+      for (const step of completedSteps) {
+        const stepModule = moduleMap[step.moduleId];
+        if (!stepModule) continue;
+        resultUpdates[step.moduleId] = {
+          module: stepModule,
+          result: step.result,
+          generatedAt: step.completedAt || job.completedAt || new Date().toISOString(),
+          recordId: step.recordId,
+        };
+      }
+      setResults((previous) => ({ ...previous, ...resultUpdates }));
+      const lastStep = completedSteps[completedSteps.length - 1];
+      if (moduleMap[lastStep.moduleId]) setActiveModule(lastStep.moduleId);
+      refreshGenerationHistory();
+    },
+  });
+
+  const loading = generationJob.isActive;
+  const agentRunLoading = agentGenerationJob.isActive;
+  const agentRunError = agentGenerationJob.error;
+  const generationError = error || generationJob.error;
 
   const module = moduleMap[activeModule];
   const currentResult = results[activeModule];
@@ -205,6 +266,30 @@ function App() {
     refreshGenerationHistory();
     refreshContentExperiments();
   }, [authUser?.id, activeProjectId, activeModule]);
+
+  useEffect(() => {
+    setDraftReadyKey('');
+    if (!draftStorageKey) return;
+    const saved = loadProjectDraft(draftStorageKey);
+    setForms({ ...emptyFormState(), ...(saved?.forms || {}) });
+    setSelections({ ...initialSelections, ...(saved?.selections || {}) });
+    setAgentGoal(saved?.agentGoal || '');
+    if (saved?.activeModule && moduleMap[saved.activeModule]) setActiveModule(saved.activeModule);
+    setDraftReadyKey(draftStorageKey);
+  }, [draftStorageKey]);
+
+  useEffect(() => {
+    if (!draftStorageKey || draftReadyKey !== draftStorageKey) return undefined;
+    const timer = window.setTimeout(() => {
+      saveProjectDraft(draftStorageKey, {
+        activeModule,
+        forms,
+        selections,
+        agentGoal,
+      });
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [draftStorageKey, draftReadyKey, activeModule, forms, selections, agentGoal]);
 
   async function handleLogin(user) {
     setAuthUser(user);
@@ -270,48 +355,15 @@ function App() {
   }
 
   async function runAgentAutoChain() {
-    setAgentRunLoading(true);
-    setAgentRunError('');
     setError('');
     try {
-      const response = await fetch('/api/agent/run', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          goal: agentGoal,
-          projectId: activeProjectId,
-          maxSteps: 3,
-        }),
+      await agentGenerationJob.start('/api/jobs/agent-run', {
+        goal: agentGoal,
+        projectId: activeProjectId,
+        maxSteps: 4,
       });
-      const payload = await response.json();
-      if (!response.ok || !payload.ok) throw new Error(payload.message || 'Agent自动执行失败');
-      setAgentPlan(payload.plan);
-      setAgentRun(payload.run);
-      const completedSteps = (payload.steps || []).filter((step) => step.status === 'completed' && step.result);
-      if (completedSteps.length) {
-        const resultUpdates = {};
-        for (const step of completedSteps) {
-          const stepModule = moduleMap[step.moduleId];
-          if (!stepModule) continue;
-          resultUpdates[step.moduleId] = {
-            module: stepModule,
-            result: step.result,
-            generatedAt: step.completedAt || new Date().toISOString(),
-            recordId: step.recordId,
-          };
-        }
-        setResults((prev) => ({ ...prev, ...resultUpdates }));
-        const lastStep = completedSteps[completedSteps.length - 1];
-        if (moduleMap[lastStep.moduleId]) setActiveModule(lastStep.moduleId);
-        window.requestAnimationFrame(() => {
-          window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-        });
-      }
-      refreshGenerationHistory();
     } catch (error) {
-      setAgentRunError(formatRequestError(error, 'Agent自动执行失败'));
-    } finally {
-      setAgentRunLoading(false);
+      setError(formatRequestError(error, 'Agent自动执行失败'));
     }
   }
 
@@ -527,32 +579,16 @@ function App() {
       return;
     }
 
-    setLoading(true);
     try {
-      const response = await fetch('/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          moduleId: activeModule,
-          projectId: activeProjectId,
-          formData: forms[activeModule],
-          selections: serializeSelections(module, selections[activeModule] || []),
-          context: activeModule === 'ip-positioning' ? {} : { ipPositioning: ipContext },
-        }),
+      await generationJob.start('/api/jobs/generate', {
+        moduleId: activeModule,
+        projectId: activeProjectId,
+        formData: forms[activeModule],
+        selections: serializeSelections(module, selections[activeModule] || []),
+        context: activeModule === 'ip-positioning' ? {} : { ipPositioning: ipContext },
       });
-      const payload = await response.json();
-      if (!response.ok || !payload.ok) {
-        throw new Error(payload.message || '生成失败');
-      }
-      setResults((prev) => ({
-        ...prev,
-        [activeModule]: { module, result: payload.result, generatedAt: new Date().toISOString(), recordId: payload.record?.id },
-      }));
-      refreshGenerationHistory();
     } catch (err) {
       setError(formatRequestError(err));
-    } finally {
-      setLoading(false);
     }
   }
 
@@ -564,6 +600,7 @@ function App() {
       return next;
     });
     setError('');
+    generationJob.dismiss();
   }
 
   function copyResult() {
@@ -630,14 +667,26 @@ function App() {
                     run={agentRun}
                     runLoading={agentRunLoading}
                     runError={agentRunError}
+                    runJob={agentGenerationJob.job}
+                    runElapsedSeconds={agentGenerationJob.elapsedSeconds}
+                    runConnectionError={agentGenerationJob.connectionError}
                     onPlan={runAgentPlanner}
                     onApply={applyAgentPlan}
                     onRun={runAgentAutoChain}
+                    onCancelRun={agentGenerationJob.cancel}
+                    onRetryRun={agentGenerationJob.retry}
                   />
                 )}
                 <FormGroups module={module} values={forms[activeModule] || {}} onChange={updateField} />
                 <OptionGroups module={module} selections={selections[activeModule] || []} onChange={updateSelection} />
-                {error && <ErrorBox message={error} />}
+                {generationError && !generationJob.job && <ErrorBox message={generationError} />}
+                <GenerationProgress
+                  job={generationJob.job}
+                  elapsedSeconds={generationJob.elapsedSeconds}
+                  connectionError={generationJob.connectionError}
+                  onCancel={generationJob.cancel}
+                  onRetry={generationJob.retry}
+                />
                 <ActionBar
                   loading={loading}
                   apiConfigured={health?.api?.configured}
@@ -655,7 +704,9 @@ function App() {
                 module={module}
                 result={currentResult?.result}
                 loading={loading}
-                error={error}
+                error={generationError}
+                job={generationJob.job}
+                elapsedSeconds={generationJob.elapsedSeconds}
                 history={generationHistory}
                 historyLoading={historyLoading}
                 onRefreshHistory={refreshGenerationHistory}
@@ -739,15 +790,27 @@ function App() {
               run={agentRun}
               runLoading={agentRunLoading}
               runError={agentRunError}
+              runJob={agentGenerationJob.job}
+              runElapsedSeconds={agentGenerationJob.elapsedSeconds}
+              runConnectionError={agentGenerationJob.connectionError}
               onPlan={runAgentPlanner}
               onApply={applyAgentPlan}
               onRun={runAgentAutoChain}
+              onCancelRun={agentGenerationJob.cancel}
+              onRetryRun={agentGenerationJob.retry}
             />
             <ModuleHeader module={module} completion={completion} hasContext={Boolean(ipContext)} />
             {module.inherited && module.frontendMode !== 'original' && <InheritedContext hasContext={Boolean(ipContext)} />}
             <OptionGroups module={module} selections={selections[activeModule] || []} onChange={updateSelection} />
             <FormGroups module={module} values={forms[activeModule] || {}} onChange={updateField} />
-            {error && <ErrorBox message={error} />}
+            {generationError && !generationJob.job && <ErrorBox message={generationError} />}
+            <GenerationProgress
+              job={generationJob.job}
+              elapsedSeconds={generationJob.elapsedSeconds}
+              connectionError={generationJob.connectionError}
+              onCancel={generationJob.cancel}
+              onRetry={generationJob.retry}
+            />
             <ActionBar
               loading={loading}
               apiConfigured={health?.api?.configured}
@@ -765,7 +828,9 @@ function App() {
             module={module}
             result={currentResult?.result}
             loading={loading}
-            error={error}
+            error={generationError}
+            job={generationJob.job}
+            elapsedSeconds={generationJob.elapsedSeconds}
             history={generationHistory}
             historyLoading={historyLoading}
             onRefreshHistory={refreshGenerationHistory}
@@ -810,7 +875,25 @@ function hasProjectProfile(profile) {
     .some((field) => String(profile[field] || '').trim()));
 }
 
-function AgentPlannerPanel({ goal, onGoalChange, plan, task, loading, error, run, runLoading, runError, onPlan, onApply, onRun }) {
+function AgentPlannerPanel({
+  goal,
+  onGoalChange,
+  plan,
+  task,
+  loading,
+  error,
+  run,
+  runLoading,
+  runError,
+  runJob,
+  runElapsedSeconds,
+  runConnectionError,
+  onPlan,
+  onApply,
+  onRun,
+  onCancelRun,
+  onRetryRun,
+}) {
   const canSubmit = Boolean(String(goal || '').trim()) && !loading && !runLoading;
   const statusLabel = plan?.status === 'ready' ? '可执行' : plan?.status === 'needs_input' ? '需补充' : plan?.status === 'invalid' ? '无法判断' : '';
   const canRun = Boolean(String(goal || '').trim()) && !loading && !runLoading;
@@ -847,7 +930,15 @@ function AgentPlannerPanel({ goal, onGoalChange, plan, task, loading, error, run
         </button>
       </div>
       {error && <ErrorBox message={error} />}
-      {runError && <ErrorBox message={runError} />}
+      {runError && !runJob && <ErrorBox message={runError} />}
+      <GenerationProgress
+        job={runJob}
+        elapsedSeconds={runElapsedSeconds}
+        connectionError={runConnectionError}
+        onCancel={onCancelRun}
+        onRetry={onRetryRun}
+        compact
+      />
       {plan && (
         <div className="agent-plan-card">
           <div className="agent-plan-summary">
@@ -1360,7 +1451,7 @@ function ActionBar({ loading, apiConfigured, canConfigureApi, primaryLabel, onGe
     <div className="action-bar">
       <button className="primary-button" onClick={onGenerate} disabled={loading}>
         {loading ? <Loader2 className="spin" size={18} /> : <Sparkles size={18} />}
-        {loading ? '生成中' : primaryLabel || '生成完整结果'}
+        {loading ? '后台生成中' : primaryLabel || '生成完整结果'}
       </button>
       <button className="soft-button" onClick={onGenerate} disabled={loading}>
         <RefreshCw size={16} />
@@ -1401,6 +1492,8 @@ function ResultPanel({
   result,
   loading,
   error,
+  job,
+  elapsedSeconds = 0,
   history = [],
   historyLoading,
   onRefreshHistory,
@@ -1422,7 +1515,12 @@ function ResultPanel({
         </div>
         <Bot size={24} />
       </div>
-      {loading && <StateMessage title="正在组装知识库提示词" body="后台会读取模块知识库、用户输入和输出结构，再调用模型。" />}
+      {loading && (
+        <StateMessage
+          title={job?.progress?.label || '任务已提交到后台'}
+          body={`已运行 ${formatElapsedTime(elapsedSeconds)}。页面会自动获取结果，切换模块或短暂断网都不会丢失任务。`}
+        />
+      )}
       {!loading && error && <StateMessage title="生成未完成" body="请根据左侧提示处理 API 或输入问题。" warning />}
       {!loading && !error && !result && <EmptyResult module={module} />}
       {!loading && result && <RenderedResult result={result} onApplyProfileSuggestions={onApplyProfileSuggestions} />}
@@ -1443,6 +1541,12 @@ function ResultPanel({
       />
     </aside>
   );
+}
+
+function formatElapsedTime(seconds) {
+  const safeSeconds = Math.max(0, Number(seconds || 0));
+  if (safeSeconds < 60) return `${safeSeconds}秒`;
+  return `${Math.floor(safeSeconds / 60)}分${safeSeconds % 60}秒`;
 }
 
 function ContentExperimentPanel({

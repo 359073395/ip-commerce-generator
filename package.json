@@ -21,6 +21,7 @@
     "test:knowledge-retrieval": "node tools/run-knowledge-retrieval-test.mjs",
     "test:quality-evaluation": "node tools/run-quality-evaluation-test.mjs",
     "test:productized-generation": "node tools/run-productized-generation-test.mjs",
+    "test:generation-jobs": "node tools/run-generation-job-test.mjs",
     "test:quality-benchmark": "node tools/run-quality-benchmark-test.mjs",
     "reset:admin-password": "node tools/reset-admin-password.mjs",
     "benchmark:models": "node tools/run-model-quality-benchmark.mjs",

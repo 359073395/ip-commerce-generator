@@ -1,4 +1,9 @@
 import { env } from '../config/env.mjs';
+import {
+  createModelHttpError,
+  isRetryableModelError,
+  normalizeModelError,
+} from '../model-routing/modelErrors.mjs';
 
 export async function callOpenAICompatible(messages, options = {}) {
   if (!env.openaiBaseUrl || !env.openaiApiKey || !env.openaiModel) {
@@ -16,10 +21,13 @@ export async function callOpenAICompatible(messages, options = {}) {
     response_format: { type: 'json_object' },
   };
 
-  const data = await requestWithModelFallback(payload, options);
+  const { data, metadata } = await requestWithModelFallback(payload, options);
+  notify(options.onModelResolved, metadata);
   const content = data.choices?.[0]?.message?.content;
   if (!content) {
-    throw new Error('模型接口没有返回内容。');
+    const error = new Error('模型接口没有返回内容。');
+    error.code = 'MODEL_EMPTY_RESPONSE';
+    throw error;
   }
 
   try {
@@ -42,18 +50,62 @@ async function requestWithModelFallback(payload, options = {}) {
     .filter((model, index, list) => model && list.indexOf(model) === index);
   let lastError;
 
-  for (const model of models) {
+  for (let index = 0; index < models.length; index += 1) {
+    const model = models[index];
+    const timeoutMs = model === payload.model
+      ? options.timeoutMs ?? env.openaiTimeoutMs
+      : options.fallbackTimeoutMs ?? env.openaiFallbackTimeoutMs;
+    const startedAt = Date.now();
+    notify(options.onModelEvent, {
+      type: 'attempt',
+      model,
+      attempt: index + 1,
+      totalAttempts: models.length,
+      timeoutMs,
+    });
+
     try {
-      const timeoutMs = model === payload.model
-        ? options.timeoutMs ?? env.openaiTimeoutMs
-        : options.fallbackTimeoutMs ?? env.openaiFallbackTimeoutMs;
       const response = await requestWithCompatibility({ ...payload, model }, { ...options, timeoutMs });
-      return await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (error) {
+        const invalidResponse = new Error('模型接口返回了无法解析的数据。');
+        invalidResponse.code = 'MODEL_INVALID_RESPONSE';
+        invalidResponse.retryable = true;
+        invalidResponse.cause = error;
+        throw invalidResponse;
+      }
+      const metadata = {
+        requestedModel: payload.model,
+        attemptedModel: model,
+        actualModel: String(data.model || model),
+        attempt: index + 1,
+        fallbackUsed: index > 0,
+        elapsedMs: Date.now() - startedAt,
+      };
+      notify(options.onModelEvent, { type: 'success', ...metadata });
+      return { data, metadata };
     } catch (error) {
-      lastError = error;
-      const canTryNext = error.code === 'MODEL_TIMEOUT' && model !== models[models.length - 1];
-      if (!canTryNext) throw error;
-      console.warn(`Model ${model} timed out, trying fallback model.`);
+      lastError = normalizeModelError(error);
+      notify(options.onModelEvent, {
+        type: 'error',
+        model,
+        attempt: index + 1,
+        code: lastError.code,
+        message: lastError.message,
+        elapsedMs: Date.now() - startedAt,
+      });
+      const hasNextModel = index < models.length - 1;
+      if (!hasNextModel || !isRetryableModelError(lastError)) throw lastError;
+      const nextModel = models[index + 1];
+      notify(options.onModelEvent, {
+        type: 'fallback',
+        model,
+        nextModel,
+        reason: lastError.code,
+      });
+      console.warn(`Model ${model} failed with ${lastError.code}, trying fallback model ${nextModel}.`);
     }
   }
 
@@ -72,13 +124,13 @@ async function requestWithCompatibility(payload, options = {}) {
         reasoning_effort: undefined,
       }, options);
     } else {
-      throw new Error(`模型接口请求失败：${response.status} ${text.slice(0, 500)}`);
+      throw createModelHttpError(response.status, text);
     }
   }
 
   if (!response.ok) {
     const text = await response.text();
-    throw new Error(`模型接口请求失败：${response.status} ${text.slice(0, 500)}`);
+    throw createModelHttpError(response.status, text);
   }
 
   return response;
@@ -87,7 +139,14 @@ async function requestWithCompatibility(payload, options = {}) {
 async function requestChatCompletion(payload, options = {}) {
   const body = Object.fromEntries(Object.entries(payload).filter(([, value]) => value !== undefined));
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), Number(options.timeoutMs ?? process.env.OPENAI_TIMEOUT_MS ?? 25000));
+  let timedOut = false;
+  const timeout = setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, Number(options.timeoutMs ?? process.env.OPENAI_TIMEOUT_MS ?? 25000));
+  const abortFromCaller = () => controller.abort();
+  if (options.signal?.aborted) abortFromCaller();
+  else options.signal?.addEventListener('abort', abortFromCaller, { once: true });
 
   try {
     return await fetch(`${env.openaiBaseUrl}/chat/completions`, {
@@ -101,12 +160,29 @@ async function requestChatCompletion(payload, options = {}) {
     });
   } catch (error) {
     if (error.name === 'AbortError') {
-      const timeoutError = new Error('模型响应超时。已限制知识库长度后仍超时，建议换更快模型或调低输出规模。');
+      if (options.signal?.aborted && !timedOut) {
+        const cancelledError = new Error('任务已取消。');
+        cancelledError.code = 'JOB_CANCELLED';
+        cancelledError.retryable = false;
+        throw cancelledError;
+      }
+      const timeoutError = new Error('模型响应超时。系统会自动尝试可用的备用模型。');
       timeoutError.code = 'MODEL_TIMEOUT';
+      timeoutError.retryable = true;
       throw timeoutError;
     }
-    throw error;
+    throw normalizeModelError(error);
   } finally {
     clearTimeout(timeout);
+    options.signal?.removeEventListener('abort', abortFromCaller);
+  }
+}
+
+function notify(callback, event) {
+  if (typeof callback !== 'function') return;
+  try {
+    callback(event);
+  } catch {
+    // Observability callbacks must never break a model request.
   }
 }

@@ -30,6 +30,8 @@ export async function runAgentExecution({
   goal,
   maxSteps = 4,
   generateStep = generateModuleForUser,
+  onProgress,
+  signal,
 } = {}) {
   if (!project) {
     const error = new Error('请先创建项目档案。');
@@ -37,6 +39,8 @@ export async function runAgentExecution({
     throw error;
   }
 
+  throwIfAborted(signal);
+  await reportProgress(onProgress, { stage: 'agent_planning', label: '正在拆解目标并规划执行链', percent: 4 });
   const plan = planAgentTask({
     goal,
     project,
@@ -53,12 +57,32 @@ export async function runAgentExecution({
   }
 
   const plannedSteps = buildExecutionSteps(plan, goal, maxSteps);
+  await reportProgress(onProgress, {
+    stage: 'agent_plan_ready',
+    label: `执行链已规划，共 ${plannedSteps.length} 步`,
+    percent: 8,
+    totalSteps: plannedSteps.length,
+    steps: plannedSteps,
+  });
   const completedSteps = [];
   let status = 'completed';
 
-  for (const step of plannedSteps) {
+  for (let stepIndex = 0; stepIndex < plannedSteps.length; stepIndex += 1) {
+    const step = plannedSteps[stepIndex];
     const startedAt = new Date().toISOString();
     try {
+      throwIfAborted(signal);
+      const rangeStart = 10 + (stepIndex / plannedSteps.length) * 85;
+      const rangeEnd = 10 + ((stepIndex + 1) / plannedSteps.length) * 85;
+      await reportProgress(onProgress, {
+        stage: 'agent_step',
+        label: `第 ${step.index}/${plannedSteps.length} 步：${step.moduleLabel}`,
+        percent: Math.round(rangeStart),
+        currentStep: step.index,
+        totalSteps: plannedSteps.length,
+        moduleId: step.moduleId,
+        moduleLabel: step.moduleLabel,
+      });
       const requestBody = buildStepRequest({
         step,
         goal,
@@ -69,6 +93,17 @@ export async function runAgentExecution({
         user,
         project,
         requestBody,
+        signal,
+        onProgress: (event) => reportProgress(onProgress, {
+          ...event,
+          stage: `agent_${event.stage || 'step'}`,
+          label: `${step.moduleLabel}：${event.label || '正在生成'}`,
+          percent: Math.round(rangeStart + (Number(event.percent || 0) / 100) * (rangeEnd - rangeStart)),
+          currentStep: step.index,
+          totalSteps: plannedSteps.length,
+          moduleId: step.moduleId,
+          moduleLabel: step.moduleLabel,
+        }),
       });
       const qualityScore = Number(generated.result?.quality?.score ?? 100);
       const stepStatus = qualityScore < agentQualityGateThreshold ? 'needs_review' : 'completed';
@@ -92,10 +127,10 @@ export async function runAgentExecution({
         break;
       }
     } catch (error) {
-      status = 'failed';
+      status = error.code === 'JOB_CANCELLED' || signal?.aborted ? 'cancelled' : 'failed';
       completedSteps.push({
         ...step,
-        status: 'failed',
+        status,
         startedAt,
         completedAt: new Date().toISOString(),
         error: {
@@ -107,6 +142,13 @@ export async function runAgentExecution({
     }
   }
 
+  await reportProgress(onProgress, {
+    stage: status === 'completed' ? 'agent_completed' : `agent_${status}`,
+    label: status === 'completed' ? '自动执行链已完成' : status === 'needs_review' ? '执行链需要人工复核' : status === 'cancelled' ? '自动执行链已取消' : '自动执行链未完成',
+    percent: status === 'completed' ? 100 : Math.min(96, 10 + (completedSteps.length / Math.max(plannedSteps.length, 1)) * 85),
+    currentStep: completedSteps.length,
+    totalSteps: plannedSteps.length,
+  });
   const run = await recordAgentRun(user.id, project.id, goal, {
     status,
     plan,
@@ -282,4 +324,16 @@ function stepPurpose(moduleId, taskType) {
 
 function hasAny(text, keywords) {
   return keywords.some((keyword) => String(text || '').includes(keyword));
+}
+
+async function reportProgress(callback, event) {
+  if (typeof callback !== 'function') return;
+  await callback({ ...event, updatedAt: new Date().toISOString() });
+}
+
+function throwIfAborted(signal) {
+  if (!signal?.aborted) return;
+  const error = new Error('任务已取消。');
+  error.code = 'JOB_CANCELLED';
+  throw error;
 }

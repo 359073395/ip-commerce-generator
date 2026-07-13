@@ -1141,6 +1141,134 @@ button:disabled {
   font-weight: 800;
 }
 
+.generation-progress {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid rgba(99, 230, 190, 0.38);
+  border-radius: 8px;
+  background: rgba(15, 42, 53, 0.82);
+}
+
+.generation-progress.completed {
+  border-color: rgba(99, 230, 190, 0.48);
+  background: rgba(11, 55, 43, 0.72);
+}
+
+.generation-progress.failed {
+  border-color: rgba(245, 201, 107, 0.48);
+  background: rgba(74, 54, 18, 0.28);
+}
+
+.generation-progress.compact {
+  margin-top: 12px;
+  padding: 12px;
+}
+
+.generation-progress-head,
+.generation-progress-title,
+.generation-progress-meta,
+.generation-progress-actions,
+.generation-elapsed {
+  display: flex;
+  align-items: center;
+}
+
+.generation-progress-head,
+.generation-progress-meta {
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.generation-progress-title {
+  min-width: 0;
+  gap: 10px;
+  color: var(--accent-2);
+}
+
+.generation-progress.failed .generation-progress-title {
+  color: var(--warn);
+}
+
+.generation-progress-title div {
+  min-width: 0;
+}
+
+.generation-progress-title strong,
+.generation-progress-title span {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.generation-progress-title strong {
+  color: #eef3ff;
+  line-height: 1.35;
+}
+
+.generation-progress-title span,
+.generation-progress-meta,
+.generation-elapsed,
+.generation-connection-note,
+.generation-error-note {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.generation-progress-title span {
+  margin-top: 3px;
+}
+
+.generation-elapsed {
+  flex: 0 0 auto;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+.generation-progress-track {
+  width: 100%;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: rgba(64, 81, 106, 0.72);
+}
+
+.generation-progress-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent-2);
+  transition: width 260ms ease;
+}
+
+.generation-progress.failed .generation-progress-track span {
+  background: var(--warn);
+}
+
+.generation-progress-meta strong {
+  flex: 0 0 auto;
+  color: #eef3ff;
+}
+
+.generation-connection-note,
+.generation-error-note {
+  margin: 0;
+}
+
+.generation-connection-note {
+  color: var(--warn);
+}
+
+.generation-error-note {
+  color: #ffd9a0;
+}
+
+.generation-progress-actions {
+  justify-content: flex-end;
+  gap: 8px;
+}
+
 .action-bar {
   display: flex;
   flex-wrap: wrap;
@@ -1759,6 +1887,23 @@ th {
   justify-self: start;
 }
 
+@media (min-width: 1200px) {
+  .original-workspace-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.18fr) minmax(390px, 0.82fr);
+    gap: 20px;
+    align-items: start;
+  }
+
+  .original-workspace-grid .result-panel {
+    position: sticky;
+    top: 80px;
+    max-height: calc(100vh - 96px);
+    margin-top: 0;
+    overflow: auto;
+  }
+}
+
 .user-list {
   display: grid;
   gap: 10px;
@@ -2082,6 +2227,14 @@ th {
   .agent-actions .primary-button,
   .agent-actions .soft-button {
     width: 100%;
+  }
+
+  .generation-progress-head {
+    align-items: flex-start;
+  }
+
+  .generation-progress-actions .soft-button {
+    flex: 1 1 0;
   }
 
   .workspace-grid {
