@@ -1,5 +1,9 @@
 import path from 'node:path';
-import { initializePrivateKnowledgeSystem } from '../server/knowledge/privateKnowledgeMigration.mjs';
+import dotenv from 'dotenv';
+
+dotenv.config({ path: process.env.APP_ENV_FILE || path.resolve(process.cwd(), '.env') });
+
+const { initializePrivateKnowledgeSystem } = await import('../server/knowledge/privateKnowledgeMigration.mjs');
 
 const args = process.argv.slice(2);
 const forceImport = args.includes('--force');

@@ -421,7 +421,11 @@ backup_private_knowledge_before_migration() {
   log "Creating a private knowledge backup before migration..."
   cp "$KNOWLEDGE_DB_PATH" "$raw_backup_path"
   chmod 600 "$raw_backup_path"
-  if ! npm run backup:private-knowledge >/tmp/${APP_NAME}-private-knowledge-backup.log 2>&1; then
+  if ! env \
+    APP_DATA_DIR="$APP_DATA_DIR" \
+    KNOWLEDGE_DB_PATH="$KNOWLEDGE_DB_PATH" \
+    KNOWLEDGE_BACKUP_DIR="$KNOWLEDGE_BACKUP_DIR" \
+    npm run backup:private-knowledge >/tmp/${APP_NAME}-private-knowledge-backup.log 2>&1; then
     cat /tmp/${APP_NAME}-private-knowledge-backup.log
     die "Private knowledge backup failed; deployment stopped before migration."
   fi
@@ -435,11 +439,18 @@ migrate_private_knowledge() {
     args+=("--force")
   fi
   log "Migrating and verifying the private knowledge database..."
-  if ! npm run migrate:private-knowledge -- "${args[@]}" >/tmp/${APP_NAME}-private-knowledge-migration.log 2>&1; then
+  if ! env \
+    APP_DATA_DIR="$APP_DATA_DIR" \
+    KNOWLEDGE_DB_PATH="$KNOWLEDGE_DB_PATH" \
+    KNOWLEDGE_BACKUP_DIR="$KNOWLEDGE_BACKUP_DIR" \
+    PRIVATE_KNOWLEDGE_REQUIRED="$PRIVATE_KNOWLEDGE_REQUIRED" \
+    PRIVATE_KNOWLEDGE_MIN_CARDS="$PRIVATE_KNOWLEDGE_MIN_CARDS" \
+    npm run migrate:private-knowledge -- "${args[@]}" >/tmp/${APP_NAME}-private-knowledge-migration.log 2>&1; then
     cat /tmp/${APP_NAME}-private-knowledge-migration.log
     die "Private knowledge migration or minimum-card verification failed."
   fi
   cat /tmp/${APP_NAME}-private-knowledge-migration.log
+  [[ -s "$KNOWLEDGE_DB_PATH" ]] || die "Migration reported success but did not create ${KNOWLEDGE_DB_PATH}."
   chown "${APP_RUN_USER}:${APP_RUN_GROUP}" "$PRIVATE_KNOWLEDGE_DIR" "$KNOWLEDGE_DB_PATH"
   chown -R "${APP_RUN_USER}:${APP_RUN_GROUP}" "$KNOWLEDGE_BACKUP_DIR"
   chmod 750 "$PRIVATE_KNOWLEDGE_DIR" "$KNOWLEDGE_BACKUP_DIR"

@@ -1,4 +1,9 @@
-import { createPrivateKnowledgeBackup, getPrivateKnowledgeDatabaseStatus } from '../server/knowledge/privateKnowledgeDatabase.mjs';
+import path from 'node:path';
+import dotenv from 'dotenv';
+
+dotenv.config({ path: process.env.APP_ENV_FILE || path.resolve(process.cwd(), '.env') });
+
+const { createPrivateKnowledgeBackup, getPrivateKnowledgeDatabaseStatus } = await import('../server/knowledge/privateKnowledgeDatabase.mjs');
 
 try {
   const backup = await createPrivateKnowledgeBackup({ kind: 'manual' });
