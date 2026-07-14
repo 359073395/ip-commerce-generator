@@ -35,11 +35,20 @@ read_env_value_from() {
   local env_file="$1"
   local key="$2"
   local value=""
-  [[ -f "$env_file" ]] || return
+  [[ -f "$env_file" ]] || return 0
   value="$(grep -E "^${key}=" "$env_file" 2>/dev/null | tail -n 1 | cut -d= -f2- || true)"
   value="${value%\"}"
   value="${value#\"}"
   printf '%s' "$value"
+}
+
+resolve_app_path() {
+  local value="$1"
+  if [[ -z "$value" || "$value" == /* ]]; then
+    printf '%s' "$value"
+    return 0
+  fi
+  printf '%s/%s' "$APP_DIR" "${value#./}"
 }
 
 stop_existing_service() {
@@ -59,11 +68,16 @@ backup_external_private_knowledge() {
     database_path="$(read_env_value_from "$env_file" KNOWLEDGE_DB_PATH)"
   fi
   database_path="${database_path:-${PRIVATE_KNOWLEDGE_DIR}/knowledge.db}"
-  [[ -s "$database_path" ]] || return
+  database_path="$(resolve_app_path "$database_path")"
+  if [[ ! -s "$database_path" ]]; then
+    log "No existing private knowledge database found; continuing with the first migration."
+    return 0
+  fi
 
   if [[ -z "$backup_dir" ]]; then
     backup_dir="$(read_env_value_from "$env_file" KNOWLEDGE_BACKUP_DIR)"
   fi
+  backup_dir="$(resolve_app_path "$backup_dir")"
   backup_dir="${backup_dir:-$(dirname "$database_path")/backups}"
   timestamp="$(date -u +%Y-%m-%dT%H-%M-%S-000Z)"
   PRE_UPGRADE_KNOWLEDGE_BACKUP="${backup_dir}/private-knowledge-pre-migration-${timestamp}.db"
@@ -160,7 +174,9 @@ run_deploy() {
 
 report_failed_upgrade() {
   local status="$?"
+  local failed_line="${1:-unknown}"
   printf '\n[github-install] Upgrade failed before completion.\n' >&2
+  printf '[github-install] Failure occurred near installer line %s.\n' "$failed_line" >&2
   if [[ -z "$APP_BACKUP_DIR" ]] && systemctl cat "${SERVICE_NAME}.service" >/dev/null 2>&1; then
     systemctl start "$SERVICE_NAME" >/dev/null 2>&1 || true
   fi
@@ -175,7 +191,7 @@ report_failed_upgrade() {
 }
 
 main() {
-  trap report_failed_upgrade ERR
+  trap 'report_failed_upgrade "$LINENO"' ERR
   need_root
   install_base_packages
   download_repo
