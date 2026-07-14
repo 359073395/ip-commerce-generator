@@ -15,6 +15,7 @@ PRIVATE_KNOWLEDGE_DIR="${PRIVATE_KNOWLEDGE_DIR:-/opt/ip-commerce-private}"
 APP_BACKUP_DIR=""
 PRESERVED_LEGACY_KNOWLEDGE_DIR=""
 PRE_UPGRADE_KNOWLEDGE_BACKUP=""
+FAILED_APP_DIR=""
 
 log() {
   printf '\n[github-install] %s\n' "$*"
@@ -177,11 +178,27 @@ report_failed_upgrade() {
   local failed_line="${1:-unknown}"
   printf '\n[github-install] Upgrade failed before completion.\n' >&2
   printf '[github-install] Failure occurred near installer line %s.\n' "$failed_line" >&2
-  if [[ -z "$APP_BACKUP_DIR" ]] && systemctl cat "${SERVICE_NAME}.service" >/dev/null 2>&1; then
-    systemctl start "$SERVICE_NAME" >/dev/null 2>&1 || true
-  fi
-  if [[ -n "$APP_BACKUP_DIR" ]]; then
+  if [[ -n "$APP_BACKUP_DIR" && -d "$APP_BACKUP_DIR" ]]; then
+    FAILED_APP_DIR="${APP_DIR}.failed.$(date +%Y%m%d%H%M%S)"
+    if [[ -e "$APP_DIR" ]]; then
+      if mv "$APP_DIR" "$FAILED_APP_DIR"; then
+        printf '[github-install] Failed program files preserved at: %s\n' "$FAILED_APP_DIR" >&2
+      else
+        printf '[github-install] WARNING: Could not move failed program files out of %s.\n' "$APP_DIR" >&2
+        FAILED_APP_DIR=""
+      fi
+    fi
+    if [[ ! -e "$APP_DIR" ]] && mv "$APP_BACKUP_DIR" "$APP_DIR"; then
+      printf '[github-install] Previous program restored automatically: %s\n' "$APP_DIR" >&2
+      APP_BACKUP_DIR=""
+    else
+      printf '[github-install] Previous program backup remains at: %s\n' "$APP_BACKUP_DIR" >&2
+    fi
+  elif [[ -n "$APP_BACKUP_DIR" ]]; then
     printf '[github-install] Previous program backup: %s\n' "$APP_BACKUP_DIR" >&2
+  fi
+  if systemctl cat "${SERVICE_NAME}.service" >/dev/null 2>&1; then
+    systemctl start "$SERVICE_NAME" >/dev/null 2>&1 || true
   fi
   if [[ -n "$PRE_UPGRADE_KNOWLEDGE_BACKUP" ]]; then
     printf '[github-install] Private knowledge backup: %s\n' "$PRE_UPGRADE_KNOWLEDGE_BACKUP" >&2

@@ -412,7 +412,7 @@ prepare_runtime_storage() {
 }
 
 backup_private_knowledge_before_migration() {
-  [[ -s "$KNOWLEDGE_DB_PATH" ]] || return
+  [[ -s "$KNOWLEDGE_DB_PATH" ]] || return 0
   cd "${APP_DIR}"
   local timestamp
   local raw_backup_path
@@ -521,7 +521,7 @@ open_firewall_ports() {
 }
 
 install_nginx_basic_auth() {
-  [[ "${ENABLE_NGINX_BASIC_AUTH}" == "yes" ]] || return
+  [[ "${ENABLE_NGINX_BASIC_AUTH}" == "yes" ]] || return 0
   need_root_for_system
 
   log "Installing and configuring Nginx Basic Auth..."
@@ -642,7 +642,15 @@ print_result() {
   log "Private knowledge is stored outside the program directory and is preserved during upgrades."
 }
 
+report_deploy_failure() {
+  local status="$?"
+  local failed_line="${1:-unknown}"
+  printf '\n[%s] Deployment failed near script line %s.\n' "$APP_NAME" "$failed_line" >&2
+  exit "$status"
+}
+
 main() {
+  trap 'report_deploy_failure "$LINENO"' ERR
   need_root_for_system
   install_system_packages
   install_node_if_needed
@@ -662,6 +670,7 @@ main() {
   open_firewall_ports
   run_health_checks
   print_result
+  trap - ERR
 }
 
 if [[ "${BASH_SOURCE[0]:-$0}" == "$0" ]]; then
